@@ -33,19 +33,15 @@
    └─ Mapa mental de aprendizado  
    └─ Referências rápidas
 
-6. 📊 **SUMARIO.md** (resumo)  
-   └─ Estatísticas do projeto  
-   └─ Tecnologias utilizadas
-
-7. ✅ **CHECKLIST.md** (verificação)  
+6. ✅ **CHECKLIST.md** (verificação)  
    └─ Todas as práticas implementadas
 
-8. 🏗️ **ARQUITETURA.md** (diagramas)  
+7. 🏗️ **ARQUITETURA.md** (diagramas)  
    └─ Diagrama de camadas  
    └─ Flow de requisições  
    └─ Data model
 
-9. 🎉 **ENTREGA-FINAL.md** (resumo executivo)  
+8. 🎉 **ENTREGA-FINAL.md** (resumo executivo)  
    └─ O que foi criado  
    └─ Como começar  
    └─ O que vai aprender
@@ -147,24 +143,6 @@
 
 ---
 
-## 📊 ESTATÍSTICAS
-==================
-
-| Métrica | Valor |
-|---------|-------|
-| Arquivos criados | ~30 arquivos |
-| Linhas de Código | ~850 linhas (código) |
-| Documentação | ~5000 linhas (guias) |
-| Endpoints | 6 (GET, GET/:id, POST, PUT, PATCH, DELETE) |
-| DTOs | 8 classes |
-| Validadores | 3 classes |
-| Testes | 60+ testes |
-| Padrões Demonstrados | 10+ (REST, DI, DTOs, Services, etc) |
-| Tempo para rodar | 5 minutos |
-| Tempo para aprender | 2-3 horas |
-
----
-
 ## 🛠️ TECNOLOGIAS
 ==================
 
@@ -209,14 +187,14 @@
 ## 🚀 COMO COMEÇAR
 ==================
 
-**Opção 1: Rápido (5 minutos)**
+**Opção 1: Rápido**
 ```bash
 cd net-minimal-api
 dotnet run
 # Abra: http://localhost:5000
 ```
 
-**Opção 2: Aprender (2-3 horas)**
+**Opção 2: Aprender**
 1. Leia: `docs/MELHORES-PRATICAS-API.md`
 2. Leia: `docs/MELHORES-PRATICAS-MINIMAL-API.md`
 3. Execute: `dotnet run`
@@ -249,7 +227,6 @@ net-minimal-api/
 │   ├── ARQUITETURA.md
 │   ├── INICIO-RAPIDO.md
 │   ├── INDEX.md
-│   ├── SUMARIO.md
 │   ├── CHECKLIST.md
 │   └── ENTREGA-FINAL.md
 │
@@ -273,18 +250,6 @@ net-minimal-api/
 ```
 
 ---
-
-## 🎯 RESULTADO FINAL
-====================
-
-✅ **COMPLETO**:     Todos os arquivos criados e funcionais  
-✅ **DIDÁTICO**:     Comentários referenciando o guia teórico  
-✅ **PRÁTICO**:      Código executável imediatamente  
-✅ **TESTADO**:      60+ testes automatizados passando  
-✅ **DOCUMENTADO**:  10 guias + diagramas + exemplos  
-✅ **EXTENSÍVEL**:   Fácil adicionar novos features  
-✅ **PROFISSIONAL**: Padrões de mercado implementados  
-
 ═══════════════════════════════════════════════════════════
 
 **PRONTO PARA COMEÇAR!**
@@ -296,11 +261,4 @@ net-minimal-api/
 
 Ou comece lendo: `docs/INICIO-RAPIDO.md`
 
-═══════════════════════════════════════════════════════════
 
-**Data**: 25 de fevereiro de 2025  
-**Versão**: 2.0.0  
-**Framework**: .NET 10 LTS  
-**Padrão**: Minimal API + REST  
-
-**Status**: ✅ COMPLETO E PRONTO PARA USO

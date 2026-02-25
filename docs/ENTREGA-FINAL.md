@@ -2,16 +2,7 @@
 
 ## ✅ O Que Foi Criado
 
-Um **projeto exemplo completo e didático** demonstrando as melhores práticas de API REST em .NET 10 com Minimal API.
-
-### 📊 Números
-
-- **8 Documentos** (Markdown + exemplos)
-- **10 Arquivos de Código-Fonte** (~850 linhas de C#)
-- **~21 Arquivos Totais**
-- **6 Endpoints RESTful** completos
-- **100% Comentado** com referências cruzadas
-- **Pronto para Executar** em 5 minutos
+Um **projeto exemplo ** demonstrando as melhores práticas de API REST em .NET 10 com Minimal API.
 
 ---
 

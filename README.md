@@ -84,7 +84,6 @@ net-minimal-api/
 │   ├── ARQUITETURA.md                    # Diagramas de arquitetura
 │   ├── INICIO-RAPIDO.md                  # Quick start
 │   ├── INDEX.md                          # Índice completo
-│   ├── SUMARIO.md                        # Resumo do projeto
 │   ├── CHECKLIST.md                      # Verificação de práticas
 │   └── ENTREGA-FINAL.md                  # Resumo executivo
 │
@@ -166,8 +165,7 @@ dotnet test --verbosity detailed
    - [ARQUITETURA.md](./docs/ARQUITETURA.md) - Diagramas de arquitetura
    - [INICIO-RAPIDO.md](./docs/INICIO-RAPIDO.md) - Quick start guide
    - [INDEX.md](./docs/INDEX.md) - Índice completo
-   - [SUMARIO.md](./docs/SUMARIO.md) - Resumo do projeto
-
+ 
 ---
 
 ## 🛠️ Stack Técnico
