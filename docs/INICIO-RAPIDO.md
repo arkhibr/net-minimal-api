@@ -64,7 +64,7 @@ Instale [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 ### Passo 1: Restaurar Dependências
 
 ```bash
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 dotnet restore
 ```
 

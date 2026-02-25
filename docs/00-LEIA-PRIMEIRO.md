@@ -211,7 +211,7 @@
 
 **Opção 1: Rápido (5 minutos)**
 ```bash
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 dotnet run
 # Abra: http://localhost:5000
 ```
@@ -234,7 +234,7 @@ dotnet run
 ====================
 
 ```
-/Users/marco.mendes/code/net-minimal-api/
+net-minimal-api/
 │
 ├── README.md                      [Guia principal]
 ├── Program.cs                     [Configuração central]
@@ -289,7 +289,7 @@ dotnet run
 
 **PRONTO PARA COMEÇAR!**
 
-1. Abra o terminal em: `/Users/marco.mendes/code/net-minimal-api`
+1. Abra o terminal em: `net-minimal-api`
 2. Execute: `dotnet run`
 3. Abra: `http://localhost:5000`
 4. Explore a documentação em `docs/`

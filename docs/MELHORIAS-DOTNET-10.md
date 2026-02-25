@@ -315,7 +315,7 @@ O projeto inclui testes abrangentes validando:
 
 ### Build the Project
 ```bash
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 dotnet build -c Release
 ```
 

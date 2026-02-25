@@ -28,7 +28,7 @@ Fornecer um recurso abrangente incluindo:
 
 ```bash
 # 1. Clone ou navegue para o diretório do projeto
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 
 # 2. Restaurar dependências
 dotnet restore

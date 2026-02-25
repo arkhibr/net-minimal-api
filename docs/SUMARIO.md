@@ -268,7 +268,7 @@ src/
 
 ### Opção 1: Rápido (5 minutos)
 ```bash
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 dotnet run
 # Abra: http://localhost:5000
 ```

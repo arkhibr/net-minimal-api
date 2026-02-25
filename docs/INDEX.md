@@ -98,7 +98,7 @@ Tudo quanto você precisa para começar em 5 minutos:
 ### 📄 Program.cs (Raiz)
 **Arquivo principal de configuração**
 
-Localização: `/Users/marco.mendes/code/net-minimal-api/Program.cs`
+Localização: `Program.cs`
 
 Configurações:
 - Logging com Serilog

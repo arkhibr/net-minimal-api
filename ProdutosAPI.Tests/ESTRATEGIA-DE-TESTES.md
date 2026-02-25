@@ -160,7 +160,7 @@ Testa regras de negócio com **20+ casos de teste** para validadores.
 
 ### **Executar Todos os Testes**
 ```bash
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 dotnet test
 ```
 

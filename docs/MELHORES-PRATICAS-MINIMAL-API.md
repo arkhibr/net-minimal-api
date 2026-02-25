@@ -756,7 +756,7 @@ public async Task ListarProdutos_DeveRetornarPaginado()
 1. **Clonar/Abrir projeto**
 
 ```bash
-cd /Users/marco.mendes/code/net-minimal-api
+cd net-minimal-api
 ```
 
 2. **Restaurar dependências**
