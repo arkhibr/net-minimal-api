@@ -73,7 +73,7 @@ PATCH  /api/v1/produtos/{id}         → Atualizar parcial
 DELETE /api/v1/produtos/{id}         → Deletar
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L15-L20)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L15-L20)
 
 #### ✅ Operações Padrão HTTP
 
@@ -103,7 +103,7 @@ group.MapDelete("/{id}", DeletarProduto)
     .Produces(StatusCodes.Status204NoContent);
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L29-L60)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L29-L60)
 
 #### ✅ Representação Padronizada
 
@@ -128,7 +128,7 @@ public class ProdutoResponse
 }
 ```
 
-**Implementação**: [src/DTOs/ProdutoDTO.cs](src/DTOs/ProdutoDTO.cs#L25)
+**Implementação**: [src/DTOs/ProdutoDTO.cs](../src/DTOs/ProdutoDTO.cs#L25)
 
 #### ✅ Statelessness
 
@@ -153,7 +153,7 @@ private static async Task<IResult> ListarProdutos(
 }
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L70-L80)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L70-L80)
 
 ---
 
@@ -178,7 +178,7 @@ GET /api/v1/produtos?status=produto-ativo
 // GET /api/v1/deletar-produto/123
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L14-L15)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L14-L15)
 
 #### ✅ Paginação
 
@@ -200,9 +200,9 @@ GET /api/v1/produtos?page=1&pageSize=20&sortBy=nome
 }
 ```
 
-**Implementação da resposta**: [src/DTOs/ProdutoDTO.cs](src/DTOs/ProdutoDTO.cs#L46-L57)
+**Implementação da resposta**: [src/DTOs/ProdutoDTO.cs](../src/DTOs/ProdutoDTO.cs#L46-L57)
 
-**Implementação do endpoint**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L70-L86)
+**Implementação do endpoint**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L70-L86)
 
 **Implementação do serviço**:
 
@@ -239,7 +239,7 @@ public async Task<PaginatedResponse<ProdutoResponse>> ListarProdutosAsync(
 }
 ```
 
-**Implementação**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L32-L75)
+**Implementação**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L32-L75)
 
 #### ✅ Filtros e Busca
 
@@ -262,7 +262,7 @@ if (!string.IsNullOrEmpty(search))
 }
 ```
 
-**Implementação**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L48-L55)
+**Implementação**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L48-L55)
 
 ---
 
@@ -280,7 +280,7 @@ const string BaseRoute = "/api/v1/produtos";
 // Fácil evoluir para /api/v2/ no futuro
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L14)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L14)
 
 #### ✅ Versionamento Semântico do Projeto
 
@@ -328,7 +328,7 @@ public class CriarProdutoValidator : AbstractValidator<CriarProdutoRequest>
 }
 ```
 
-**Implementação do validador**: [src/Validators/ProdutoValidator.cs](src/Validators/ProdutoValidator.cs)
+**Implementação do validador**: [src/Validators/ProdutoValidator.cs](../src/Validators/ProdutoValidator.cs)
 
 **Uso no endpoint**:
 
@@ -350,7 +350,7 @@ private static async Task<IResult> CriarProduto(
 }
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L125-L145)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L125-L145)
 
 #### ✅ Proteção contra SQL Injection
 
@@ -369,7 +369,7 @@ var produtos = await _context.Produtos
 //     $"SELECT * FROM Produtos WHERE Nome LIKE '%{search}%'");
 ```
 
-**Implementação**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L48)
+**Implementação**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L48)
 
 #### ✅ CORS Configurado
 
@@ -417,7 +417,7 @@ public class Produto
 }
 ```
 
-**Implementação**: [src/Models/Produto.cs](src/Models/Produto.cs)
+**Implementação**: [src/Models/Produto.cs](../src/Models/Produto.cs)
 
 #### ✅ Mensagens de Erro de Validação
 
@@ -432,7 +432,7 @@ public class Produto
 }
 ```
 
-**Implementação**: [src/Middleware/ExceptionHandlingMiddleware.cs](src/Middleware/ExceptionHandlingMiddleware.cs#L47-L60)
+**Implementação**: [src/Middleware/ExceptionHandlingMiddleware.cs](../src/Middleware/ExceptionHandlingMiddleware.cs#L47-L60)
 
 #### ✅ Sanitização
 
@@ -448,7 +448,7 @@ RuleFor(p => p.ContatoEmail)
     .WithMessage("Email de contato inválido");
 ```
 
-**Implementação**: [src/Common/MappingProfile.cs](src/Common/MappingProfile.cs)
+**Implementação**: [src/Common/MappingProfile.cs](../src/Common/MappingProfile.cs)
 
 ---
 
@@ -477,7 +477,7 @@ Results.UnprocessableEntity(...) // 422
 // Middleware captura e retorna 500
 ```
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L88-L180)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L88-L180)
 
 #### ✅ Respostas de Erro Padronizadas
 
@@ -512,7 +512,7 @@ public class ErrorResponse
 }
 ```
 
-**Implementação**: [src/Middleware/ExceptionHandlingMiddleware.cs](src/Middleware/ExceptionHandlingMiddleware.cs#L35-L75)
+**Implementação**: [src/Middleware/ExceptionHandlingMiddleware.cs](../src/Middleware/ExceptionHandlingMiddleware.cs#L35-L75)
 
 #### ✅ Middleware Global de Tratamento de Erros
 
@@ -538,7 +538,7 @@ public class ExceptionHandlingMiddleware
 app.UseExceptionHandling();
 ```
 
-**Implementação**: [src/Middleware/ExceptionHandlingMiddleware.cs](src/Middleware/ExceptionHandlingMiddleware.cs)
+**Implementação**: [src/Middleware/ExceptionHandlingMiddleware.cs](../src/Middleware/ExceptionHandlingMiddleware.cs)
 
 ---
 
@@ -584,7 +584,7 @@ group.MapGet("/", ListarProdutos)
 
 **Acesso**: http://localhost:5000 (Swagger UI)
 
-**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L22-L27)
+**Implementação**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L22-L27)
 
 #### ✅ XML Comments
 
@@ -604,7 +604,7 @@ public class Produto
 }
 ```
 
-**Implementação**: [src/Models/Produto.cs](src/Models/Produto.cs#L1)
+**Implementação**: [src/Models/Produto.cs](../src/Models/Produto.cs#L1)
 
 ---
 
@@ -622,7 +622,7 @@ if (pageSize < 1 || pageSize > 100) pageSize = 20;
 int pageSize = 20
 ```
 
-**Implementação**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L41-L42)
+**Implementação**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L41-L42)
 
 #### ✅ Async/Await
 
@@ -636,7 +636,7 @@ public async Task<PaginatedResponse<ProdutoResponse>> ListarProdutosAsync(...)
 }
 ```
 
-**Implementação**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L32)
+**Implementação**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L32)
 
 #### ✅ Índices de Banco de Dados
 
@@ -649,7 +649,7 @@ entity.HasIndex(p => p.Categoria)
     .HasName("idx_produto_categoria");
 ```
 
-**Implementação**: [src/Data/AppDbContext.cs](src/Data/AppDbContext.cs#L26-L30)
+**Implementação**: [src/Data/AppDbContext.cs](../src/Data/AppDbContext.cs#L26-L30)
 
 ---
 
@@ -690,7 +690,7 @@ _logger.LogWarning("Produto com ID {ProductId} não encontrado", id);
 _logger.LogError(ex, "Erro ao listar produtos");
 ```
 
-**Implementação**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L34)
+**Implementação**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L34)
 
 #### ✅ Correlação de Requisições
 
@@ -889,16 +889,16 @@ src/
 
 | Aspecto | Documento | Implementação |
 |---------|-----------|------------------|
-| RESTful Design | [Seção 1](MELHORES-PRATICAS-API.md#princípios-fundamentais) | [Endpoints](src/Endpoints/ProdutoEndpoints.cs) |
-| HTTP Verbs | [Seção 1](MELHORES-PRATICAS-API.md#operações-padrão) | [Endpoints](src/Endpoints/ProdutoEndpoints.cs#L29-L60) |
-| Paginação | [Seção 2](MELHORES-PRATICAS-API.md#paginação) | [Service](src/Services/ProdutoService.cs#L32-L75) |
-| Versionamento | [Seção 3](MELHORES-PRATICAS-API.md#versionamento) | [Routes](src/Endpoints/ProdutoEndpoints.cs#L14) |
-| Segurança | [Seção 4](MELHORES-PRATICAS-API.md#segurança) | [Validators](src/Validators/ProdutoValidator.cs) |
-| Validação | [Seção 5](MELHORES-PRATICAS-API.md#validação-de-dados) | [Validators](src/Validators/ProdutoValidator.cs) |
-| Erros | [Seção 6](MELHORES-PRATICAS-API.md#tratamento-de-erros) | [Middleware](src/Middleware/ExceptionHandlingMiddleware.cs) |
+| RESTful Design | [Seção 1](MELHORES-PRATICAS-API.md#princípios-fundamentais) | [Endpoints](../src/Endpoints/ProdutoEndpoints.cs) |
+| HTTP Verbs | [Seção 1](MELHORES-PRATICAS-API.md#operações-padrão) | [Endpoints](../src/Endpoints/ProdutoEndpoints.cs#L29-L60) |
+| Paginação | [Seção 2](MELHORES-PRATICAS-API.md#paginação) | [Service](../src/Services/ProdutoService.cs#L32-L75) |
+| Versionamento | [Seção 3](MELHORES-PRATICAS-API.md#versionamento) | [Routes](../src/Endpoints/ProdutoEndpoints.cs#L14) |
+| Segurança | [Seção 4](MELHORES-PRATICAS-API.md#segurança) | [Validators](../src/Validators/ProdutoValidator.cs) |
+| Validação | [Seção 5](MELHORES-PRATICAS-API.md#validação-de-dados) | [Validators](../src/Validators/ProdutoValidator.cs) |
+| Erros | [Seção 6](MELHORES-PRATICAS-API.md#tratamento-de-erros) | [Middleware](../src/Middleware/ExceptionHandlingMiddleware.cs) |
 | Documentação | [Seção 7](MELHORES-PRATICAS-API.md#documentação) | [Program.cs](Program.cs#L80-L100) |
-| Performance | [Seção 8](MELHORES-PRATICAS-API.md#performance) | [Service](src/Services/ProdutoService.cs#L41) |
-| Logging | [Seção 9](MELHORES-PRATICAS-API.md#logging-e-monitoramento) | [Service](src/Services/ProdutoService.cs#L34) |
+| Performance | [Seção 8](MELHORES-PRATICAS-API.md#performance) | [Service](../src/Services/ProdutoService.cs#L41) |
+| Logging | [Seção 9](MELHORES-PRATICAS-API.md#logging-e-monitoramento) | [Service](../src/Services/ProdutoService.cs#L34) |
 
 ---
 

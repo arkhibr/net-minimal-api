@@ -14,15 +14,15 @@ Escolha seu camino de aprendizado:
 1. Leia: [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) (30min)
 2. Leia: [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) (30min)
 3. Execute: `dotnet run` (5min)
-4. Teste endpoints usando [README.md](README.md) (30min)
+4. Teste endpoints usando [README.md](../README.md) (30min)
 5. Explore código clicando nos links (1-2h)
 
 ### 🏗️ **Profundo (Completo)**
 1. [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) - Teoria
 2. [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) - Implementação  
-3. [README.md](README.md) - Como usar
+3. [README.md](../README.md) - Como usar
 4. Cada arquivo de código (veja estrutura abaixo)
-5. [ProdutosAPI.Tests/](ProdutosAPI.Tests/) - Como testar
+5. [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) - Como testar
 6. [CHECKLIST.md](CHECKLIST.md) - Verificar cobertura
 
 ---
@@ -65,7 +65,7 @@ Explica exatamente como cada prática foi implementada neste projeto:
 
 ---
 
-### 3. [README.md](README.md) ⭐⭐
+### 3. [README.md](../README.md) ⭐⭐
 **Guia de Uso - PRÁTICO**
 
 Como executar e testar o projeto:
@@ -114,7 +114,7 @@ Configurações:
 
 ### 📦 src/Models/ (1 arquivo)
 
-#### [src/Models/Produto.cs](src/Models/Produto.cs)
+#### [src/Models/Produto.cs](../src/Models/Produto.cs)
 **Entidade principal do domínio**
 - 11 propriedades
 - Tipos adequados (int, string, decimal, bool, DateTime)
@@ -127,7 +127,7 @@ Configurações:
 
 ### 📨 src/DTOs/ (1 arquivo - 8 classes)
 
-#### [src/DTOs/ProdutoDTO.cs](src/DTOs/ProdutoDTO.cs)
+#### [src/DTOs/ProdutoDTO.cs](../src/DTOs/ProdutoDTO.cs)
 **Transfer Objects para dados de entrada/saída**
 
 1. **CriarProdutoRequest** - Dados para POST
@@ -143,7 +143,7 @@ Configurações:
 
 ### 🛣️ src/Endpoints/ (1 arquivo)
 
-#### [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs)
+#### [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs)
 **Mapeamento de rotas e handlers**
 
 6 Endpoints RESTful:
@@ -165,7 +165,7 @@ Cada endpoint:
 
 ### 🔧 src/Services/ (1 arquivo - Interface + Implementação)
 
-#### [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs)
+#### [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs)
 **Lógica de negócio**
 
 Interface: **IProdutoService**
@@ -190,7 +190,7 @@ Implementação:
 
 ### 💾 src/Data/ (3 arquivos)
 
-#### [src/Data/AppDbContext.cs](src/Data/AppDbContext.cs)
+#### [src/Data/AppDbContext.cs](../src/Data/AppDbContext.cs)
 **Entity Framework Core DbContext**
 
 Configurações:
@@ -200,7 +200,7 @@ Configurações:
 - Relacionamentos (pronto para expandir)
 - Default values
 
-#### [src/Data/DbSeeder.cs](src/Data/DbSeeder.cs)
+#### [src/Data/DbSeeder.cs](../src/Data/DbSeeder.cs)
 **Dados iniciais para testes**
 
 8 produtos de exemplo:
@@ -213,7 +213,7 @@ Configurações:
 - Café Gourmet 500g
 - Monitor LG UltraWide 34"
 
-#### [src/Data/Migrations/](src/Data/Migrations/)
+#### [src/Data/Migrations/](../src/Data/Migrations/)
 **Entity Framework Migrations**
 
 Arquivos:
@@ -229,7 +229,7 @@ Contém:
 
 ### ✅ src/Validators/ (1 arquivo - 3 validadores)
 
-#### [src/Validators/ProdutoValidator.cs](src/Validators/ProdutoValidator.cs)
+#### [src/Validators/ProdutoValidator.cs](../src/Validators/ProdutoValidator.cs)
 **FluentValidation para business rules**
 
 1. **CriarProdutoValidator**
@@ -253,7 +253,7 @@ Contém:
 
 ### 🛡️ src/Middleware/ (1 arquivo)
 
-#### [src/Middleware/ExceptionHandlingMiddleware.cs](src/Middleware/ExceptionHandlingMiddleware.cs)
+#### [src/Middleware/ExceptionHandlingMiddleware.cs](../src/Middleware/ExceptionHandlingMiddleware.cs)
 **Tratamento global de exceções**
 
 Captura e trata:
@@ -275,7 +275,7 @@ Sempre retorna ErrorResponse padronizada com:
 
 ### 🎯 src/Common/ (1 arquivo)
 
-#### [src/Common/MappingProfile.cs](src/Common/MappingProfile.cs)
+#### [src/Common/MappingProfile.cs](../src/Common/MappingProfile.cs)
 **Configuração AutoMapper**
 
 Mapeamentos:
@@ -287,7 +287,7 @@ Mapeamentos:
 
 ## ⚙️ Configuração
 
-### [ProdutosAPI.csproj](ProdutosAPI.csproj)
+### [ProdutosAPI.csproj](../ProdutosAPI.csproj)
 **Definição do projeto**
 
 - Framework: .NET 10.0
@@ -302,7 +302,7 @@ Principais packages:
 - Serilog (Logging)
 - AutoMapper (Mapping)
 
-### [appsettings.json](appsettings.json)
+### [appsettings.json](../appsettings.json)
 **Configurações de runtime**
 
 - Connection string SQLite
@@ -330,7 +330,7 @@ Principais packages:
 
 ## 📋 Referência e Exemplos
 
-### [ProdutosAPI.Tests/](ProdutosAPI.Tests/)
+### [ProdutosAPI.Tests/](../ProdutosAPI.Tests/)
 **Exemplos de testes unitários**
 
 Com comentários:
@@ -431,7 +431,7 @@ Após entender este projeto:
 
 3. **Adicione testes**
    - Crie projeto `dotnet new xunit --name ProdutosAPI.Tests`
-   - Use [ProdutosAPI.Tests/](ProdutosAPI.Tests/) como referência
+   - Use [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) como referência
    - Rode com `dotnet test`
 
 4. **Configure CI/CD**
@@ -452,13 +452,13 @@ Após entender este projeto:
 | Conceito | Arquivo | Seção |
 |----------|---------|-------|
 | HTTP Status Codes | [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md#-http-status-codes-corretos) | Implementação |
-| Paginação | [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs#L32-L75) | ListarProdutosAsync |
-| Validação | [src/Validators/ProdutoValidator.cs](src/Validators/ProdutoValidator.cs) | CriarProdutoValidator |
-| Mapeamento | [src/Common/MappingProfile.cs](src/Common/MappingProfile.cs) | AutoMapper config |
+| Paginação | [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs#L32-L75) | ListarProdutosAsync |
+| Validação | [src/Validators/ProdutoValidator.cs](../src/Validators/ProdutoValidator.cs) | CriarProdutoValidator |
+| Mapeamento | [src/Common/MappingProfile.cs](../src/Common/MappingProfile.cs) | AutoMapper config |
 | Logging | [Program.cs](Program.cs#L17-L33) | Serilog setup |
-| Endpoints | [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs#L29-L60) | Map methods |
-| Errors | [src/Middleware/ExceptionHandlingMiddleware.cs](src/Middleware/ExceptionHandlingMiddleware.cs#L35-L75) | Error handling |
-| EF Core | [src/Data/AppDbContext.cs](src/Data/AppDbContext.cs) | DbContext config |
+| Endpoints | [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs#L29-L60) | Map methods |
+| Errors | [src/Middleware/ExceptionHandlingMiddleware.cs](../src/Middleware/ExceptionHandlingMiddleware.cs#L35-L75) | Error handling |
+| EF Core | [src/Data/AppDbContext.cs](../src/Data/AppDbContext.cs) | DbContext config |
 
 ---
 

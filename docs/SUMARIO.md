@@ -277,7 +277,7 @@ dotnet run
 1. Leia: [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md)
 2. Leia: [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md)
 3. Execute: `dotnet run`
-4. Teste: Use exemplos de [README.md](README.md)
+4. Teste: Use exemplos de [README.md](../README.md)
 5. Explore: Clique nos links para os arquivos de código
 
 ### Opção 3: Passo a Passo (Detalhado)

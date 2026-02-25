@@ -225,7 +225,7 @@ dotnet run
    - Acesse http://localhost:5000
 
 4. **Teste** os endpoints (30min)
-   - Use exemplos do [README.md](README.md)
+   - Use exemplos do [README.md](../README.md)
    - Faça requisições
    - Observe as respostas
 
@@ -331,7 +331,7 @@ Após dominar este projeto:
 
 3. **Escreva testes**
    - Projeto xunit
-   - Use [ProdutosAPI.Tests/](ProdutosAPI.Tests/)
+   - Use [ProdutosAPI.Tests/](../ProdutosAPI.Tests/)
    - `dotnet test`
 
 4. **Configure CI/CD**
@@ -350,20 +350,20 @@ Após dominar este projeto:
 ### Documentos principais
 - **Teoria**: [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md)
 - **Prática**: [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md)
-- **Uso**: [README.md](README.md)
+- **Uso**: [README.md](../README.md)
 - **Quick**: [INICIO-RAPIDO.md](INICIO-RAPIDO.md)
 - **Índice**: [INDEX.md](INDEX.md)
 - **Arquitetura**: [ARQUITETURA.md](ARQUITETURA.md)
 
 ### Arquivos-chave de código
-- **Endpoints**: [src/Endpoints/ProdutoEndpoints.cs](src/Endpoints/ProdutoEndpoints.cs)
-- **Service**: [src/Services/ProdutoService.cs](src/Services/ProdutoService.cs)
-- **Validation**: [src/Validators/ProdutoValidator.cs](src/Validators/ProdutoValidator.cs)
-- **Setup**: [Program.cs](Program.cs)
+- **Endpoints**: [src/Endpoints/ProdutoEndpoints.cs](../src/Endpoints/ProdutoEndpoints.cs)
+- **Service**: [src/Services/ProdutoService.cs](../src/Services/ProdutoService.cs)
+- **Validation**: [src/Validators/ProdutoValidator.cs](../src/Validators/ProdutoValidator.cs)
+- **Setup**: [Program.cs](../Program.cs)
 
 ### Exemplos
-- **Testes**: [ProdutosAPI.Tests/](ProdutosAPI.Tests/)
-- **Dados**: [src/Data/DbSeeder.cs](src/Data/DbSeeder.cs)
+- **Testes**: [ProdutosAPI.Tests/](../ProdutosAPI.Tests/)
+- **Dados**: [src/Data/DbSeeder.cs](../src/Data/DbSeeder.cs)
 
 ---
 

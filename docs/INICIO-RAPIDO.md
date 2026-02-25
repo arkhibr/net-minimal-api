@@ -42,7 +42,7 @@ Este guide **prático** explica exatamente como cada conceito foi implementado n
 ---
 
 ### 3️⃣ Instruções de Execução
-**Arquivo**: [README.md](README.md)
+**Arquivo**: [README.md](../README.md)
 
 Este arquivo contém:
 
@@ -132,15 +132,15 @@ O projeto já inclui:
 
 | Conceito | Onde Encontrar |
 |----------|----------------|
-| **RESTful Design** | [Endpoints](src/Endpoints/ProdutoEndpoints.cs) |
-| **HTTP Verbs** | [Endpoints](src/Endpoints/ProdutoEndpoints.cs#L29-L60) |
-| **Paginação** | [Services](src/Services/ProdutoService.cs#L32-L75) |
-| **Validação** | [Validators](src/Validators/ProdutoValidator.cs) |
-| **Tratamento de Erros** | [Middleware](src/Middleware/ExceptionHandlingMiddleware.cs) |
-| **Logging** | [Services](src/Services/ProdutoService.cs#L34) |
-| **DTOs** | [DTOs](src/DTOs/ProdutoDTO.cs) |
+| **RESTful Design** | [Endpoints](../src/Endpoints/ProdutoEndpoints.cs) |
+| **HTTP Verbs** | [Endpoints](../src/Endpoints/ProdutoEndpoints.cs#L29-L60) |
+| **Paginação** | [Services](../src/Services/ProdutoService.cs#L32-L75) |
+| **Validação** | [Validators](../src/Validators/ProdutoValidator.cs) |
+| **Tratamento de Erros** | [Middleware](../src/Middleware/ExceptionHandlingMiddleware.cs) |
+| **Logging** | [Services](../src/Services/ProdutoService.cs#L34) |
+| **DTOs** | [DTOs](../src/DTOs/ProdutoDTO.cs) |
 | **Injeção de Dependência** | [Program.cs](Program.cs#L36-L45) |
-| **Entity Framework** | [Data](src/Data/AppDbContext.cs) |
+| **Entity Framework** | [Data](../src/Data/AppDbContext.cs) |
 | **Swagger/OpenAPI** | [Program.cs](Program.cs#L80-L100) |
 
 ---
