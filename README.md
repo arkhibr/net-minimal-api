@@ -1,4 +1,4 @@
-# ProdutosAPI - Projeto Educacional com .NET 10 e Minimal API [![.NET 10](https://img.shields.io/badge/.NET-10.0%20LTS-blue?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com)
+# ProdutosAPI - Projeto para Aprendizado com .NET 10 e Minimal API [![.NET 10](https://img.shields.io/badge/.NET-10.0%20LTS-blue?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com)
 
 ![Version](https://img.shields.io/badge/version-2.0.0-success?style=flat-square)
 ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen?style=flat-square)
