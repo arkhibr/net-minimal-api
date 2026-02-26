@@ -105,9 +105,9 @@ net-minimal-api/
 
 ### ✅ 50+ Testes Automatizados (NOVO em v2.0.0)
 
-- **16 Unit Tests** - Testa lógica de serviços com mocking
-- **18 Integration Tests** - Valida endpoints e status HTTP codes
-- **20+ Validator Tests** - Testa regras de negócio
+- **Unit Tests** - Testa lógica de serviços com mocking
+- **Integration Tests** - Valida endpoints e status HTTP codes
+- **Validator Tests** - Testa regras de negócio
 
 Execute com: `dotnet test`
 
