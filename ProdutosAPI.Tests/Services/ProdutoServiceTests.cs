@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentValidation;
+using ProdutosAPI.Tests.Builders;
 
 namespace ProdutosAPI.Tests.Services
 {
@@ -154,23 +155,19 @@ namespace ProdutosAPI.Tests.Services
     public async Task ObterProdutoAsync_WithValidId_ReturnsProduto()
     {
         // Arrange
-        var produto = new Produto
-        {
-            Id = 1,
-            Nome = "Notebook Dell",
-            Descricao = "Intel i7, 16GB RAM",
-            Preco = 5500.00m,
-            Estoque = 10,
-            Ativo = true,
-            Categoria = "Eletrônicos",
-            ContatoEmail = "dell@example.com"
-        };
+        var produto = Produto.Criar(
+            "Notebook Dell",
+            "Intel i7, 16GB RAM",
+            5500.00m,
+            "Eletrônicos",
+            10,
+            "dell@example.com").Value!;
         await _dbContext.Produtos.AddAsync(produto);
         await _dbContext.SaveChangesAsync();
 
         var response = new ProdutoResponse
         {
-            Id = 1,
+            Id = produto.Id,
             Nome = "Notebook Dell",
             Descricao = "Intel i7, 16GB RAM",
             Preco = 5500.00m,
@@ -217,16 +214,14 @@ namespace ProdutosAPI.Tests.Services
     public async Task ObterProdutoAsync_WithInactiveProduct_ReturnsNull()
     {
         // Arrange
-        var produto = new Produto
-        {
-            Id = 10,
-            Nome = "Produto Inativo",
-            Descricao = "descricao",
-            Preco = 10m,
-            Categoria = "Outros",
-            ContatoEmail = "a@b.com",
-            Ativo = false
-        };
+        var produto = Produto.Criar(
+            "Produto Inativo",
+            "descricao",
+            10m,
+            "Outros",
+            0,
+            "a@b.com").Value!;
+        produto.Desativar();
         await _dbContext.Produtos.AddAsync(produto);
         await _dbContext.SaveChangesAsync();
 
@@ -260,19 +255,6 @@ namespace ProdutosAPI.Tests.Services
             ContatoEmail = "vendor@example.com"
         };
 
-        var produto = new Produto
-        {
-            Id = 1,
-            Nome = request.Nome,
-            Descricao = request.Descricao,
-            Preco = request.Preco,
-            Categoria = request.Categoria,
-            Estoque = request.Estoque,
-            ContatoEmail = request.ContatoEmail,
-            DataCriacao = DateTime.UtcNow,
-            Ativo = true
-        };
-
         var response = new ProdutoResponse
         {
             Id = 1,
@@ -280,10 +262,6 @@ namespace ProdutosAPI.Tests.Services
             Preco = request.Preco,
             Estoque = request.Estoque
         };
-
-        _mockMapper
-            .Setup(m => m.Map<Produto>(request))
-            .Returns(produto);
 
         _mockMapper
             .Setup(m => m.Map<ProdutoResponse>(It.IsAny<Produto>()))
@@ -310,17 +288,13 @@ namespace ProdutosAPI.Tests.Services
     public async Task AtualizarProdutoAsync_WithPartialUpdate_UpdatesProduct()
     {
         // Arrange
-        var produto = new Produto
-        {
-            Id = 1,
-            Nome = "Notebook Original",
-            Descricao = "descricao",
-            Preco = 5000m,
-            Estoque = 5,
-            Categoria = "Eletrônicos",
-            ContatoEmail = "test@example.com",
-            Ativo = true
-        };
+        var produto = Produto.Criar(
+            "Notebook Original",
+            "descricao",
+            5000m,
+            "Eletrônicos",
+            5,
+            "test@example.com").Value!;
         await _dbContext.Produtos.AddAsync(produto);
         await _dbContext.SaveChangesAsync();
 
@@ -329,10 +303,7 @@ namespace ProdutosAPI.Tests.Services
             Nome = "Notebook Atualizado"
         };
 
-        var response = new ProdutoResponse { Id = 1, Nome = "Notebook Atualizado", Preco = 5000m };
-        _mockMapper
-            .Setup(m => m.Map(request, produto, typeof(AtualizarProdutoRequest), typeof(Produto)))
-            .Returns(produto);
+        var response = new ProdutoResponse { Id = produto.Id, Nome = "Notebook Atualizado", Preco = 5000m };
         _mockMapper
             .Setup(m => m.Map<ProdutoResponse>(It.IsAny<Produto>()))
             .Returns(response);
@@ -377,17 +348,13 @@ namespace ProdutosAPI.Tests.Services
     public async Task AtualizarCompletoProdutoAsync_WithValidRequest_ReplacesAllFields()
     {
         // Arrange
-        var produto = new Produto
-        {
-            Id = 1,
-            Nome = "Mouse Antigo",
-            Descricao = "Wireless",
-            Preco = 150m,
-            Categoria = "Eletrônicos",
-            Estoque = 50,
-            ContatoEmail = "old@example.com",
-            Ativo = true
-        };
+        var produto = Produto.Criar(
+            "Mouse Antigo",
+            "Wireless",
+            150m,
+            "Eletrônicos",
+            50,
+            "old@example.com").Value!;
         await _dbContext.Produtos.AddAsync(produto);
         await _dbContext.SaveChangesAsync();
 
@@ -403,21 +370,11 @@ namespace ProdutosAPI.Tests.Services
 
         var response = new ProdutoResponse
         {
-            Id = 1,
+            Id = produto.Id,
             Nome = request.Nome,
             Preco = request.Preco,
             Estoque = request.Estoque
         };
-
-        _mockMapper
-            .Setup(m => m.Map(request, produto))
-            .Callback<CriarProdutoRequest, Produto>((src, dest) =>
-            {
-                dest.Nome = src.Nome;
-                dest.Preco = src.Preco;
-                dest.Estoque = src.Estoque;
-            })
-            .Returns(produto);
 
         _mockMapper
             .Setup(m => m.Map<ProdutoResponse>(It.IsAny<Produto>()))
@@ -445,16 +402,13 @@ namespace ProdutosAPI.Tests.Services
     public async Task DeletarProdutoAsync_WithValidId_PerformsSoftDelete()
     {
         // Arrange
-        var produto = new Produto
-        {
-            Id = 1,
-            Nome = "Produto a Deletar",
-            Descricao = "desc",
-            Preco = 10m,
-            Categoria = "Outros",
-            ContatoEmail = "a@b.com",
-            Ativo = true
-        };
+        var produto = Produto.Criar(
+            "Produto a Deletar",
+            "desc",
+            10m,
+            "Outros",
+            0,
+            "a@b.com").Value!;
         await _dbContext.Produtos.AddAsync(produto);
         await _dbContext.SaveChangesAsync();
 
@@ -496,16 +450,14 @@ namespace ProdutosAPI.Tests.Services
     public async Task DeletarProdutoAsync_WithAlreadyDeletedProduct_ReturnsFalse()
     {
         // Arrange
-        var produto = new Produto
-        {
-            Id = 2,
-            Nome = "Já Deletado",
-            Descricao = "desc",
-            Preco = 10m,
-            Categoria = "Outros",
-            ContatoEmail = "a@b.com",
-            Ativo = false
-        };
+        var produto = Produto.Criar(
+            "Já Deletado",
+            "desc",
+            10m,
+            "Outros",
+            0,
+            "a@b.com").Value!;
+        produto.Desativar();
         await _dbContext.Produtos.AddAsync(produto);
         await _dbContext.SaveChangesAsync();
 
@@ -528,18 +480,14 @@ namespace ProdutosAPI.Tests.Services
         var produtos = new List<Produto>();
         for (int i = 1; i <= count; i++)
         {
-            produtos.Add(new Produto
-            {
-                Nome = $"Produto {i}",
-                Descricao = $"Descrição do Produto {i}",
-                Preco = 100m * i,
-                Categoria = "Eletrônicos",
-                Estoque = 10 * i,
-                Ativo = true,
-                ContatoEmail = $"vendor{i}@example.com",
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            });
+            var p = Produto.Criar(
+                $"Produto {i}",
+                $"Descrição do Produto {i}",
+                100m * i,
+                "Eletrônicos",
+                10 * i,
+                $"vendor{i}@example.com").Value!;
+            produtos.Add(p);
         }
         return produtos;
     }

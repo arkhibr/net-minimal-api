@@ -19,102 +19,62 @@ public static class DbSeeder
 
         var produtos = new List<Produto>
         {
-            new()
-            {
-                Nome = "Notebook Dell XPS 13",
-                Descricao = "Notebook de alta performance com processador Intel Core i7, 16GB RAM e 512GB SSD",
-                Preco = 4500.00m,
-                Categoria = "Eletrônicos",
-                Estoque = 5,
-                ContatoEmail = "vendas@dell.com",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Mouse Logitech MX Master 3S",
-                Descricao = "Mouse wireless de precisão profissional com múltiplos botões e rastreamento avançado",
-                Preco = 450.00m,
-                Categoria = "Eletrônicos",
-                Estoque = 25,
-                ContatoEmail = "suporte@logitech.com",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Teclado Mecânico RGB",
-                Descricao = "Teclado mecânico com iluminação RGB, switches Cherry MX e design compacto",
-                Preco = 350.00m,
-                Categoria = "Eletrônicos",
-                Estoque = 15,
-                ContatoEmail = "contato@keyboards.com.br",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Clean Code",
-                Descricao = "Guia prático para escrever código limpo e manutenível. Essencial para todo desenvolvedor",
-                Preco = 89.90m,
-                Categoria = "Livros",
-                Estoque = 30,
-                ContatoEmail = "vendas@books.com",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Design Patterns",
-                Descricao = "Padrões de design reutilizáveis para desenvolvimento de software. Referência obrigatória",
-                Preco = 75.00m,
-                Categoria = "Livros",
-                Estoque = 20,
-                ContatoEmail = "vendas@books.com",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Camiseta técnica Azul",
-                Descricao = "Camiseta de poliéster com tecnologia anti-transpiração, disponível em vários tamanhos",
-                Preco = 79.90m,
-                Categoria = "Roupas",
-                Estoque = 50,
-                ContatoEmail = "vendas@clothing.com.br",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Café Gourmet 500g",
-                Descricao = "Café gourmet especial com grãos selecionados de plantações premium da região",
-                Preco = 45.00m,
-                Categoria = "Alimentos",
-                Estoque = 100,
-                ContatoEmail = "vendas@coffee.com.br",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            },
-            new()
-            {
-                Nome = "Monitor LG UltraWide 34\"",
-                Descricao = "Monitor curvo ultrawide com resolução 3440x1440, ideal para produtividade e games",
-                Preco = 1899.00m,
-                Categoria = "Eletrônicos",
-                Estoque = 3,
-                ContatoEmail = "suporte@lg.com.br",
-                Ativo = true,
-                DataCriacao = DateTime.UtcNow,
-                DataAtualizacao = DateTime.UtcNow
-            }
+            Produto.Criar(
+                "Notebook Dell XPS 13",
+                "Notebook de alta performance com processador Intel Core i7, 16GB RAM e 512GB SSD",
+                4500.00m,
+                "Eletrônicos",
+                5,
+                "vendas@dell.com").Value!,
+            Produto.Criar(
+                "Mouse Logitech MX Master 3S",
+                "Mouse wireless de precisão profissional com múltiplos botões e rastreamento avançado",
+                450.00m,
+                "Eletrônicos",
+                25,
+                "suporte@logitech.com").Value!,
+            Produto.Criar(
+                "Teclado Mecânico RGB",
+                "Teclado mecânico com iluminação RGB, switches Cherry MX e design compacto",
+                350.00m,
+                "Eletrônicos",
+                15,
+                "contato@keyboards.com.br").Value!,
+            Produto.Criar(
+                "Clean Code",
+                "Guia prático para escrever código limpo e manutenível. Essencial para todo desenvolvedor",
+                89.90m,
+                "Livros",
+                30,
+                "vendas@books.com").Value!,
+            Produto.Criar(
+                "Design Patterns",
+                "Padrões de design reutilizáveis para desenvolvimento de software. Referência obrigatória",
+                75.00m,
+                "Livros",
+                20,
+                "vendas@books.com").Value!,
+            Produto.Criar(
+                "Camiseta técnica Azul",
+                "Camiseta de poliéster com tecnologia anti-transpiração, disponível em vários tamanhos",
+                79.90m,
+                "Roupas",
+                50,
+                "vendas@clothing.com.br").Value!,
+            Produto.Criar(
+                "Café Gourmet 500g",
+                "Café gourmet especial com grãos selecionados de plantações premium da região",
+                45.00m,
+                "Alimentos",
+                100,
+                "vendas@coffee.com.br").Value!,
+            Produto.Criar(
+                "Monitor LG UltraWide 34\"",
+                "Monitor curvo ultrawide com resolução 3440x1440, ideal para produtividade e games",
+                1899.00m,
+                "Eletrônicos",
+                3,
+                "suporte@lg.com.br").Value!
         };
 
         context.Produtos.AddRange(produtos);

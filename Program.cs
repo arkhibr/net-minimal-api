@@ -2,6 +2,12 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Common;
 using ProdutosAPI.Data;
+using ProdutosAPI.Features.Common;
+using ProdutosAPI.Features.Pedidos.CreatePedido;
+using ProdutosAPI.Features.Pedidos.GetPedido;
+using ProdutosAPI.Features.Pedidos.ListPedidos;
+using ProdutosAPI.Features.Pedidos.AddItemPedido;
+using ProdutosAPI.Features.Pedidos.CancelPedido;
 using ProdutosAPI.DTOs;
 using ProdutosAPI.Endpoints;
 using ProdutosAPI.Middleware;
@@ -40,12 +46,22 @@ builder.Host.UseSerilog();
 // Referência: Melhores-Praticas-API.md - Seção "Segurança - SQL Injection"
 // Using Entity Framework Core para proteção contra SQL Injection
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Data Source=produtos-api.db";
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    // Use a fixed DB name per application instance for testing
+    // The Guid is captured once in the closure, not re-evaluated per scope
+    var testDbName = "TestDb_" + Guid.NewGuid();
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseInMemoryDatabase(testDbName));
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=produtos-api.db";
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString)
-);
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
 
 // ==========================================
 // CONFIGURAÇÃO DE DEPENDENCY INJECTION
@@ -53,6 +69,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registrar serviços
 
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
+
+// Registrar slices de Pedidos via scan automático
+builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
+
+// Handlers dos slices de Pedidos
+builder.Services.AddScoped<CreatePedidoHandler>();
+builder.Services.AddScoped<GetPedidoHandler>();
+builder.Services.AddScoped<ListPedidosHandler>();
+builder.Services.AddScoped<AddItemHandler>();
+builder.Services.AddScoped<CancelPedidoHandler>();
 
 // ==========================================
 // CONFIGURAÇÃO DE VALIDAÇÃO
@@ -180,14 +206,12 @@ var app = builder.Build();
 // ==========================================
 // Aplicar migrations e popular dados iniciais
 
-using (var scope = app.Services.CreateScope())
+// Skip DB initialization in test environment — ApiFactory handles seeding
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
-    // Aplicar migrations
     dbContext.Database.Migrate();
-    
-    // Popular dados iniciais
     DbSeeder.Seed(dbContext);
 }
 
@@ -235,6 +259,9 @@ app.UseMiddleware<IdempotencyMiddleware>();
 app.MapAuthEndpoints();
 app.MapProdutoEndpoints();
 
+// Slices de Pedidos (IEndpoint)
+app.MapRegisteredEndpoints();
+
 // Health check simples
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
     .WithName("Health")
@@ -245,3 +272,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
 // ==========================================
 
 app.Run();
+
+// Required for integration tests via WebApplicationFactory
+public partial class Program { }
