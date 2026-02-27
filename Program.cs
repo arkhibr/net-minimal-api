@@ -5,6 +5,7 @@ using ProdutosAPI.Data;
 using ProdutosAPI.Features.Common;
 using ProdutosAPI.Features.Pedidos.CreatePedido;
 using ProdutosAPI.Features.Pedidos.GetPedido;
+using ProdutosAPI.Features.Pedidos.ListPedidos;
 using ProdutosAPI.DTOs;
 using ProdutosAPI.Endpoints;
 using ProdutosAPI.Middleware;
@@ -63,6 +64,7 @@ builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
 // Handlers dos slices de Pedidos
 builder.Services.AddScoped<CreatePedidoHandler>();
 builder.Services.AddScoped<GetPedidoHandler>();
+builder.Services.AddScoped<ListPedidosHandler>();
 
 // ==========================================
 // CONFIGURAÇÃO DE VALIDAÇÃO
