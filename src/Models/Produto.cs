@@ -104,4 +104,7 @@ public class Produto
         Estoque = quantidade;
         DataAtualizacao = DateTime.UtcNow;
     }
+
+    // For testing purposes only
+    internal void SetIdForTesting(int id) => Id = id;
 }

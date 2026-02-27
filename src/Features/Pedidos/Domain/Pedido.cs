@@ -34,9 +34,7 @@ public class Pedido
         if (!produto.TemEstoqueDisponivel(quantidade))
             return Result.Fail($"Produto '{produto.Nome}' sem estoque suficiente.");
 
-        var existente = produto.Id == 0
-            ? _itens.FirstOrDefault(i => i.NomeProduto == produto.Nome)
-            : _itens.FirstOrDefault(i => i.ProdutoId == produto.Id);
+        var existente = _itens.FirstOrDefault(i => i.ProdutoId == produto.Id);
         if (existente is not null)
         {
             existente.IncrementarQuantidade(quantidade);

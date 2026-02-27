@@ -24,6 +24,8 @@ public class PedidoItem
 
     internal void IncrementarQuantidade(int adicional)
     {
+        if (adicional <= 0)
+            throw new InvalidOperationException("Quantidade adicional deve ser positiva.");
         if (Quantidade + adicional > 999)
             throw new InvalidOperationException("Quantidade máxima por item é 999.");
         Quantidade += adicional;

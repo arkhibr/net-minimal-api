@@ -7,10 +7,19 @@ public static class EndpointExtensions
     public static IServiceCollection AddEndpointsFromAssembly(
         this IServiceCollection services, Assembly assembly)
     {
-        var endpointTypes = assembly
-            .GetTypes()
-            .Where(t => t is { IsAbstract: false, IsInterface: false }
-                        && t.IsAssignableTo(typeof(IEndpoint)));
+        IEnumerable<Type> endpointTypes;
+        try
+        {
+            endpointTypes = assembly
+                .GetTypes()
+                .Where(t => t is { IsAbstract: false, IsInterface: false }
+                            && t.IsAssignableTo(typeof(IEndpoint)));
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to scan assembly '{assembly.FullName}' for IEndpoint implementations.", ex);
+        }
 
         foreach (var type in endpointTypes)
             services.AddTransient(typeof(IEndpoint), type);

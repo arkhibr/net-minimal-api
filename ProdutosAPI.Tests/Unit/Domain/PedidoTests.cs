@@ -82,14 +82,16 @@ public class PedidoTests
     public void AdicionarItem_MaisDe20ItensdistintosPedido_RetornaFalha()
     {
         var pedido = Pedido.Criar();
-        for (int i = 0; i < 20; i++)
+        for (int i = 1; i <= 20; i++)
         {
-            var p = Produto.Criar($"Produto {i + 100}", "Desc", 10m, "Eletrônicos", 100, "a@b.com").Value!;
+            var p = ProdutoBuilder.Padrao().ComEstoque(100).Build();
+            p.SetIdForTesting(i);
             pedido.AdicionarItem(p, 1);
         }
-        var novo = ProdutoBuilder.Padrao().ComNome("Produto Extra XXX").Build();
+        var extra = ProdutoBuilder.Padrao().Build();
+        extra.SetIdForTesting(21);
 
-        var result = pedido.AdicionarItem(novo, 1);
+        var result = pedido.AdicionarItem(extra, 1);
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Contain("20");
