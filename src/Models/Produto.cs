@@ -100,6 +100,7 @@ public class Produto
     internal void AjustarEstoque(int quantidade)
     {
         if (quantidade < 0) throw new InvalidOperationException("Estoque não pode ser negativo.");
+        if (quantidade > EstoqueMaximo) throw new InvalidOperationException($"Estoque não pode exceder {EstoqueMaximo} unidades.");
         Estoque = quantidade;
         DataAtualizacao = DateTime.UtcNow;
     }

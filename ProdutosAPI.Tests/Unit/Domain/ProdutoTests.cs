@@ -132,4 +132,28 @@ public class ProdutoTests
         produto.Desativar();
         produto.TemEstoqueDisponivel(1).Should().BeFalse();
     }
+
+    [Fact]
+    public void AjustarEstoque_ValorValido_AtribuiEstoque()
+    {
+        var produto = ProdutoBuilder.Padrao().ComEstoque(10).Build();
+        produto.AjustarEstoque(50);
+        produto.Estoque.Should().Be(50);
+    }
+
+    [Fact]
+    public void AjustarEstoque_ValorNegativo_ThrowsException()
+    {
+        var produto = ProdutoBuilder.Padrao().Build();
+        var act = () => produto.AjustarEstoque(-1);
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void AjustarEstoque_ExcedeMaximo_ThrowsException()
+    {
+        var produto = ProdutoBuilder.Padrao().Build();
+        var act = () => produto.AjustarEstoque(100_000);
+        act.Should().Throw<InvalidOperationException>();
+    }
 }

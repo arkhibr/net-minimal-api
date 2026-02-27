@@ -232,8 +232,11 @@ public class ProdutoService : IProdutoService
                 return null;
             }
 
-            var rPreco = produto.AtualizarPreco(request.Preco);
-            if (!rPreco.IsSuccess) throw new InvalidOperationException(rPreco.Error);
+            if (request.Preco != produto.Preco)
+            {
+                var rPreco = produto.AtualizarPreco(request.Preco);
+                if (!rPreco.IsSuccess) throw new InvalidOperationException(rPreco.Error);
+            }
             produto.AjustarEstoque(request.Estoque);
             produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
 
@@ -270,7 +273,8 @@ public class ProdutoService : IProdutoService
             }
 
             // Soft delete - apenas marca como inativo
-            produto.Desativar();
+            var result = produto.Desativar();
+            if (!result.IsSuccess) return false; // already inactive
 
             await _context.SaveChangesAsync();
 
