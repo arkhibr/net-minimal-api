@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Common;
 using ProdutosAPI.Data;
 using ProdutosAPI.Features.Common;
+using ProdutosAPI.Features.Pedidos.CreatePedido;
 using ProdutosAPI.DTOs;
 using ProdutosAPI.Endpoints;
 using ProdutosAPI.Middleware;
@@ -57,6 +58,9 @@ builder.Services.AddScoped<IProdutoService, ProdutoService>();
 
 // Registrar slices de Pedidos via scan automático
 builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
+
+// Handlers dos slices de Pedidos
+builder.Services.AddScoped<CreatePedidoHandler>();
 
 // ==========================================
 // CONFIGURAÇÃO DE VALIDAÇÃO
