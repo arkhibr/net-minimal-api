@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Common;
 using ProdutosAPI.Data;
+using ProdutosAPI.Features.Common;
 using ProdutosAPI.DTOs;
 using ProdutosAPI.Endpoints;
 using ProdutosAPI.Middleware;
@@ -53,6 +54,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registrar serviços
 
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
+
+// Registrar slices de Pedidos via scan automático
+builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
 
 // ==========================================
 // CONFIGURAÇÃO DE VALIDAÇÃO
@@ -234,6 +238,9 @@ app.UseMiddleware<IdempotencyMiddleware>();
 
 app.MapAuthEndpoints();
 app.MapProdutoEndpoints();
+
+// Slices de Pedidos (IEndpoint)
+app.MapRegisteredEndpoints();
 
 // Health check simples
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
