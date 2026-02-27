@@ -7,6 +7,7 @@ using ProdutosAPI.Features.Pedidos.CreatePedido;
 using ProdutosAPI.Features.Pedidos.GetPedido;
 using ProdutosAPI.Features.Pedidos.ListPedidos;
 using ProdutosAPI.Features.Pedidos.AddItemPedido;
+using ProdutosAPI.Features.Pedidos.CancelPedido;
 using ProdutosAPI.DTOs;
 using ProdutosAPI.Endpoints;
 using ProdutosAPI.Middleware;
@@ -67,6 +68,7 @@ builder.Services.AddScoped<CreatePedidoHandler>();
 builder.Services.AddScoped<GetPedidoHandler>();
 builder.Services.AddScoped<ListPedidosHandler>();
 builder.Services.AddScoped<AddItemHandler>();
+builder.Services.AddScoped<CancelPedidoHandler>();
 
 // ==========================================
 // CONFIGURAÇÃO DE VALIDAÇÃO
