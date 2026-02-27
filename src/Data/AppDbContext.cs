@@ -32,10 +32,10 @@ public class AppDbContext : DbContext
             // Índices para melhor performance
             // Referência: Melhores-Praticas-API.md - Seção "Performance"
             entity.HasIndex(p => p.Ativo)
-                .HasName("idx_produto_ativo");
-            
+                .HasDatabaseName("idx_produto_ativo");
+
             entity.HasIndex(p => p.Categoria)
-                .HasName("idx_produto_categoria");
+                .HasDatabaseName("idx_produto_categoria");
 
             // Configuração de propriedades
             entity.Property(p => p.Nome)

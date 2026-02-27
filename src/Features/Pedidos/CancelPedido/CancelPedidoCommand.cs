@@ -5,6 +5,8 @@ using ProdutosAPI.Features.Pedidos.Common;
 
 namespace ProdutosAPI.Features.Pedidos.CancelPedido;
 
+public record CancelPedidoRequest(string Motivo);
+
 public record CancelPedidoCommand(int PedidoId, string Motivo);
 
 public class CancelPedidoHandler(AppDbContext db)

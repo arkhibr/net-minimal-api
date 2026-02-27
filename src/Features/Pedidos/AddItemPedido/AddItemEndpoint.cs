@@ -22,15 +22,20 @@ public class AddItemEndpoint : IEndpoint
             var cmd = new AddItemCommand(id, request.ProdutoId, request.Quantidade);
             var result = await handler.HandleAsync(cmd, ct);
 
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.BadRequest(new { error = result.Error });
+            if (!result.IsSuccess)
+            {
+                return result.Error!.Contains("não encontrado", StringComparison.OrdinalIgnoreCase)
+                    ? Results.NotFound(new { error = result.Error })
+                    : Results.BadRequest(new { error = result.Error });
+            }
+            return Results.Ok(result.Value);
         })
         .WithName("AdicionarItemPedido")
         .WithTags("Pedidos")
         .WithSummary("Adicionar item a pedido em rascunho")
         .Produces<PedidoResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status422UnprocessableEntity)
         .RequireAuthorization();
     }

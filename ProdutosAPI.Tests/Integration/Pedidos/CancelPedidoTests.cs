@@ -26,14 +26,14 @@ public class CancelPedidoTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task POST_Cancelar_PedidoInexistente_Retorna400()
+    public async Task POST_Cancelar_PedidoInexistente_Retorna404()
     {
         await AuthenticateAsync();
 
         var response = await _client.PostAsJsonAsync("/api/v1/pedidos/99999/cancelar",
             new CancelPedidoRequest("Teste"));
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]

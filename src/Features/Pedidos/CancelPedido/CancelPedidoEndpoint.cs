@@ -16,17 +16,20 @@ public class CancelPedidoEndpoint : IEndpoint
             var cmd = new CancelPedidoCommand(id, request.Motivo);
             var result = await handler.HandleAsync(cmd, ct);
 
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.BadRequest(new { error = result.Error });
+            if (!result.IsSuccess)
+            {
+                return result.Error!.Contains("não encontrado", StringComparison.OrdinalIgnoreCase)
+                    ? Results.NotFound(new { error = result.Error })
+                    : Results.BadRequest(new { error = result.Error });
+            }
+            return Results.Ok(result.Value);
         })
         .WithName("CancelarPedido")
         .WithTags("Pedidos")
         .WithSummary("Cancelar pedido")
         .Produces<PedidoResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound)
         .RequireAuthorization();
     }
 }
-
-public record CancelPedidoRequest(string Motivo);

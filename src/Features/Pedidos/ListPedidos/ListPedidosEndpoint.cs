@@ -15,7 +15,9 @@ public class ListPedidosEndpoint : IEndpoint
         {
             var result = await handler.HandleAsync(
                 new ListPedidosQuery(page, pageSize, status), ct);
-            return Results.Ok(result.Value);
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.Problem("Erro ao listar pedidos.");
         })
         .WithName("ListarPedidos")
         .WithTags("Pedidos")
