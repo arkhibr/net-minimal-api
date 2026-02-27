@@ -14,12 +14,5 @@ public class MappingProfile : Profile
     {
         // Mapeamento de Produto para ProdutoResponse
         CreateMap<Produto, ProdutoResponse>();
-
-        // Mapeamento de CriarProdutoRequest para Produto
-        CreateMap<CriarProdutoRequest, Produto>();
-
-        // Mapeamento de AtualizarProdutoRequest para Produto (ignorando campos nulos)
-        CreateMap<AtualizarProdutoRequest, Produto>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

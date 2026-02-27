@@ -43,9 +43,9 @@ public class ProdutoService : IProdutoService
     /// Referência: Melhores-Praticas-API.md - Seção "Paginação"
     /// </summary>
     public async Task<PaginatedResponse<ProdutoResponse>> ListarProdutosAsync(
-        int page, 
-        int pageSize, 
-        string? categoria = null, 
+        int page,
+        int pageSize,
+        string? categoria = null,
         string? search = null)
     {
         try
@@ -149,9 +149,12 @@ public class ProdutoService : IProdutoService
         {
             _logger.LogInformation("Criando novo produto: {ProdutoNome}", request.Nome);
 
-            var produto = _mapper.Map<Produto>(request);
-            produto.DataCriacao = DateTime.UtcNow;
-            produto.DataAtualizacao = DateTime.UtcNow;
+            var resultado = Produto.Criar(
+                request.Nome, request.Descricao, request.Preco,
+                request.Categoria, request.Estoque, request.ContatoEmail);
+            if (!resultado.IsSuccess)
+                throw new InvalidOperationException(resultado.Error);
+            var produto = resultado.Value!;
 
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
@@ -186,11 +189,17 @@ public class ProdutoService : IProdutoService
                 return null;
             }
 
-            // Mapear apenas os campos fornecidos
-            _mapper.Map(request, produto, typeof(AtualizarProdutoRequest), typeof(Produto));
-            
-            produto.DataAtualizacao = DateTime.UtcNow;
-            
+            if (request.Preco.HasValue)
+            {
+                var r = produto.AtualizarPreco(request.Preco.Value);
+                if (!r.IsSuccess) throw new InvalidOperationException(r.Error);
+            }
+            if (request.Estoque.HasValue)
+            {
+                produto.AjustarEstoque(request.Estoque.Value);
+            }
+            produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
+
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Produto com ID {ProductId} atualizado com sucesso", id);
@@ -223,8 +232,10 @@ public class ProdutoService : IProdutoService
                 return null;
             }
 
-            _mapper.Map(request, produto);
-            produto.DataAtualizacao = DateTime.UtcNow;
+            var rPreco = produto.AtualizarPreco(request.Preco);
+            if (!rPreco.IsSuccess) throw new InvalidOperationException(rPreco.Error);
+            produto.AjustarEstoque(request.Estoque);
+            produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
 
             await _context.SaveChangesAsync();
 
@@ -259,8 +270,7 @@ public class ProdutoService : IProdutoService
             }
 
             // Soft delete - apenas marca como inativo
-            produto.Ativo = false;
-            produto.DataAtualizacao = DateTime.UtcNow;
+            produto.Desativar();
 
             await _context.SaveChangesAsync();
 

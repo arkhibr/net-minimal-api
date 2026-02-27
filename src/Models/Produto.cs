@@ -1,66 +1,106 @@
+using ProdutosAPI.Features.Common;
+
 namespace ProdutosAPI.Models;
 
-/// <summary>
-/// Entidade Produto
-/// Referência: Melhores-Praticas-API.md - Seção "Design de Endpoints"
-/// Representa um produto no sistema
-/// </summary>
 public class Produto
 {
-    /// <summary>
-    /// Identificador único do produto (PK)
-    /// </summary>
-    public int Id { get; set; }
+    public static readonly decimal PrecoMinimo = 0.01m;
+    public static readonly int EstoqueMaximo = 99_999;
 
-    /// <summary>
-    /// Nome do produto
-    /// Validação: Obrigatório, mínimo 3 caracteres
-    /// </summary>
-    public string Nome { get; set; } = string.Empty;
+    private Produto() { }
 
-    /// <summary>
-    /// Descrição detalhada do produto
-    /// </summary>
-    public string Descricao { get; set; } = string.Empty;
+    public int Id { get; private set; }
+    public string Nome { get; private set; } = "";
+    public string Descricao { get; private set; } = "";
+    public decimal Preco { get; private set; }
+    public string Categoria { get; private set; } = "";
+    public int Estoque { get; private set; }
+    public bool Ativo { get; private set; } = true;
+    public string ContatoEmail { get; private set; } = "";
+    public DateTime DataCriacao { get; private set; }
+    public DateTime DataAtualizacao { get; private set; }
 
-    /// <summary>
-    /// Preço do produto em reais
-    /// Validação: Deve ser maior que 0
-    /// </summary>
-    public decimal Preco { get; set; }
+    public static Result<Produto> Criar(
+        string nome, string descricao, decimal preco,
+        string categoria, int estoque, string email)
+    {
+        if (string.IsNullOrWhiteSpace(nome) || nome.Length < 3)
+            return Result<Produto>.Fail("Nome deve ter ao menos 3 caracteres.");
+        if (preco < PrecoMinimo)
+            return Result<Produto>.Fail("Preço deve ser maior que zero.");
+        if (estoque < 0)
+            return Result<Produto>.Fail("Estoque não pode ser negativo.");
+        if (string.IsNullOrWhiteSpace(email))
+            return Result<Produto>.Fail("Email de contato é obrigatório.");
 
-    /// <summary>
-    /// Categoria do produto
-    /// Exemplos: "Eletrônicos", "Livros", "Roupas"
-    /// </summary>
-    public string Categoria { get; set; } = string.Empty;
+        var agora = DateTime.UtcNow;
+        return Result<Produto>.Ok(new Produto
+        {
+            Nome = nome,
+            Descricao = descricao,
+            Preco = preco,
+            Categoria = categoria,
+            Estoque = estoque,
+            ContatoEmail = email,
+            Ativo = true,
+            DataCriacao = agora,
+            DataAtualizacao = agora
+        });
+    }
 
-    /// <summary>
-    /// Quantidade em estoque
-    /// Validação: Não pode ser negativo
-    /// </summary>
-    public int Estoque { get; set; }
+    public Result AtualizarPreco(decimal novoPreco)
+    {
+        if (novoPreco < PrecoMinimo)
+            return Result.Fail("Preço deve ser maior que zero.");
+        if (novoPreco == Preco)
+            return Result.Fail("Novo preço é igual ao preço atual.");
+        Preco = novoPreco;
+        DataAtualizacao = DateTime.UtcNow;
+        return Result.Ok();
+    }
 
-    /// <summary>
-    /// Status do produto (Ativo/Inativo)
-    /// Referência: Melhores-Praticas-API.md - Seção "RESTful Design"
-    /// Permite soft delete mantendo integridade referencial
-    /// </summary>
-    public bool Ativo { get; set; } = true;
+    public Result AtualizarDados(
+        string? nome = null, string? descricao = null,
+        string? categoria = null, string? email = null)
+    {
+        if (nome is not null)
+        {
+            if (nome.Length < 3) return Result.Fail("Nome deve ter ao menos 3 caracteres.");
+            Nome = nome;
+        }
+        if (descricao is not null) Descricao = descricao;
+        if (categoria is not null) Categoria = categoria;
+        if (email is not null) ContatoEmail = email;
+        DataAtualizacao = DateTime.UtcNow;
+        return Result.Ok();
+    }
 
-    /// <summary>
-    /// Email de contato do fabricante/fornecedor
-    /// Validação: Formato de email válido
-    /// </summary>
-    public string ContatoEmail { get; set; } = string.Empty;
+    public Result ReporEstoque(int quantidade)
+    {
+        if (quantidade <= 0)
+            return Result.Fail("Quantidade de reposição deve ser positiva.");
+        if (Estoque + quantidade > EstoqueMaximo)
+            return Result.Fail($"Estoque não pode exceder {EstoqueMaximo} unidades.");
+        Estoque += quantidade;
+        DataAtualizacao = DateTime.UtcNow;
+        return Result.Ok();
+    }
 
-    /// <summary>
-    /// Data de criação do registro
-    /// </summary>
-    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
+    public Result Desativar()
+    {
+        if (!Ativo)
+            return Result.Fail("Produto já está inativo.");
+        Ativo = false;
+        DataAtualizacao = DateTime.UtcNow;
+        return Result.Ok();
+    }
 
-    /// <summary>
-    /// Data da última atualização
-    /// </summary>
-    public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
+    public bool TemEstoqueDisponivel(int qtd) => Ativo && Estoque >= qtd;
+
+    internal void AjustarEstoque(int quantidade)
+    {
+        if (quantidade < 0) throw new InvalidOperationException("Estoque não pode ser negativo.");
+        Estoque = quantidade;
+        DataAtualizacao = DateTime.UtcNow;
+    }
 }

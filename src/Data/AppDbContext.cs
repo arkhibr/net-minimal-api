@@ -57,6 +57,17 @@ public class AppDbContext : DbContext
 
             entity.Property(p => p.Ativo)
                 .HasDefaultValue(true);
+
+            // Permite EF Core ler/escrever em propriedades com private setters
+            entity.Property(p => p.Nome).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.Descricao).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.Preco).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.Categoria).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.Estoque).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.Ativo).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.ContatoEmail).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.DataCriacao).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(p => p.DataAtualizacao).UsePropertyAccessMode(PropertyAccessMode.Property);
         });
     }
 }
