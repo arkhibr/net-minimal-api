@@ -1,12 +1,12 @@
 # ProdutosAPI - Projeto para Aprendizado com .NET 10 e Minimal API [![.NET 10](https://img.shields.io/badge/.NET-10.0%20LTS-blue?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com)
 
-![Version](https://img.shields.io/badge/version-2.0.0-success?style=flat-square)
+![Version](https://img.shields.io/badge/version-3.0.0-success?style=flat-square)
 ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
 ## 📚 Sobre o Projeto
 
-**ProdutosAPI** é um projeto educacional completo demonstrando melhores práticas de desenvolvimento de APIs REST usando **.NET 10 LTS** e **Minimal API** com cobertura completa de testes.
+**ProdutosAPI** é um projeto educacional demonstrando melhores práticas de APIs REST com **.NET 10 LTS** e **Minimal API**. O projeto cobre dois padrões arquiteturais complementares, implementados como casos de uso reais com cobertura completa de testes (121 testes).
 
 ### Objetivo
 Fornecer um recurso abrangente incluindo:
@@ -64,14 +64,40 @@ net-minimal-api/
 │   ├── Middleware/ExceptionHandlingMiddleware.cs
 │   ├── Models/Produto.cs                  # Domain model
 │   ├── Services/ProdutoService.cs         # Business logic
-│   └── Validators/ProdutoValidator.cs     # FluentValidation
+│   ├── Validators/ProdutoValidator.cs     # FluentValidation
+│   └── Features/                            # Vertical Slice Architecture
+│       ├── Common/
+│       │   ├── IEndpoint.cs               # Interface de registro automático
+│       │   ├── EndpointExtensions.cs      # Scanner de endpoints
+│       │   └── Result.cs                  # Result pattern
+│       └── Pedidos/
+│           ├── Domain/                    # Aggregate root + entities
+│           ├── Common/                    # DTOs dos slices
+│           ├── CreatePedido/              # Slice POST /pedidos
+│           ├── GetPedido/                 # Slice GET /pedidos/{id}
+│           ├── ListPedidos/               # Slice GET /pedidos
+│           ├── AddItemPedido/             # Slice POST /pedidos/{id}/itens
+│           └── CancelPedido/              # Slice POST /pedidos/{id}/cancelar
 │
 ├── ProdutosAPI.Tests/                      # Testes abrangentes
-│   ├── ProdutosAPI.Tests.csproj          # xUnit + Moq + FluentAssertions
-│   ├── ESTRATEGIA-DE-TESTES.md           # Documentação estratégia
-│   ├── Services/ProdutoServiceTests.cs     # Unit tests
-│   ├── Endpoints/ProdutoEndpointsTests.cs  # Integration tests
-│   └── Validators/ProdutoValidatorTests.cs # Validator tests
+│   ├── ProdutosAPI.Tests.csproj
+│   ├── ESTRATEGIA-DE-TESTES.md           # Estratégia completa de testes
+│   ├── Unit/Domain/
+│   │   ├── ProdutoTests.cs                # 18 testes de domínio rico
+│   │   └── PedidoTests.cs                 # 16 testes do aggregate
+│   ├── Builders/
+│   │   └── ProdutoBuilder.cs              # Builder fluente para testes
+│   ├── Services/ProdutoServiceTests.cs    # Unit tests com mocks
+│   ├── Endpoints/ProdutoEndpointsTests.cs # Endpoint tests
+│   ├── Validators/ProdutoValidatorTests.cs
+│   └── Integration/
+│       ├── ApiFactory.cs                  # WebApplicationFactory
+│       ├── AuthHelper.cs                  # JWT helper
+│       ├── CreatePedidoTests.cs
+│       ├── GetPedidoTests.cs
+│       ├── CancelPedidoTests.cs
+│       ├── AddItemPedidoTests.cs
+│       └── ListPedidosTests.cs
 │
 ├── docs/                                   # 📖 Documentação completa
 │   ├── 00-LEIA-PRIMEIRO.md               # Índice geral do projeto
@@ -92,7 +118,7 @@ net-minimal-api/
 
 ## 🎯 Principais Recursos
 
-### ✅ 6 Endpoints REST Completos com Typed Results
+### ✅ 11 Endpoints REST (2 casos de uso)
 
 | Método | Rota | Descrição | Status |
 |--------|------|-----------|---------|
@@ -103,11 +129,22 @@ net-minimal-api/
 | `PATCH` | `/api/v1/produtos/{id}` | Atualizar parcial | 200/404/422 |
 | `DELETE` | `/api/v1/produtos/{id}` | Soft delete | 204/404 |
 
-### ✅ 50+ Testes Automatizados (NOVO em v2.0.0)
+### Pedidos (Vertical Slice + JWT obrigatório)
 
+| Método | Rota | Descrição | Status |
+|--------|------|-----------|---------|
+| `POST` | `/api/v1/pedidos` | Criar pedido | 201/400 |
+| `GET` | `/api/v1/pedidos/{id}` | Obter pedido | 200/404 |
+| `GET` | `/api/v1/pedidos` | Listar pedidos | 200 |
+| `POST` | `/api/v1/pedidos/{id}/itens` | Adicionar item | 200/400/404 |
+| `POST` | `/api/v1/pedidos/{id}/cancelar` | Cancelar pedido | 200/400/404 |
+
+### ✅ 121 Testes Automatizados
+
+- **Testes de Domínio** - Regras de negócio puras (Produto + Pedido aggregate)
 - **Unit Tests** - Testa lógica de serviços com mocking
-- **Integration Tests** - Valida endpoints e status HTTP codes
-- **Validator Tests** - Testa regras de negócio
+- **Integration Tests HTTP** - Ponta a ponta com WebApplicationFactory
+- **Validator Tests** - Testa regras de validação
 
 Execute com: `dotnet test`
 
@@ -223,6 +260,40 @@ curl -X PATCH "http://localhost:5000/api/v1/produtos/1" \
 curl -X DELETE "http://localhost:5000/api/v1/produtos/1"
 ```
 
+---
+
+## 🔐 Exemplos com Pedidos (requer JWT)
+
+### Autenticação
+```bash
+# Obter token JWT
+curl -X POST "http://localhost:5000/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "senha": "senha123"}'
+# Copie o campo "token" da resposta
+```
+
+### Criar Pedido
+```bash
+curl -X POST "http://localhost:5000/api/v1/pedidos" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### Adicionar Item ao Pedido
+```bash
+curl -X POST "http://localhost:5000/api/v1/pedidos/1/itens" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"produtoId": 1, "quantidade": 2}'
+```
+
+### Listar Pedidos
+```bash
+curl -X GET "http://localhost:5000/api/v1/pedidos" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
 
 ---
 
@@ -293,10 +364,14 @@ public async Task ObterProduto_WithValidId_ReturnsProduto()
 
 Este projeto foi criado com fins **didáticos** para demonstrar:
 
-✅ Arquitetura Clean em ASP.NET Core  
-✅ Melhores práticas de REST API design  
-✅ Features modernas do .NET 10  
-✅ Minimal API patterns  
-✅ Testes automatizados completos  
-✅ Documentação profissional  
+✅ Arquitetura Clean em ASP.NET Core
+✅ Melhores práticas de REST API design
+✅ Features modernas do .NET 10
+✅ Minimal API patterns
+✅ Testes automatizados completos
+✅ Documentação profissional
+✅ Vertical Slice Architecture
+✅ Domínio Rico e Aggregate Root
+✅ Result Pattern
+✅ Testes de domínio e integração HTTP
 
