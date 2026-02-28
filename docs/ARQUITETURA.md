@@ -1,235 +1,159 @@
-# 🏗️ Arquitetura do Projeto - Diagrama Visual
+# 🏗️ Arquitetura do Projeto
 
-## Aplicação em Layers
+O repositório demonstra **duas arquiteturas** coexistindo:
 
+1. **Clean Architecture / camadas horizontais** — utilizada para o caso de uso Produtos iniciada na primeira fase.
+2. **Vertical Slice Architecture + Domínio Rico** — introduzida na fase 2 para os requisitos de Pedidos.
+
+Ambas compartilham o mesmo pipeline de middleware, `AppDbContext` e dependências registradas em `Program.cs`.
+
+---
+
+## 1. Camadas Horizontais (Produtos)
+
+```mermaid
+flowchart TD
+    A[Cliente/Swagger] --> B[API Gateway HTTP]
+    B --> C[Middleware]
+    C --> D[Validation]
+    D --> E[Service Layer]
+    E --> F[Data Access]
+    F --> G[SQLite]
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                        CLIENTE / BROWSER                        │
-│              (Swagger UI ou requisições HTTP)                  │
-└────────────────┬─────────────────────────────────────────────────┘
-                 │
-                 ▼
-┌────────────────────────────────────────────────────────────────┐
-│                      API Gateway / HTTP                         │
-│         (Minimal API Routing - src/Endpoints/)                 │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  GET /api/v1/produtos          POST /api/v1/produtos          │
-│  GET /api/v1/produtos/{id}     PUT /api/v1/produtos/{id}      │
-│  PATCH /api/v1/produtos/{id}   DELETE /api/v1/produtos/{id}   │
-│                                                                 │
-└────────────────┬─────────────────────────────────────────────────┘
-                 │
-        ┌────────▼────────┐
-        │   Middleware    │
-        ├─────────────────┤
-        │ • CORS          │
-        │ • Exception     │
-        │ • Logging       │
-        └────────┬────────┘
-                 │
-                 ▼
-┌────────────────────────────────────────────────────────────────┐
-│                    Validation Layer                            │
-│         (FluentValidation - src/Validators/)                  │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  • Required fields       • Email format                        │
-│  • Min/Max lengths       • Price > 0                          │
-│  • Numeric ranges        • Category in list                   │
-│                                                                 │
-└────────────┬──────────────────────────────────────────────────┘
-             │
-             ▼
-┌────────────────────────────────────────────────────────────────┐
-│                    Service Layer                               │
-│         (Business Logic - src/Services/)                       │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │         IProdutoService                             │    │
-│  ├──────────────────────────────────────────────────────┤    │
-│  │ • ListarProdutosAsync()                             │    │
-│  │ • ObterProdutoAsync()                               │    │
-│  │ • CriarProdutoAsync()                               │    │
-│  │ • AtualizarProdutoAsync() (PATCH)                   │    │
-│  │ • AtualizarCompletoProdutoAsync() (PUT)             │    │
-│  │ • DeletarProdutoAsync()                             │    │
-│  │                                                      │    │
-│  │ Features:                                            │    │
-│  │ • Logging estruturado                               │    │
-│  │ • Filtragem e busca                                 │    │
-│  │ • Paginação                                         │    │
-│  │ • Soft delete                                       │    │
-│  └──────────────────────────────────────────────────────┘    │
-│                                                                 │
-└────────────────┬─────────────────────────────────────────────────┘
-                 │
-                 ▼
-┌────────────────────────────────────────────────────────────────┐
-│                    Data Access Layer                           │
-│         (Entity Framework Core - src/Data/)                    │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │         AppDbContext                                │    │
-│  ├──────────────────────────────────────────────────────┤    │
-│  │ DbSet<Produto>                                      │    │
-│  │                                                      │    │
-│  │ Configurações:                                      │    │
-│  │ • Índices (Ativo, Categoria)                        │    │
-│  │ • Constraints e validações                          │    │
-│  │ • Relationships                                     │    │
-│  └──────────────────────────────────────────────────────┘    │
-│                                                                 │
-└────────────────┬─────────────────────────────────────────────────┘
-                 │
-                 ▼
-┌────────────────────────────────────────────────────────────────┐
-│                    Database Layer                              │
-│                    SQLite Database                             │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  produtos-api.db                                               │
-│  ├─ Tabela: Produtos                                           │
-│  │  ├─ Id (PK)                                               │
-│  │  ├─ Nome                                                  │
-│  │  ├─ Descricao                                            │
-│  │  ├─ Preco                                                │
-│  │  ├─ Categoria                                            │
-│  │  ├─ Estoque                                              │
-│  │  ├─ Ativo                                                │
-│  │  ├─ ContatoEmail                                         │
-│  │  ├─ DataCriacao                                          │
-│  │  └─ DataAtualizacao                                      │
-│  │                                                           │
-│  ├─ Índice: idx_produto_ativo (Ativo)                        │
-│  └─ Índice: idx_produto_categoria (Categoria)                │
-│                                                                │
-└────────────────────────────────────────────────────────────────┘
+
+*src/Endpoints/ProdutoEndpoints.cs | CORS, Logging, Exception Handling | FluentValidation | src/Services/ProdutoService.cs | EF Core | produtos-api.db*
+
+Cada camada tem responsabilidade única e clara: endpoints expõem rotas, validadores checam entrada, serviços orquestram lógica e o contexto de dados conversa com o banco.
+
+### Fluxo de requisição (exemplo PUT /api/v1/produtos/{id})
+1. Rota mapeada em `ProdutoEndpoints`.  
+2. Validação por `AtualizarProdutoValidator`.  
+3. Servidor chama `ProdutoService.AtualizarCompletoProdutoAsync`.  
+4. Serviço busca entidade em `AppDbContext`, aplica alterações e chama `SaveChangesAsync`.  
+5. Resultado mapeado para DTO e retornado ao cliente.
+
+---
+
+## 2. Vertical Slice (Pedidos)
+
+```mermaid
+flowchart TD
+    A[Cliente/Swagger] --> B[IEndpoint Scan]
+    B --> C[Slice Específico]
+    C --> C1[Command]
+    C --> C2[Validator]
+    C --> C3[Handler]
+    C --> C4[Endpoint]
+    C4 --> D[Domain Layer]
+    D --> D1[Pedido Root]
+    D --> D2[PedidoItem]
+    D --> D3[Result Pattern]
+    D --> E[Data Access]
+```
+
+*src/Features/*/*Endpoint.cs | ex: CreatePedido | src/Features/Pedidos/Domain/ | AppDbContext*
+
+Cada *slice* contém tudo o que ele precisa para satisfazer um caso de uso específico: comando, validação, handler e mapeamento de rota. O handler manipula diretamente o agregado `Pedido`, respeitando invariantes (ex.: somente itens ativos são adicionados, total não excede limite).
+
+Estes slices são descobertos automaticamente durante o startup graças à interface comum `IEndpoint` e reflexão via `AddEndpointsFromAssembly`.
+
+---
+
+## 3. Coexistência das duas abordagens
+
+- Ambos consumen o mesmo `AppDbContext`, tabelas e migrações.
+- Serviços de Produtos continuam funcionando ao lado de slices de Pedidos.
+- A migração para Vertical Slice foi incremental: as peças existentes de Produtos permaneceram inalteradas.
+- Middlewares, autenticação JWT e logging são aplicados globalmente.
+
+---
+
+## Modelo de Dados Unificado
+
+```mermaid
+classDiagram
+    class Produtos {
+        +int Id
+        +string Nome
+        +decimal Preco
+        +string Categoria
+        +int Estoque
+        +bool Ativo
+        +string ContatoEmail
+        +DateTime DataCriacao
+        +DateTime DataAtualizacao
+    }
+    class Pedidos {
+        +int Id
+        +string ClienteNome
+        +PedidoStatus Estado
+        +decimal Total
+        +DateTime DataCriacao
+        +DateTime DataAtualizacao
+    }
+    class PedidoItens {
+        +int Id
+        +int PedidoId
+        +int ProdutoId
+        +int Quantidade
+        +decimal PrecoUnitario
+    }
+    Produtos <-- PedidoItens
+    Pedidos <-- PedidoItens
+```
+
+Índices:
+- idx_produto_ativo (Produtos)
+- idx_produto_categoria (Produtos)
+
+O contexto adiciona `DbSet<Pedido>` e `DbSet<PedidoItem>` quando a fase 2 foi implementada.
+
+---
+
+## Container de Dependências (Program.cs)
+
+- DbContext registrado como Scoped com conexão SQLite.
+- Serviços e validadores adicionados (Produtos e Pedidos).
+- Scan de IEndpoint para slices.
+- Swagger configurado para documentar ambas as APIs.
+
+---
+
+*Esta documentação serve como mapa central das arquiteturas. Consulte o guia conceitual [docs/VERTICAL-SLICE-DOMINIO-RICO.md](./VERTICAL-SLICE-DOMINIO-RICO.md) para detalhes sobre o padrão Vertical Slice.*
 ```
 
 ---
 
 ## Request/Response Flow
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    HTTP REQUEST (PUT)                         │
-│       /api/v1/produtos/1                                     │
-│       Body: { "preco": 3200 }                                │
-└──────────────────────┬───────────────────────────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  1. Parse Request (Minimal API) │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  2. Validate Input              │
-        │     (FluentValidation)          │
-        │                                 │
-        │  ✓ Passou → Continua           │
-        │  ✗ Falhou → Return 422         │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  3. Call Service Layer          │
-        │     AtualizarProdutoAsync()     │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  4. Check if Product Exists     │
-        │                                 │
-        │  ✓ Existe → Continua           │
-        │  ✗ Não existe → Return 404     │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  5. Update in Database          │
-        │     (Entity Framework)          │
-        │                                 │
-        │  • Find by ID                  │
-        │  • Apply changes               │
-        │  • Set UpdatedAt               │
-        │  • SaveChangesAsync()          │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  6. Map to Response DTO         │
-        │     Produto → ProdutoResponse   │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-        ┌─────────────────────────────────┐
-        │  7. Log Operation               │
-        │     (Serilog)                   │
-        └──────────────┬──────────────────┘
-                       │
-                       ▼
-├──────────────────────────────────────────────────────────────┐
-│                    HTTP RESPONSE                              │
-│       Status: 200 OK                                          │
-│       Body: {                                                 │
-│         "id": 1,                                              │
-│         "nome": "Notebook Dell",                              │
-│         "preco": 3200.00,  ← Atualizado                      │
-│         ...                                                   │
-│       }                                                       │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    req[HTTP REQUEST<br/>(PUT /api/v1/produtos/1<br/>Body: { "preco":3200 })]
+    req --> parse[1. Parse Request (Minimal API)]
+    parse --> validate[2. Validate Input<br/>(FluentValidation)]
+    validate -- pass --> service[3. Call Service Layer<br/>AtualizarProdutoAsync()]
+    validate -- fail --> resp422[Return 422]
+    service --> check[4. Check if Product Exists]
+    check -- exists --> update[5. Update in Database<br/>(Entity Framework)]
+    check -- notexists --> resp404[Return 404]
+    update --> map[6. Map to Response DTO<br/>Produto → ProdutoResponse]
+    map --> log[7. Log Operation (Serilog)]
+    log --> resp200[HTTP RESPONSE<br/>200 OK]
 ```
 
 ---
 
 ## Dependency Injection Container
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                   Dependency Injection                        │
-│                  (Program.cs setup)                          │
-├──────────────────────────────────────────────────────────────┤
-│                                                               │
-│  builder.Services.Add...                                      │
-│                                                               │
-│  ├─ DbContext (AppDbContext)                                 │
-│  │  └─ SQLite connection                                     │
-│  │                                                            │
-│  ├─ Services (IProdutoService → ProdutoService)             │
-│  │  └─ Scoped lifetime                                       │
-│  │                                                            │
-│  ├─ Validators (FluentValidation)                            │
-│  │  ├─ CriarProdutoValidator                                │
-│  │  ├─ AtualizarProdutoValidator                            │
-│  │  └─ LoginValidator                                       │
-│  │                                                            │
-│  ├─ AutoMapper (MappingProfile)                             │
-│  │  ├─ Produto ↔ ProdutoResponse                            │
-│  │  ├─ CriarProdutoRequest → Produto                        │
-│  │  └─ AtualizarProdutoRequest → Produto                    │
-│  │                                                            │
-│  ├─ CORS Policy                                              │
-│  │  └─ AllowAll (todos os domínios)                         │
-│  │                                                            │
-│  ├─ Swagger/OpenAPI                                          │
-│  │  └─ Document generation                                  │
-│  │                                                            │
-│  ├─ Serilog Logging                                          │
-│  │  ├─ Console sink                                         │
-│  │  ├─ Text file sink                                       │
-│  │  └─ JSON file sink                                       │
-│  │                                                            │
-│  └─ Middleware Pipeline                                      │
-│     ├─ Exception handling                                    │
-│     ├─ CORS                                                  │
-│     └─ Authentication (preparado)                           │
-│                                                               │
-└──────────────────────────────────────────────────────────────┘
-```
+- **DbContext**: `AppDbContext` configurado com conexão SQLite.
+- **Services**: `IProdutoService` → `ProdutoService` (Scoped).
+- **Validators**: `CriarProdutoValidator`, `AtualizarProdutoValidator`, `LoginValidator`, além dos validadores dos comandos de Pedidos.
+- **AutoMapper**: `MappingProfile` (mapeamentos Produto↔DTO, commands etc.).
+- **Endpoints**: Scan automático de `IEndpoint` para slices.
+- **Outros**: CORS, Swagger, logging e demais middlewares registrados aqui.
+
+---
+
 
 ---
 
@@ -265,7 +189,9 @@ net-minimal-api/
 │   │   └── ProdutoDTO.cs                     [8 Transfer Objects]
 │   │
 │   ├── Endpoints/
-│   │   └── ProdutoEndpoints.cs               [6 endpoints REST]
+│   │   └── ProdutoEndpoints.cs               [6 endpoints REST (Produtos)]
+│   ├── Features/
+│   │   └── Pedidos/                          [5 vertical slices (Pedidos)]
 │   │
 │   ├── Services/
 │   │   └── ProdutoService.cs                 [Lógica negócio]

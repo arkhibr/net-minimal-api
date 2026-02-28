@@ -2,7 +2,7 @@
 
 ## ✅ O Que Foi Criado
 
-Um **projeto exemplo ** demonstrando as melhores práticas de API REST em .NET 10 com Minimal API.
+Um **projeto exemplo** demonstrando duas arquiteturas em uma API REST em .NET 10 com Minimal API: Clean Architecture para Produtos e Vertical Slice + Domínio Rico para Pedidos.
 
 ---
 
@@ -30,10 +30,11 @@ Prática específica mostrando EXATAMENTE como cada conceito foi implementado:
 
 ### 3. 🚀 **Aplicação Executável**
 Código completo e funcional:
-- 6 endpoints RESTful
-- 8 DTOs
-- 3 Validadores
-- 1 Service completo
+- 11 endpoints RESTful (6 Produtos + 5 Pedidos)
+- 8 DTOs tradicionais + comandos/queries para Pedidos
+- Vários validadores (Produtos e Pedidos)
+- Serviços para Produtos e handlers para Pedidos
+- Domínio rico com agregados e Result pattern
 - Logging estruturado
 - Tratamento global de erros
 - Documentação Swagger
@@ -58,7 +59,7 @@ Banco de Dados (SQLite)
 
 ## 📁 Estrutura de Arquivos
 
-### Documentação (8 arquivos)
+### Documentação (10 arquivos)
 
 | Arquivo | Propósito | Tempo |
 |---------|----------|-------|
@@ -89,6 +90,7 @@ Banco de Dados (SQLite)
 
 #### Endpoints
 - `src/Endpoints/ProdutoEndpoints.cs` - 6 endpoints REST
+- `src/Features/Pedidos/` - vertical slices para 5 endpoints de pedido
 
 #### Services (Lógica)
 - `src/Services/ProdutoService.cs` - Implementação + Interface
@@ -109,7 +111,7 @@ Banco de Dados (SQLite)
 
 ### Exemplos e Testes
 
-- `ProdutosAPI.Tests/` - Exemplos de testes unitários com xUnit/Moq
+- `ProdutosAPI.Tests/` - Exemplos de 111 testes (unitários de domínio/serviço e integração HTTP)
 - `setup.sh` - Script auxiliar de setup
 
 ---
@@ -177,16 +179,19 @@ Banco de Dados (SQLite)
 - Lazy loading preparado
 
 ✅ **Arquitetura**
-- Clean Architecture
+- Clean Architecture (Produtos) e Vertical Slice + Domínio Rico (Pedidos)
 - Separation of Concerns
 - Dependency Injection
 - DTOs vs Entities
+- Result Pattern nas respostas de domínio
 
 ---
 
 ## 🚀 Como Começar
 
 ### Quick Start (5 minutos)
+
+Essa etapa inicial já inclui chamar endpoints de Produtos e, se houver autenticação configurada, exemplos de criação de Pedidos.
 
 ```bash
 # 1. Ir ao diretório

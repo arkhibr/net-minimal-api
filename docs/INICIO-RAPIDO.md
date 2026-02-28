@@ -2,8 +2,7 @@
 
 ## 🎯 Objetivo Didático
 
-Este projeto é um **exemplo educacional completo** que demonstra como implementar uma API REST moderna seguindo as melhores práticas em .NET 10 com Minimal API.
-
+Este projeto é um **exemplo educacional completo** que demonstra como implementar uma API REST moderna seguindo as melhores práticas em .NET 10 com Minimal API. Inclui dois casos de uso: Produtos (Clean Architecture) e Pedidos (Vertical Slice + Domínio Rico).
 ## 📚 Três Documentos Principais
 
 ### 1️⃣ Guia Conceitual
@@ -57,7 +56,7 @@ Este arquivo contém:
 ---
 
 ## 🚀 Começar Agora (5 minutos)
-
+*Observação: alguns endpoints de Pedidos exigem autenticação JWT. Primeiro crie um token usando `/api/v1/auth/login` (credenciais dummy) e em seguida inclua `-H "Authorization: Bearer <token>"` nos curl abaixo.*
 ### Pré-requisito
 Instale [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
@@ -112,6 +111,12 @@ http://localhost:5000
 
 ## 🗂️ Estrutura Pronta
 
+O projeto também possui:
+
+```
+✅ Features/Pedidos    → Vertical slices com Command/Handler/Validator/Endpoint
+✅ Domain/             → Agregados rico (Pedido, PedidoItem, Result<T>)
+```
 O projeto já inclui:
 
 ```
@@ -146,7 +151,16 @@ O projeto já inclui:
 ---
 
 ## 🧪 Testar a API
+Além dos exemplos a seguir, existem também endpoints de Pedidos:
+```
+POST /api/v1/pedidos
+GET /api/v1/pedidos/{id}
+PATCH /api/v1/pedidos/{id}/cancelar
+POST /api/v1/pedidos/{id}/itens
+GET /api/v1/pedidos
+```
 
+Use JWT conforme descrito anteriormente.
 ### Exemplo 1: Listar Produtos
 
 ```bash

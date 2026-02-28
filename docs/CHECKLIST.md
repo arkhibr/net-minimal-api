@@ -1,11 +1,17 @@
 # ✅ Checklist de Verificação do Projeto
 
-## 📚 Documentação (4 arquivos)
+## 📚 Documentação (10 arquivos)
 
 - [x] **MELHORES-PRATICAS-API.md** - Guia conceitual completo (10 seções)
 - [x] **MELHORES-PRATICAS-MINIMAL-API.md** - Implementação prática com links para código
-- [x] **README.md** - Como executar e testar
-- [x] **INICIO-RAPIDO.md** - Quick start e FAQ
+- [x] **VERTICAL-SLICE-DOMINIO-RICO.md** - Novo guia conceitual (Pedidos)
+- [x] **MELHORIAS-DOTNET-10.md** - Recursos .NET 10 incluindo slices
+- [x] **README.md** - Como executar e testar (atualizado)
+- [x] **INICIO-RAPIDO.md** - Quick start e FAQ (inclui auth e Pedidos)
+- [x] **INDEX.md** - Índice completo com duas trilhas
+- [x] **CHECKLIST.md** - Este checklist
+- [x] **ARQUITETURA.md** - Diagramas (camadas + slices)
+- [x] **ENTREGA-FINAL.md** - Resumo executivo atualizado
 
 ## 🏗️ Estrutura do Projeto
 
@@ -22,6 +28,12 @@
   - [x] Datas de criação e atualização
   - [x] Status de ativação (soft delete)
   - [x] Referência ao guia conceitual
+- [x] **src/Features/Pedidos/Domain/Pedido.cs** - Agregado raiz de Pedidos
+  - [x] Invariantes encapsuladas (total, estado)
+  - [x] Métodos retornam Result<T>
+  - [x] Regras de negócio dentro do domínio
+- [x] **src/Features/Pedidos/Domain/PedidoItem.cs** - Item do pedido
+  - [x] Referência a produto e quantidade
 
 ### DTOs
 - [x] **src/DTOs/ProdutoDTO.cs** - 8 classes DTO
@@ -45,6 +57,10 @@
   - [x] Validation em cada endpoint
   - [x] Error handling apropriado
   - [x] Swagger/OpenAPI decorators
+- [x] **src/Features/Pedidos/** - 5 slices (Create, Get, List, AddItem, Cancel)
+  - [x] Cada slice contém Command/Handler/Validator/Endpoint
+  - [x] Endpoints usam JWT obrigatório (quando aplicável)
+  - [x] Result pattern aplicado nos handlers
 
 ### Services
 - [x] **src/Services/ProdutoService.cs** - Interface e Implementação
@@ -54,14 +70,18 @@
   - [x] CriarProdutoAsync
   - [x] AtualizarProdutoAsync (PATCH)
   - [x] AtualizarCompletoProdutoAsync (PUT)
-  - [eltarProdutoAsync com soft delete
+  - [x] DeletarProdutoAsync com soft delete
   - [x] Logging em cada operação
   - [x] Tratamento de exceções
+- [x] **src/Features/Pedidos/** handlers (CreatePedidoHandler, GetPedidoHandler, etc.)
+  - [x] Serviços leves que orquestram domínio rico
+  - [x] Injetam `IAppDbContext` e `ILogger`
 
 ### Data Access
 - [x] **src/Data/AppDbContext.cs** - Entity Framework DbContext
   - [x] DbSet para Produtos
-  - [x] Configuração de propiedades
+  - [x] DbSet<Pedido> e DbSet<PedidoItem> adicionados para Pedidos
+  - [x] Configuração de propriedades
   - [x] Índices para performance
   - [x] Precision de decimais
   - [x] Max lengths de strings
@@ -70,10 +90,12 @@
   - [x] 8 produtos de exemplo
   - [x] Diferentes categorias
   - [x] Preços e estoque realistas
+  - [x] (Opcional) pedidos de exemplo adicionados
 
 - [x] **src/Data/Migrations/** - Entity Framework Migrations
   - [x] CreateInitialSchema migration
-  - [x] ModelSnapshot
+  - [x] Adicionadas migrations para tabelas Pedidos e PedidoItens
+  - [x] ModelSnapshot atualizado
   - [x] Índices criados
   - [x] Constraints definidos
 
@@ -83,6 +105,10 @@
   - [x] AtualizarProdutoValidator para PATCH
   - [x] LoginValidator para autenticação futura
   - [x] Mensagens em português
+- [x] **src/Features/Pedidos/** validators de comandos (CreatePedidoValidator, AddItemValidator, etc.)
+  - [x] Campos obrigatórios verificados
+  - [x] Regras de negócio customizadas (quantidade >0, preço >0)
+  - [x] Mensagens de erro claras
 
 ### Middleware
 - [x] **src/Middleware/ExceptionHandlingMiddleware.cs** - Tratamento Global
@@ -115,6 +141,7 @@
   - [x] Services registrados
   - [x] Validators registrados
   - [x] AutoMapper configurado
+  - [x] Scan automático de IEndpoint (AddEndpointsFromAssembly)
 - [x] CORS configurado
 - [x] Swagger/OpenAPI
   - [x] Endpoint information
@@ -131,6 +158,7 @@
 - [x] Cada arquivo tem comentários referenciando guia conceitual
 - [x] Links diretos apontando para seções específicas
 - [x] Mapa de implementação em MELHORES-PRATICAS-MINIMAL-API.md
+- [x] Slices de Pedidos documentados em VERTICAL-SLICE-DOMINIO-RICO.md
 
 ## 🎯 Melhores Práticas Implementadas
 
@@ -172,6 +200,12 @@
 - [x] Input validation
 - [x] CORS configured
 - [x] autenticação prep (JWT-ready)
+
+### Arquitetura e Padrões Avançados
+- [x] Clean Architecture aplicada a Produtos
+- [x] Vertical Slice Architecture aplicada a Pedidos
+- [x] Domínio Rico com agregados e regras encapsuladas
+- [x] Result Pattern em vez de exceções para erros de negócio
 
 ### Validação de Dados
 - [x] Required fields

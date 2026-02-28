@@ -921,3 +921,57 @@ Verificar se todas as práticas foram implementadas:
 - ✅ Serviços com dependências injetadas
 - ✅ Entity Framework para proteção SQL Injection
 
+---
+
+## Capítulo Extra: Vertical Slice + Domínio Rico (Pedidos)
+
+O projeto utiliza **Vertical Slice Architecture** para o caso de uso de Pedidos, um padrão em que cada operação é auto-contida em sua própria pasta com
+componente Command/Handler/Validator/Endpoint. O objetivo é reduzir acoplamento e melhorar a navegabilidade em APIs mais complexas.
+
+### Anatomia de um Slice
+
+Cada slice está localizado em `src/Features/Pedidos/<Operação>/`:
+
+```
+src/Features/Pedidos/CreatePedido/
+├─ CreatePedidoCommand.cs      # DTO de entrada
+├─ CreatePedidoValidator.cs    # FluentValidation do comando
+├─ CreatePedidoHandler.cs      # Lógica de negócio (usa domínio rico)
+└─ CreatePedidoEndpoint.cs     # Mapeia rota e resultados
+```
+
+Os endpoints são registrados automaticamente por scan de `IEndpoint` no startup:
+```csharp
+builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
+```
+
+### Domínio Rico
+
+O agregado `Pedido` reside em `src/Features/Pedidos/Domain/` e encapsula regras:
+
+```csharp
+public sealed class Pedido
+{
+    private readonly List<PedidoItem> _itens = new();
+    public Result AddItem(PedidoItem novo)
+    {
+        if (novo.Preco <= 0) return Result.Fail("Preço inválido");
+        if (_itens.Sum(i => i.Total) + novo.Total > Limite) 
+            return Result.Fail("Total excede limite");
+        _itens.Add(novo);
+        return Result.Ok();
+    }
+    // outras invariantes
+}
+```
+
+Todos os métodos retornam `Result<T>` em vez de lançar exceções, seguindo a **Result Pattern**.
+
+### Quando usar este padrão?
+
+- Recursos com várias operações independentes
+- Projetos que crescerão em escala
+- Deseja-se manter cada caso de uso isolado e testável
+
+Os slices coexistem pacificamente com os endpoints de Produtos baseados em camadas; ambos compartilham o mesmo contexto de dados e pipeline de middleware.
+

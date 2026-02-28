@@ -2,22 +2,23 @@
 
 ## 📋 Sumário Executivo
 
-Este documento descreve a estratégia de testes implementada para o projeto **ProdutosAPI**, uma aplicação educacional demonstrando best practices de APIs REST com .NET 10 e Minimal API.
+A suite de testes cobre **111 casos automatizados** em três camadas diferentes para validar os dois padrões arquiteturais do projeto: Clean Architecture (Produtos) e Vertical Slice + Domínio Rico (Pedidos).
 
 **Framework de Testes**: xUnit  
 **Mocking**: Moq + NSubstitute  
 **Assertions**: FluentAssertions  
-**Target Coverage**: 80%+ das operações críticas  
+**Categorias**: Domain Unit, Service Unit, Integration HTTP  
+**Cobertura alvo**: ≥ 80% das operações críticas  
 
 ---
 
 ## 🎯 Objetivos dos Testes
 
-1. **Validação de Funcionalidade**: Garantir que todos os endpoints REST funcionam conforme especificado
-2. **Cobertura de Casos de Erro**: Testar tratamento de exceções e status HTTP corretos
-3. **Verifição de Validações**: Assegurar que todas as regras de negócio são aplicadas
-4. **Regressão**: Prevenir quebras em funcionalidades existentes durante refatoração
-5. **Documentação Viva**: Os testes servem como exemplos de como usar a API
+1. **Validação de Funcionalidade**: Endpoints de Produtos e Pedidos respondem com códigos e corpos corretos.
+2. **Cobertura de Regras de Negócio**: Agregado `Pedido` e serviços de produto mantêm invariantes.
+3. **Teste de Validações**: Todos os validadores (incluindo comandos de slice) são exercitados.
+4. **Regressão**: Prevenir quebras em refatorações das duas arquiteturas.
+5. **Documentação Viva**: Testes servem como exemplos de chamadas HTTP e uso de API.
 
 ---
 
@@ -25,23 +26,114 @@ Este documento descreve a estratégia de testes implementada para o projeto **Pr
 
 ```
 ProdutosAPI.Tests/
-├── ProdutosAPI.Tests.csproj          # Arquivo de projeto .NET 10
+├── ProdutosAPI.Tests.csproj
+├── Domain/
+│   └── PedidoTests.cs                # 40+ testes de regras do agregado
 ├── Services/
-│   └── ProdutoServiceTests.cs        # ~350 linhas, 16 testes
+│   ├── ProdutoServiceTests.cs        # 35 testes de serviço
+│   └── PedidoServiceTests.cs         # (se existir) testes de serviço de pedidos
 ├── Endpoints/
-│   └── ProdutoEndpointsTests.cs      # ~400 linhas, 18 testes
+│   ├── ProdutoEndpointsTests.cs      # 18 testes (Produtos)
+│   └── PedidoEndpointsTests.cs       # 18 testes (Pedidos HTTP)
 ├── Validators/
-│   └── ProdutoValidatorTests.cs      # ~400 linhas, 20 testes
-└── README.md                          # Esta documentação
+│   ├── ProdutoValidatorTests.cs      # regras de Produtos (20+)
+│   └── PedidoValidatorTests.cs       # validação de comandos Pedidos (10+)
+└── README.md                         # Esta documentação
 ```
 
 ---
 
 ## 🧪 Categorias de Testes
 
-### 1. **Unit Tests - ProdutoService** (`ProdutoServiceTests.cs`)
+### 1. **Domain Unit Tests**
+Localizadas em `ProdutosAPI.Tests/Domain/`.
+Cobrem os comportamentos do agregado `Pedido` e classes de valor associadas.
+- ✅ Criação de pedido com todos os campos válidos
+- ❌ Rejeita pedido com total negativo
+- ✅ Adição de item valida estoque e preço
+- ❌ Impede cancelamento de pedido já enviado
+- ✅ Cálculo de total incorporando quantidade e preço
 
-Testa a camada de negócio com **16 casos de teste** organizados em 6 métodos principais.
+(40+ casos diferentes definem invariantes e transformar exceções em `Result`.)
+
+### 2. **Service Unit Tests**
+Localizadas em `ProdutosAPI.Tests/Services/`.
+Testam cada serviço isoladamente usando banco em memória ou mocks.
+- **ProdutoServiceTests** (35 testes): cobertura completa de métodos CRUD, paginação, filtros, soft-delete.
+- **PedidoServiceTests** (se aplicável): executar uso de `Pedido` agregado com handlers.
+
+Exemplo de padrão AAA:
+```csharp
+// Arrange
+var service = new ProdutoService(...);
+var request = new CriarProdutoRequest { Nome = "X" };
+
+// Act
+var result = await service.CriarProdutoAsync(request);
+
+// Assert
+result.Nome.Should().Be("X");
+```
+
+### 3. **Integration HTTP Tests**
+Localizadas em `ProdutosAPI.Tests/Endpoints/`.
+Testam a API como cliente usando `WebApplicationFactory`.
+- 18 testes para Produtos (mapeamento dos 6 endpoints)
+- 18 testes para Pedidos, incluindo fluxo de autenticação JWT
+- Verificação de status codes, esquemas de resposta e headers
+- Simulação de erros (404, 422, 401, 409)
+
+Exemplo:
+```csharp
+var response = await _client.GetAsync("/api/v1/pedidos/1");
+response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+```
+
+### 4. **Validation Tests**
+Localizadas em `ProdutosAPI.Tests/Validators/`.
+Confiram regras de todos os validadores:
+- `ProdutoValidator` (mais de 20 casos)
+- `PedidoCommand` validadores (10+ casos) verificando obrigatoriedade, ranges e formatos
+
+---
+
+## 🚀 Como Executar os Testes
+
+### Todos os testes
+```bash
+cd net-minimal-api
+dotnet test
+```
+
+### Executar categorias específicas
+```bash
+dotnet test --filter "Category=Domain"
+dotnet test --filter "Namespace~=Endpoints"
+```
+
+### Um teste específico
+```bash
+dotnet test --filter "Name=CriarPedidoAsync_WithValidCommand_ReturnsSuccess"
+```
+
+### Cobertura de código (requer dotnet-reportgenerator)
+```bash
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+reportgenerator -reports:"coverage.opencover.xml" -targetdir:"coveragereport"
+```
+
+---
+
+## 🔍 Estratégia de Mocking
+
+### AppDbContext Mock
+```csharp
+var options = new DbContextOptionsBuilder<AppDbContext>()
+    .UseInMemoryDatabase("TestDb")
+    .Options;
+var context = new AppDbContext(options);
+```
+*...continua...*
 
 #### **ListarProdutosAsync**
 - ✅ Retorna paginação válida com 10 produtos

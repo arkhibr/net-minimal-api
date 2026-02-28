@@ -1,17 +1,18 @@
 # ProdutosAPI - Projeto para Aprendizado com .NET 10 e Minimal API [![.NET 10](https://img.shields.io/badge/.NET-10.0%20LTS-blue?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com)
 
-![Version](https://img.shields.io/badge/version-2.0.0-success?style=flat-square)
+![Version](https://img.shields.io/badge/version-3.0.0-success?style=flat-square)
 ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
 ## 📚 Sobre o Projeto
 
-**ProdutosAPI** é um projeto educacional completo demonstrando melhores práticas de desenvolvimento de APIs REST usando **.NET 10 LTS** e **Minimal API** com cobertura completa de testes.
+**ProdutosAPI** é um projeto educacional completo demonstrando melhores práticas de desenvolvimento de APIs REST usando **.NET 10 LTS** e **Minimal API** com cobertura completa de testes. Ele ilustra dois estilos arquiteturais coexistindo no mesmo código: **Clean Architecture** em camadas para o caso de Produtos e **Vertical Slice Architecture com Domínio Rico** para o caso de Pedidos.
 
 ### Objetivo
 Fornecer um recurso abrangente incluindo:
 - 📖 Guia conceitual de melhores práticas de APIs REST
 - 💻 Implementação pronta para produção com padrões modernos (.NET 10 e Minimal API)
+- 🎯 Demonstração de dois padrões arquiteturais: **Clean Architecture** (Produtos) e **Vertical Slice + Domínio Rico** (Pedidos)
 
 ---
 
@@ -61,8 +62,10 @@ net-minimal-api/
 │   │   └── DbSeeder.cs                    # Dados iniciais
 │   ├── DTOs/ProdutoDTO.cs                 # 8 classes DTO
 │   ├── Endpoints/ProdutoEndpoints.cs      # 6 endpoints (Typed Results)
+│   ├── Features/                          # Vertical slice (Pedidos)
+│   │   └── Pedidos/                       # cada operação em sua pasta
 │   ├── Middleware/ExceptionHandlingMiddleware.cs
-│   ├── Models/Produto.cs                  # Domain model
+│   ├── Models/Produto.cs                  # Domain model (Produtos)
 │   ├── Services/ProdutoService.cs         # Business logic
 │   └── Validators/ProdutoValidator.cs     # FluentValidation
 │
@@ -92,7 +95,9 @@ net-minimal-api/
 
 ## 🎯 Principais Recursos
 
-### ✅ 6 Endpoints REST Completos com Typed Results
+### ✅ 11 Endpoints REST Completos com Typed Results
+
+#### Produtos (camadas horizontais)
 
 | Método | Rota | Descrição | Status |
 |--------|------|-----------|---------|
@@ -103,11 +108,22 @@ net-minimal-api/
 | `PATCH` | `/api/v1/produtos/{id}` | Atualizar parcial | 200/404/422 |
 | `DELETE` | `/api/v1/produtos/{id}` | Soft delete | 204/404 |
 
-### ✅ 50+ Testes Automatizados (NOVO em v2.0.0)
+#### Pedidos (vertical slice, domínio rico)
 
-- **Unit Tests** - Testa lógica de serviços com mocking
-- **Integration Tests** - Valida endpoints e status HTTP codes
-- **Validator Tests** - Testa regras de negócio
+| Método | Rota | Descrição | Status |
+|--------|------|-----------|---------|
+| `POST` | `/api/v1/pedidos` | Criar novo pedido | 201/422/401 |
+| `GET` | `/api/v1/pedidos/{id}` | Obter pedido | 200/404/401 |
+| `PATCH` | `/api/v1/pedidos/{id}/cancelar` | Cancelar pedido | 204/404/409/401 |
+| `POST` | `/api/v1/pedidos/{id}/itens` | Adicionar item | 201/404/422/401 |
+| `GET` | `/api/v1/pedidos` | Listar pedidos | 200/401 |
+
+### ✅ 111 Testes Automatizados (NOVO em v3.0.0)
+
+- **Domain Unit Tests** – regras de negócio de agregados (40+ testes)
+- **Service Unit Tests** – casos de serviço individuais (35 testes)
+- **Integration HTTP Tests** – endpoints Produtos + Pedidos (36 testes)
+- **Validator Tests** – validações de comando e requests
 
 Execute com: `dotnet test`
 

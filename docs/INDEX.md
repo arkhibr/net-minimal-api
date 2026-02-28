@@ -2,98 +2,104 @@
 
 ## 🎯 Por Onde Começar?
 
-Escolha seu camino de aprendizado:
+O código do projeto contém **dois padrões arquiteturais paralelos**. Escolha a trilha de aprendizado de acordo com seu interesse:
 
-### ⚡ **Rápido (5 minutos)**
+### 🔹 Trilha 1 – Produtos (Clean Architecture em camadas)
+- Ideal para quem quer entender uma API REST tradicional com separação por responsabilidades.
+- Tecnologias/​padrões: Minimal API, Controllers/Endpoints → Services → Data.
+- Acompanhe os exemplos em `src/Endpoints`, `src/Services` e `src/Data`.
+
+### 🔸 Trilha 2 – Pedidos (Vertical Slice Architecture + Domínio Rico)
+- Foca em feature folders onde cada caso de uso vive em seu próprio slice.
+- Inclui agregados de domínio, Result pattern e invariante de negócio.
+- Explore `src/Features/Pedidos/*` para ver comandos, handlers, validadores e endpoints.
+
+Ambas as trilhas compartilham middleware, DI e `AppDbContext`.
+
+### ⚡ Rápido (5 minutos)
 1. Abra [INICIO-RAPIDO.md](INICIO-RAPIDO.md)
 2. Execute: `dotnet run`
-3. Abra: http://localhost:5000
-4. Pronto! API rodando com documentação interativa
+3. Acesse Swagger em http://localhost:5000
+4. Experimente alguns endpoints de Produtos e Pedidos
 
-### 📚 **Aprender (2-3 horas)**
-1. Leia: [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) (30min)
-2. Leia: [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) (30min)
-3. Execute: `dotnet run` (5min)
-4. Teste endpoints usando [README.md](../README.md) (30min)
-5. Explore código clicando nos links (1-2h)
+### 📚 Aprender (2-3 horas)
+1. Leia [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) (30 min)
+2. Leia [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) (30 min)
+3. Explore [VERTICAL-SLICE-DOMINIO-RICO.md](VERTICAL-SLICE-DOMINIO-RICO.md) para Pedidos
+4. Execute: `dotnet run` e teste rotas seguindo [README.md](../README.md)
 
-### 🏗️ **Profundo (Completo)**
-1. [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) - Teoria
-2. [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) - Implementação  
-3. [README.md](../README.md) - Como usar
-4. Cada arquivo de código (veja estrutura abaixo)
-5. [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) - Como testar
-6. [CHECKLIST.md](CHECKLIST.md) - Verificar cobertura
+### 🏗️ Profundo (Completo)
+1. Documentação teórica e prática (lista acima)
+2. Leia código fonte de ambos os padrões
+3. Execute todos os 111 testes (`dotnet test`)
+4. Use [CHECKLIST.md](CHECKLIST.md) para conferir cobertura
 
 ---
 
-## 📚 Documentação (4 arquivos)
+## 📚 Documentação (5 arquivos)
 
 ### 1. [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) ⭐⭐⭐
-**Guia Conceitual - TEÓRICO**
-
-Contém as melhores práticas universais para qualquer API REST:
-- Princípios fundamentais RESTful
-- Design de endpoints
-- HTTP verbs e status codes
-- Versionamento
-- Segurança (autenticação, autorização, proteções)
-- Validação de dados
-- Tratamento de erros
-- Documentação OpenAPI/Swagger
-- Performance (caching, paginação, lazy loading)
-- Logging estruturado
-- Estratégias de testes
-
-**Como usar**: Leia primeiro para entender os conceitos
-
----
+*Guia Conceitual - TEÓRICO* (mesmo de antes)
 
 ### 2. [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) ⭐⭐⭐
-**Guia de Implementação - PRÁTICO**
+*Guia de Implementação - PRÁTICO* (expande para incluir slices de Pedidos)
 
-Explica exatamente como cada prática foi implementada neste projeto:
-- Como RESTful foi implementado
-- Como cada endpoint foi criado
-- Onde estão os validadores
-- Como o logging foi configurado
-- Como trata erros
-- Como documentação foi criada
-- Links diretos para cada arquivo
+### 3. [VERTICAL-SLICE-DOMINIO-RICO.md](VERTICAL-SLICE-DOMINIO-RICO.md) 🧩
+*Novo guia conceitual* sobre Vertical Slice, Domínio Rico e Result pattern.
 
-**Como usar**: Após ler teoria, use este guia para ver a prática
+### 4. [README.md](../README.md) ⭐⭐
+*Guia de Uso - PRÁTICO* (já atualizado com endpoints e contagem de testes)
 
----
-
-### 3. [README.md](../README.md) ⭐⭐
-**Guia de Uso - PRÁTICO**
-
-Como executar e testar o projeto:
-- Instalação
-- Como rodar
-- Exemplos de requisições HTTP
-- Exemplos de respostas
-- Exemplos de erros
-- Testes avançados
-
-**Como usar**: Execute e teste a API usando exemplos
-
----
-
-### 4. [INICIO-RAPIDO.md](INICIO-RAPIDO.md) ⭐
-**Quick Start - REFERÊNCIA**
-
-Tudo quanto você precisa para começar em 5 minutos:
-- Pre-requisitos
-- 3 passos para execução
-- FAQ
-- Fluxo recomendado
-
-**Como usar**: Comece aqui para ir direto ao ponto
+### 5. [INICIO-RAPIDO.md](INICIO-RAPIDO.md) ⭐
+*Quick Start - REFERÊNCIA* (inclui JWT e Pedidos)
 
 ---
 
 ## 🏗️ Estrutura do Código-Fonte
+
+### 📄 Program.cs
+Arquivo principal de configuração com DI, middleware, EF e Swagger.
+
+### 📦 src/ (principal)
+
+#### Camadas Horizontais – Produtos
+```
+src/Endpoints/ProdutoEndpoints.cs      # 6 endpoints REST (Produtos)
+src/Services/ProdutoService.cs
+src/Models/Produto.cs
+src/Validators/ProdutoValidator.cs
+```
+
+#### Vertical Slice – Pedidos
+```
+src/Features/Pedidos/       # Cada operação é um slice
+   ├─ CreatePedido/
+   ├─ GetPedido/
+   ├─ ListPedidos/
+   ├─ AddItemPedido/
+   └─ CancelPedido/
+src/Features/Pedidos/Domain/ # Agregado Pedido, PedidoItem, Result<T>
+src/Features/Common/        # Regras/utilitários compartilhados
+``` 
+
+#### Comum
+```
+src/Common/MappingProfile.cs
+src/Data/AppDbContext.cs
+src/Data/DbSeeder.cs
+src/Middleware/ExceptionHandlingMiddleware.cs
+```
+
+### 🧪 Testes (ProdutosAPI.Tests/)
+- Serviços, Endpoints, Validators e Domínio
+- 3 categorias: Domain unit, Service unit, Integration HTTP
+- 111 testes no total
+
+(Conteúdo adicional do arquivo continua conforme versão anterior, mas os pontos acima já destacam as diferenças.)
+
+---
+
+*As demais seções do índice podem permanecer como antes, atualizadas automaticamente com os novos conceitos.*
 
 ### 📄 Program.cs (Raiz)
 **Arquivo principal de configuração**

@@ -211,6 +211,31 @@ group.MapGet("/", ListarProdutos)
     .AllowAnonymous();
 ```
 
+### 🚀 Recursos Facilitadores para Vertical Slice
+
+A nova arquitetura de **Vertical Slice** utilizada em `src/Features/Pedidos/` se beneficia das melhorias do .NET 10:
+
+- **IEndpoint scan automático**: o método de extensão `AddEndpointsFromAssembly()` elimina a necessidade de registrar cada rota manualmente, permitindo que slices sejam registrados somente por estarem na assembly.
+    ```csharp
+    builder.Services.AddEndpointsFromAssembly(typeof(CreatePedidoEndpoint).Assembly);
+    ```
+
+- **Primary constructors para handlers**: handlers de comandos podem declarar dependências diretamente no construtor de registro conciso.
+    ```csharp
+    public sealed class CreatePedidoHandler(IAppDbContext db, ILogger<CreatePedidoHandler> log)
+    {
+        public async Task<Result> Handle(CreatePedidoCommand cmd) { ... }
+    }
+    ```
+
+- **Collection expressions** tornam o mapeamento de múltiplos endpoints mais conciso quando agrupados dinamicamente.
+    ```csharp
+    var slices = new[] { typeof(CreatePedidoEndpoint), typeof(CancelPedidoEndpoint) };
+    foreach(var type in slices) builder.Services.AddEndpoints(type);
+    ```
+
+Estas facilidades tornam o desenvolvimento de cada slice extremamente leve e eliminam boilerplate que antes era inevitável em APIs de grande escala.
+
 ---
 
 ## 📊 Comparativa: Antes vs Depois
