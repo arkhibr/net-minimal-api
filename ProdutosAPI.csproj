@@ -11,8 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Exclude test project from main build -->
+    <!-- Exclude test projects from main build -->
     <Compile Remove="ProdutosAPI.Tests/**" />
+    <Compile Remove="Pedidos.Tests/**" />
   </ItemGroup>
 
   <ItemGroup>

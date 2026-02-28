@@ -1,6 +1,6 @@
 using Xunit;
 using FluentAssertions;
-using ProdutosAPI.Features.Common;
+using ProdutosAPI.Shared.Common;
 
 namespace ProdutosAPI.Tests.Unit.Common;
 

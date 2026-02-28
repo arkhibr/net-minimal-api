@@ -1,11 +1,52 @@
 # 🏗️ Arquitetura do Projeto
 
-O repositório demonstra **duas arquiteturas** coexistindo:
+O repositório demonstra **duas arquiteturas complementares** coexistindo de forma **apartada e paralela**:
 
-1. **Clean Architecture / camadas horizontais** — utilizada para o caso de uso Produtos iniciada na primeira fase.
-2. **Vertical Slice Architecture + Domínio Rico** — introduzida na fase 2 para os requisitos de Pedidos.
+1. **Clean Architecture com Camadas Horizontais** (📁 `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Shared/Data/`)
+   - Utilizada para o caso de uso **Produtos** — iniciado na primeira fase
+   - Ideal para aprender separação por responsabilidades tradicionais
 
-Ambas compartilham o mesmo pipeline de middleware, `AppDbContext` e dependências registradas em `Program.cs`.
+2. **Vertical Slice Architecture + Domínio Rico** (📁 `src/Pedidos/`)
+   - Utilizada para o caso de uso **Pedidos** — introduzida na fase 2
+   - Ideal para aprender organização por feature e modelos de domínio ricos
+
+Ambas compartilham o mesmo pipeline de middleware, `AppDbContext` em `src/Shared/Data/` e dependências registradas em `Program.cs`, mas permanecem **isoladas em estrutura de diretórios** para facilitar aprendizado comparativo.
+
+---
+
+## 📂 Estrutura de Diretórios (Apartada e Paralela)
+
+```
+src/
+├── 🟢 Camadas Horizontais — Produtos
+│   ├── Endpoints/
+│   │   ├── ProdutoEndpoints.cs      # 6 endpoints REST
+│   │   └── AuthEndpoints.cs         # Autenticação JWT
+│   ├── Services/
+│   │   └── ProdutoService.cs        # Lógica orquestrada
+│   ├── Models/
+│   │   └── Produto.cs              # Entidade anêmica
+│   ├── DTOs/
+│   │   └── ProdutoDTO.cs           # Transferência de dados
+│   └── Validators/
+│       └── ProdutoValidator.cs     # Validações centralizadas
+│
+├── 🔵 Vertical Slice — Pedidos
+│   ├── Domain/                     # Agregado Pedido (rico)
+│   ├── Common/                     # DTOs e interfaces compartilhadas
+│   ├── CreatePedido/               # Slice: criar
+│   ├── GetPedido/                  # Slice: obter único
+│   ├── ListPedidos/                # Slice: listar
+│   ├── AddItemPedido/              # Slice: adicionar item
+│   └── CancelPedido/               # Slice: cancelar
+│
+└── 🔗 Compartilhado (Shared)
+    ├── Common/                     # IEndpoint, Result, MappingProfile
+    ├── Data/                       # AppDbContext (ambas usam)
+    └── Middleware/                 # Processamento global
+```
+
+**Consequência didática:** Um estudante pode navegar `src/Produtos/Endpoints/` para ver camadas, e logo depois explorar `src/Pedidos/CreatePedido/` para comparar lado a lado.
 
 ---
 
@@ -21,7 +62,7 @@ flowchart TD
     F --> G[SQLite]
 ```
 
-*src/Endpoints/ProdutoEndpoints.cs | CORS, Logging, Exception Handling | FluentValidation | src/Services/ProdutoService.cs | EF Core | produtos-api.db*
+*src/Produtos/Endpoints/ProdutoEndpoints.cs | CORS, Logging, Exception Handling | FluentValidation | src/Produtos/Services/ProdutoService.cs | EF Core | produtos-api.db*
 
 Cada camada tem responsabilidade única e clara: endpoints expõem rotas, validadores checam entrada, serviços orquestram lógica e o contexto de dados conversa com o banco.
 
@@ -51,7 +92,7 @@ flowchart TD
     D --> E[Data Access]
 ```
 
-*src/Features/*/*Endpoint.cs | ex: CreatePedido | src/Features/Pedidos/Domain/ | AppDbContext*
+*src/Pedidos/*/Endpoint.cs | ex: CreatePedido | src/Pedidos/Domain/ | AppDbContext*
 
 Cada *slice* contém tudo o que ele precisa para satisfazer um caso de uso específico: comando, validação, handler e mapeamento de rota. O handler manipula diretamente o agregado `Pedido`, respeitando invariantes (ex.: somente itens ativos são adicionados, total não excede limite).
 
@@ -59,16 +100,79 @@ Estes slices são descobertos automaticamente durante o startup graças à inter
 
 ---
 
-## 3. Coexistência das duas abordagens
+## 3. Comparação: Camadas Horizontais vs Vertical Slice
+
+| Aspecto | Produtos (Camadas) | Pedidos (Vertical Slice) |
+|--------|-------------------|------------------------|
+| **Organização** | Por responsabilidade | Por feature/caso de uso |
+| **Diretório principal** | `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Produtos/Models/` | `src/Pedidos/` |
+| **Modelo de domínio** | Anêmico (apenas dados) | Rico (inclui regras) |
+| **Coesão** | Baixa (lógica em Services) | Alta (cada slice é autossuficiente) |
+| **Escalabilidade** | Boa até ~50 endpoints | Excelente (features isoladas) |
+| **Teste unitário** | Testa serviço isolado | Testa handler + domínio |
+| **Adição de campo** | Toca: Endpoint, Service, DTO, DB | Toca: Domain, Command, Handler, DB |
+| **Ideal para aprender** | REST tradicional e SoC | DDD e independência de feature |
+
+### Detalhamento de um Fluxo
+
+#### Produtos (Horizontal Layers)
+```
+HTTP POST /api/v1/produtos
+    ↓
+Rota em Produtos/Endpoints/ProdutoEndpoints
+    ↓
+ProdutoValidator (validação)
+    ↓
+ProdutoService.CriarAsync (orquestração)
+    ↓
+Shared/Data/AppDbContext.SaveChangesAsync (persistência)
+    ↓
+StatusCode 201 + DTO
+```
+
+#### Pedidos (Vertical Slice)
+```
+HTTP POST /api/v1/pedidos
+    ↓
+Rota em Pedidos/CreatePedido/CreatePedidoEndpoint (IEndpoint)
+    ↓
+CreatePedidoValidator (validação)
+    ↓
+CreatePedidoHandler (orquestração + lógica de domínio)
+    ↓
+Pedido.Create() → Result (validações de negócio)
+    ↓
+Shared/Data/AppDbContext.SaveChangesAsync (persistência)
+    ↓
+StatusCode 201 + DTO
+```
+
+**Diferença-chave:** Em Produtos, a lógica de validação está no serviço. Em Pedidos, a lógica reside no agregado `Pedido` e é chamada pelo handler.
+
+---
+
+## 4. Coexistência das duas abordagens
 
 - Ambos consumen o mesmo `AppDbContext`, tabelas e migrações.
 - Serviços de Produtos continuam funcionando ao lado de slices de Pedidos.
 - A migração para Vertical Slice foi incremental: as peças existentes de Produtos permaneceram inalteradas.
 - Middlewares, autenticação JWT e logging são aplicados globalmente.
 
+## 4. Coexistência das duas abordagens
+
+- Ambas consomem o mesmo `AppDbContext`, tabelas e migrações.
+- Serviços de Produtos continuam funcionando ao lado de slices de Pedidos.
+- A migração para Vertical Slice foi **incremental e não-destrutiva**: as peças existentes de Produtos permaneceram inalteradas.
+- Middlewares (ExceptionHandling, Idempotency), autenticação JWT e logging são aplicados **globalmente** a ambas.
+
+### Por que ambas coexistem?
+1. **Educacional**: O projeto demonstra que não existe "uma solução única" — cada padrão tem seus trade-offs.
+2. **Prático**: Permite comparação lado a lado no mesmo codebase.
+3. **Escalável**: Clean Architecture é robusta para Produtos (domínio simples). Vertical Slice brilha em Pedidos (domínio mais complexo com invariantes).
+
 ---
 
-## Modelo de Dados Unificado
+## 5. Modelo de Dados Unificado
 
 ```mermaid
 classDiagram

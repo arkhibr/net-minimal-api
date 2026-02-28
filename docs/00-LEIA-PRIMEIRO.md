@@ -63,22 +63,31 @@
 
 ### Camadas Horizontais (Produtos)
 ```
-└─ src/Endpoints/ProdutoEndpoints.cs      # 6 endpoints REST
-└─ src/Services/ProdutoService.cs         # Lógica de negócios
-└─ src/Models/Produto.cs                  # Entidade de domínio
-└─ src/Validators/ProdutoValidator.cs     # Regras FluentValidation
+└─ src/Produtos/Endpoints/ProdutoEndpoints.cs      # 6 endpoints REST
+└─ src/Produtos/Services/ProdutoService.cs         # Lógica de negócios
+└─ src/Produtos/Models/Produto.cs                  # Entidade de domínio
+└─ src/Produtos/Validators/ProdutoValidator.cs     # Regras FluentValidation
+└─ src/Produtos/DTOs/ProdutoDTO.cs                 # Transferência de dados
 ```
 
 ### Vertical Slice (Pedidos)
 ```
-└─ src/Features/Pedidos/                  # Cada operação é um slice
-   ├─ CreatePedido/                       # Command, Handler, Validator, Endpoint
+└─ src/Pedidos/                                    # Cada operação é um slice
+   ├─ Domain/                                   # Agregado Pedido (domínio rico)
+   ├─ CreatePedido/                             # Command, Handler, Validator, Endpoint
    ├─ GetPedido/
    ├─ ListPedidos/
    ├─ AddItemPedido/
    └─ CancelPedido/
-└─ src/Features/Common/                   # Regras e utilitários compartilhados
-└─ src/Features/Pedidos/Domain/           # Agregado Pedido, PedidoItem, Result<T>
+```
+
+### Compartilhado
+```
+├─ src/Shared/Common/                           # Padrões e utilitários
+├─ src/Shared/Data/                            # AppDbContext (ambas usam)
+└─ src/Shared/Middleware/                       # Exception Handling, Idempotency
+```
+└─ src/Pedidos/Domain/           # Agregado Pedido, PedidoItem, Result<T>
 ```
 
 Ambas as abordagens compartilham `AppDbContext`, o pipeline de middleware e a mesma instância do contêiner de DI.
@@ -162,14 +171,14 @@ dotnet run
 
 **Models:**
 ```
-└─ src/Models/Produto.cs
+└─ src/Produtos/Models/Produto.cs
    └─ Entidade principal com 11 propriedades
    └─ Soft delete, audit fields, XML comments
 ```
 
 **DTOs (8 classes):**
 ```
-└─ src/DTOs/ProdutoDTO.cs
+└─ src/Produtos/DTOs/ProdutoDTO.cs
    ├─ CriarProdutoRequest
    ├─ AtualizarProdutoRequest
    ├─ ProdutoResponse
@@ -182,7 +191,7 @@ dotnet run
 
 **Endpoints (6 rotas):**
 ```
-└─ src/Endpoints/ProdutoEndpoints.cs
+└─ src/Produtos/Endpoints/ProdutoEndpoints.cs
    ├─ GET    /       (listar com paginação)
    ├─ GET    /{id}   (obter específico)
    ├─ POST   /       (criar)
@@ -193,22 +202,22 @@ dotnet run
 
 **Services:**
 ```
-└─ src/Services/ProdutoService.cs
+└─ src/Produtos/Services/ProdutoService.cs
    └─ 6 métodos async com logging e validação
 ```
 
 **Data Access:**
 ```
-├─ src/Data/AppDbContext.cs         [EF Core context com índices]
-├─ src/Data/DbSeeder.cs             [8 produtos de exemplo]
-└─ src/Data/Migrations/
+├─ src/Shared/Data/AppDbContext.cs         [EF Core context com índices]
+├─ src/Shared/Data/DbSeeder.cs             [8 produtos de exemplo]
+└─ src/Shared/Data/Migrations/
    ├─ 20250225000000_CreateInitialSchema.cs
    └─ AppDbContextModelSnapshot.cs
 ```
 
 **Validação (3 validadores):**
 ```
-└─ src/Validators/ProdutoValidator.cs
+└─ src/Produtos/Validators/ProdutoValidator.cs
    ├─ CriarProdutoValidator
    ├─ AtualizarProdutoValidator
    └─ LoginValidator
@@ -216,7 +225,7 @@ dotnet run
 
 **Middleware:**
 ```
-└─ src/Middleware/ExceptionHandlingMiddleware.cs
+└─ src/Shared/Middleware/ExceptionHandlingMiddleware.cs
    └─ Tratamento global de exceções
 ```
 

@@ -1,8 +1,8 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using ProdutosAPI.DTOs;
-using ProdutosAPI.Services;
+using ProdutosAPI.Produtos.DTOs;
+using ProdutosAPI.Produtos.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

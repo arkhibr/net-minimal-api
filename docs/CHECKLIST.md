@@ -23,20 +23,20 @@
 - [x] **.gitignore** - Arquivos ignorados pelo Git
 
 ### Models
-- [x] **src/Models/Produto.cs** - Entidade principal com XML comments
+- [x] **src/Produtos/Models/Produto.cs** - Entidade principal com XML comments
   - [x] Propriedades com validação
   - [x] Datas de criação e atualização
   - [x] Status de ativação (soft delete)
   - [x] Referência ao guia conceitual
-- [x] **src/Features/Pedidos/Domain/Pedido.cs** - Agregado raiz de Pedidos
+- [x] **src/Pedidos/Domain/Pedido.cs** - Agregado raiz de Pedidos
   - [x] Invariantes encapsuladas (total, estado)
   - [x] Métodos retornam Result<T>
   - [x] Regras de negócio dentro do domínio
-- [x] **src/Features/Pedidos/Domain/PedidoItem.cs** - Item do pedido
+- [x] **src/Pedidos/Domain/PedidoItem.cs** - Item do pedido
   - [x] Referência a produto e quantidade
 
 ### DTOs
-- [x] **src/DTOs/ProdutoDTO.cs** - 8 classes DTO
+- [x] **src/Produtos/DTOs/ProdutoDTO.cs** - 8 classes DTO
   - [x] CriarProdutoRequest
   - [x] AtualizarProdutoRequest
   - [x] ProdutoResponse
@@ -47,7 +47,7 @@
   - [x] LoginRequest
 
 ### Endpoints
-- [x] **src/Endpoints/ProdutoEndpoints.cs** - 6 endpoints
+- [x] **src/Produtos/Endpoints/ProdutoEndpoints.cs** - 6 endpoints
   - [x] GET / (Listar com paginação)
   - [x] GET /{id} (Obter específico)
   - [x] POST / (Criar)
@@ -57,13 +57,13 @@
   - [x] Validation em cada endpoint
   - [x] Error handling apropriado
   - [x] Swagger/OpenAPI decorators
-- [x] **src/Features/Pedidos/** - 5 slices (Create, Get, List, AddItem, Cancel)
+- [x] **src/Pedidos/** - 5 slices (Create, Get, List, AddItem, Cancel)
   - [x] Cada slice contém Command/Handler/Validator/Endpoint
   - [x] Endpoints usam JWT obrigatório (quando aplicável)
   - [x] Result pattern aplicado nos handlers
 
 ### Services
-- [x] **src/Services/ProdutoService.cs** - Interface e Implementação
+- [x] **src/Produtos/Services/ProdutoService.cs** - Interface e Implementação
   - [x] IProdutoService interface
   - [x] ListarProdutosAsync com paginação
   - [x] ObterProdutoAsync
@@ -73,12 +73,12 @@
   - [x] DeletarProdutoAsync com soft delete
   - [x] Logging em cada operação
   - [x] Tratamento de exceções
-- [x] **src/Features/Pedidos/** handlers (CreatePedidoHandler, GetPedidoHandler, etc.)
+- [x] **src/Pedidos/** handlers (CreatePedidoHandler, GetPedidoHandler, etc.)
   - [x] Serviços leves que orquestram domínio rico
   - [x] Injetam `IAppDbContext` e `ILogger`
 
 ### Data Access
-- [x] **src/Data/AppDbContext.cs** - Entity Framework DbContext
+- [x] **src/Shared/Data/AppDbContext.cs** - Entity Framework DbContext
   - [x] DbSet para Produtos
   - [x] DbSet<Pedido> e DbSet<PedidoItem> adicionados para Pedidos
   - [x] Configuração de propriedades
@@ -86,13 +86,13 @@
   - [x] Precision de decimais
   - [x] Max lengths de strings
 
-- [x] **src/Data/DbSeeder.cs** - Dados iniciais
+- [x] **src/Shared/Data/DbSeeder.cs** - Dados iniciais
   - [x] 8 produtos de exemplo
   - [x] Diferentes categorias
   - [x] Preços e estoque realistas
   - [x] (Opcional) pedidos de exemplo adicionados
 
-- [x] **src/Data/Migrations/** - Entity Framework Migrations
+- [x] **src/Shared/Data/Migrations/** - Entity Framework Migrations
   - [x] CreateInitialSchema migration
   - [x] Adicionadas migrations para tabelas Pedidos e PedidoItens
   - [x] ModelSnapshot atualizado
@@ -100,18 +100,18 @@
   - [x] Constraints definidos
 
 ### Validação
-- [x] **src/Validators/ProdutoValidator.cs** - FluentValidation
+- [x] **src/Produtos/Validators/ProdutoValidator.cs** - FluentValidation
   - [x] CriarProdutoValidator com regras completas
   - [x] AtualizarProdutoValidator para PATCH
   - [x] LoginValidator para autenticação futura
   - [x] Mensagens em português
-- [x] **src/Features/Pedidos/** validators de comandos (CreatePedidoValidator, AddItemValidator, etc.)
+- [x] **src/Pedidos/** validators de comandos (CreatePedidoValidator, AddItemValidator, etc.)
   - [x] Campos obrigatórios verificados
   - [x] Regras de negócio customizadas (quantidade >0, preço >0)
   - [x] Mensagens de erro claras
 
 ### Middleware
-- [x] **src/Middleware/ExceptionHandlingMiddleware.cs** - Tratamento Global
+- [x] **src/Shared/Middleware/ExceptionHandlingMiddleware.cs** - Tratamento Global
   - [x] Captura todas as exceções
   - [x] Respostas padronizadas
   - [x] Logging de erros

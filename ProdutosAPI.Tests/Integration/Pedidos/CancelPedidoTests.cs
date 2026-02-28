@@ -2,9 +2,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
-using ProdutosAPI.Features.Pedidos.CancelPedido;
-using ProdutosAPI.Features.Pedidos.Common;
-using ProdutosAPI.Features.Pedidos.CreatePedido;
+using ProdutosAPI.Pedidos.CancelPedido;
+using ProdutosAPI.Pedidos.Common;
+using ProdutosAPI.Pedidos.CreatePedido;
 using Xunit;
 
 namespace ProdutosAPI.Tests.Integration.Pedidos;

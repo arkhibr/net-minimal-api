@@ -137,15 +137,15 @@ O projeto já inclui:
 
 | Conceito | Onde Encontrar |
 |----------|----------------|
-| **RESTful Design** | [Endpoints](../src/Endpoints/ProdutoEndpoints.cs) |
-| **HTTP Verbs** | [Endpoints](../src/Endpoints/ProdutoEndpoints.cs#L29-L60) |
-| **Paginação** | [Services](../src/Services/ProdutoService.cs#L32-L75) |
-| **Validação** | [Validators](../src/Validators/ProdutoValidator.cs) |
-| **Tratamento de Erros** | [Middleware](../src/Middleware/ExceptionHandlingMiddleware.cs) |
-| **Logging** | [Services](../src/Services/ProdutoService.cs#L34) |
-| **DTOs** | [DTOs](../src/DTOs/ProdutoDTO.cs) |
+| **RESTful Design** | [Endpoints](../src/Produtos/Endpoints/ProdutoEndpoints.cs) |
+| **HTTP Verbs** | [Endpoints](../src/Produtos/Endpoints/ProdutoEndpoints.cs#L29-L60) |
+| **Paginação** | [Services](../src/Produtos/Services/ProdutoService.cs#L32-L75) |
+| **Validação** | [Validators](../src/Produtos/Validators/ProdutoValidator.cs) |
+| **Tratamento de Erros** | [Middleware](../src/Shared/Middleware/ExceptionHandlingMiddleware.cs) |
+| **Logging** | [Services](../src/Produtos/Services/ProdutoService.cs#L34) |
+| **DTOs** | [DTOs](../src/Produtos/DTOs/ProdutoDTO.cs) |
 | **Injeção de Dependência** | [Program.cs](Program.cs#L36-L45) |
-| **Entity Framework** | [Data](../src/Data/AppDbContext.cs) |
+| **Entity Framework** | [Data](../src/Shared/Data/AppDbContext.cs) |
 | **Swagger/OpenAPI** | [Program.cs](Program.cs#L80-L100) |
 
 ---
@@ -256,12 +256,12 @@ Após entender este projeto:
 | Arquivo | Propósito |
 |---------|-----------|
 | `Program.cs` | Configuração central da aplicação |
-| `src/Models/Produto.cs` | Entidade do domínio |
-| `src/DTOs/ProdutoDTO.cs` | Transfer objects |
-| `src/Endpoints/ProdutoEndpoints.cs` | Mapeamento de rotas |
-| `src/Services/ProdutoService.cs` | Lógica de negócio |
-| `src/Validators/ProdutoValidator.cs` | Validações |
-| `src/Middleware/ExceptionHandlingMiddleware.cs` | Tratamento de erros |
+| `src/Produtos/Models/Produto.cs` | Entidade do domínio |
+| `src/Produtos/DTOs/ProdutoDTO.cs` | Transfer objects |
+| `src/Produtos/Endpoints/ProdutoEndpoints.cs` | Mapeamento de rotas |
+| `src/Produtos/Services/ProdutoService.cs` | Lógica de negócio |
+| `src/Produtos/Validators/ProdutoValidator.cs` | Validações |
+| `src/Shared/Middleware/ExceptionHandlingMiddleware.cs` | Tratamento de erros |
 | `appsettings.json` | Configurações de ambiente |
 
 ---

@@ -169,7 +169,7 @@ group.MapGet("/", ListarProdutos)
 
 ## 📋 Mudanças Implementadas no Projeto
 
-### Arquivo: `src/Endpoints/ProdutoEndpoints.cs`
+### Arquivo: `src/Produtos/Endpoints/ProdutoEndpoints.cs`
 
 #### **Assinatura de Método - Antes**
 ```csharp
@@ -213,7 +213,7 @@ group.MapGet("/", ListarProdutos)
 
 ### 🚀 Recursos Facilitadores para Vertical Slice
 
-A nova arquitetura de **Vertical Slice** utilizada em `src/Features/Pedidos/` se beneficia das melhorias do .NET 10:
+A nova arquitetura de **Vertical Slice** utilizada em `src/Pedidos/` se beneficia das melhorias do .NET 10:
 
 - **IEndpoint scan automático**: o método de extensão `AddEndpointsFromAssembly()` elimina a necessidade de registrar cada rota manualmente, permitindo que slices sejam registrados somente por estarem na assembly.
     ```csharp

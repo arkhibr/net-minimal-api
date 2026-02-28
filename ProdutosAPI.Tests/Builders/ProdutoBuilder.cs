@@ -1,4 +1,4 @@
-using ProdutosAPI.Models;
+using ProdutosAPI.Produtos.Models;
 
 namespace ProdutosAPI.Tests.Builders;
 

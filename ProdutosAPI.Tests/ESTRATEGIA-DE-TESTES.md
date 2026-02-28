@@ -2,7 +2,11 @@
 
 ## 📋 Sumário Executivo
 
-A suite de testes cobre **111 casos automatizados** em três camadas diferentes para validar os dois padrões arquiteturais do projeto: Clean Architecture (Produtos) e Vertical Slice + Domínio Rico (Pedidos).
+A suite de testes é distribuída em **2 projetos paralelos**:
+- **ProdutosAPI.Tests**: Cobre 111 casos para Clean Architecture (Produtos)
+- **Pedidos.Tests**: Cobre 11 casos para Vertical Slice + Domínio Rico (Pedidos)
+
+**Total**: **122 casos automatizados** em três camadas diferentes para validar os dois padrões arquiteturais.
 
 **Framework de Testes**: xUnit  
 **Mocking**: Moq + NSubstitute  
@@ -22,23 +26,40 @@ A suite de testes cobre **111 casos automatizados** em três camadas diferentes 
 
 ---
 
-## 📁 Estrutura de Projeto de Testes
+## 📁 Estrutura de Projetos de Testes
 
+### **ProdutosAPI.Tests/** (Clean Architecture - Produtos)
 ```
 ProdutosAPI.Tests/
 ├── ProdutosAPI.Tests.csproj
 ├── Domain/
-│   └── PedidoTests.cs                # 40+ testes de regras do agregado
+│   └── ProdutoTests.cs               # Testes de modelo de Produtos
 ├── Services/
-│   ├── ProdutoServiceTests.cs        # 35 testes de serviço
-│   └── PedidoServiceTests.cs         # (se existir) testes de serviço de pedidos
+│   └── ProdutoServiceTests.cs        # 35 testes de serviço
 ├── Endpoints/
-│   ├── ProdutoEndpointsTests.cs      # 18 testes (Produtos)
-│   └── PedidoEndpointsTests.cs       # 18 testes (Pedidos HTTP)
+│   └── ProdutoEndpointsTests.cs      # 18 testes HTTP
 ├── Validators/
-│   ├── ProdutoValidatorTests.cs      # regras de Produtos (20+)
-│   └── PedidoValidatorTests.cs       # validação de comandos Pedidos (10+)
-└── README.md                         # Esta documentação
+│   └── ProdutoValidatorTests.cs      # 20+ testes de validação
+├── Unit/
+│   ├── Common/
+│   ├── Domain/
+│   └── Services/
+├── Integration/
+│   └── Pedidos/
+├── Builders/
+│   └── ProdutoBuilder.cs
+└── ESTRATEGIA-DE-TESTES.md           # Documentação
+```
+
+### **Pedidos.Tests/** (Vertical Slice - Pedidos)
+```
+Pedidos.Tests/
+├── Pedidos.Tests.csproj
+├── Builders/
+│   └── ProdutoTestBuilder.cs         # Construtor para testes
+├── Domain/
+│   └── PedidoTests.cs                # 11 testes de agregado Pedido
+└── ESTRATEGIA-TESTES-PEDIDOS.md      # Documentação
 ```
 
 ---

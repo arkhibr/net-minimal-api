@@ -46,7 +46,55 @@ dotnet run
 # - Health Check: http://localhost:5000/health
 # - API Base: http://localhost:5000/api/v1
 ```
+---
 
+## 🏗️ Dois Padrões Arquiteturais — Apartados e Paralelos
+
+Este projeto não escolhe **um** padrão — ele demonstra **dois** lado a lado, cada um em sua estrutura de diretório, facilitando comparação educacional:
+
+### 🟢 Trilha 1: Clean Architecture em Camadas (Produtos)
+
+**Diretórios:** `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Produtos/Models/`, `src/Produtos/Validators/`, `src/Shared/Data/`
+
+Padrão tradicional com separação por responsabilidade:
+```
+HTTP → src/Produtos/Endpoints/ProdutoEndpoints → ProdutoValidator → ProdutoService → src/Shared/Data/AppDbContext → Database
+```
+
+**Explore:**
+- Rota simples: [src/Produtos/Endpoints/ProdutoEndpoints.cs](src/Produtos/Endpoints/ProdutoEndpoints.cs)
+- Lógica: [src/Produtos/Services/ProdutoService.cs](src/Produtos/Services/ProdutoService.cs)
+- Entidade anêmica: [src/Produtos/Models/Produto.cs](src/Produtos/Models/Produto.cs)
+- Testes: [ProdutosAPI.Tests/Services/](ProdutosAPI.Tests/Services/)
+
+### 🔵 Trilha 2: Vertical Slice + Domínio Rico (Pedidos)
+
+**Diretório:** `src/Pedidos/`
+
+Padrão moderno com organização por feature:
+```
+HTTP → src/Pedidos/CreatePedido/CreatePedidoEndpoint → CreatePedidoValidator → CreatePedidoHandler → Pedido.Create() → src/Shared/Data/AppDbContext
+```
+
+**Explore:**
+- Agregado rico: [src/Pedidos/Domain/Pedido.cs](src/Pedidos/Domain/Pedido.cs)
+- Uma slice completa: [src/Pedidos/CreatePedido/](src/Pedidos/CreatePedido/)
+- Result pattern: [src/Shared/Common/Result.cs](src/Shared/Common/Result.cs)
+- Testes: [ProdutosAPI.Tests/Integration/Pedidos/](ProdutosAPI.Tests/Integration/Pedidos/)
+
+### 📊 Comparação Rápida
+
+| Aspecto | Produtos (Clean) | Pedidos (Vertical Slice) |
+|---------|-----------------|--------------------------|
+| **Organização** | Por camada | Por feature |
+| **Modelo** | Anêmico (dados) | Rico (dados + regras) |
+| **Validação** | Em separado | Encapsulada |
+| **Escalabilidade** | Até ~50 endpoints | 100+ features |
+| **Ideal para** | Domínio simples | Domínio complexo |
+
+📖 **Saiba mais:** [ARQUITETURA.md](docs/ARQUITETURA.md) | [VERTICAL-SLICE-DOMINIO-RICO.md](docs/VERTICAL-SLICE-DOMINIO-RICO.md)
+
+---
 ## � Estrutura do Projeto
 
 ```
@@ -69,12 +117,22 @@ net-minimal-api/
 │   ├── Services/ProdutoService.cs         # Business logic
 │   └── Validators/ProdutoValidator.cs     # FluentValidation
 │
-├── ProdutosAPI.Tests/                      # Testes abrangentes
+├── ProdutosAPI.Tests/                      # Testes do módulo Produtos (Clean Architecture)
 │   ├── ProdutosAPI.Tests.csproj          # xUnit + Moq + FluentAssertions
-│   ├── ESTRATEGIA-DE-TESTES.md           # Documentação estratégia
-│   ├── Services/ProdutoServiceTests.cs     # Unit tests
-│   ├── Endpoints/ProdutoEndpointsTests.cs  # Integration tests
-│   └── Validators/ProdutoValidatorTests.cs # Validator tests
+│   ├── ESTRATEGIA-DE-TESTES.md           # Documentação estratégia de testes
+│   ├── Services/ProdutoServiceTests.cs     # Unit tests (35 testes)
+│   ├── Endpoints/ProdutoEndpointsTests.cs  # Integration tests (18 testes)
+│   ├── Validators/ProdutoValidatorTests.cs # Validator tests (20+ testes)
+│   ├── Domain/PedidoTests.cs             # Domain tests (40+ testes)
+│   ├── Unit/
+│   ├── Integration/Pedidos/
+│   └── Builders/
+│
+├── Pedidos.Tests/                        # Testes do módulo Pedidos (Vertical Slice + Domínio Rico)
+│   ├── Pedidos.Tests.csproj              # xUnit + FluentAssertions (11 testes)
+│   ├── ESTRATEGIA-TESTES-PEDIDOS.md      # Documentação específica de Pedidos
+│   ├── Domain/PedidoTests.cs             # 11 testes de agregado
+│   └── Builders/ProdutoTestBuilder.cs   # Builder utilities
 │
 ├── docs/                                   # 📖 Documentação completa
 │   ├── 00-LEIA-PRIMEIRO.md               # Índice geral do projeto
@@ -118,14 +176,21 @@ net-minimal-api/
 | `POST` | `/api/v1/pedidos/{id}/itens` | Adicionar item | 201/404/422/401 |
 | `GET` | `/api/v1/pedidos` | Listar pedidos | 200/401 |
 
-### ✅ 111 Testes Automatizados (NOVO em v3.0.0)
+### ✅ 122 Testes Automatizados (NOVO em v3.0.0)
 
+Distribuídos em **2 projetos paralelos**:
+
+**ProdutosAPI.Tests** (111 testes - Clean Architecture):
 - **Domain Unit Tests** – regras de negócio de agregados (40+ testes)
 - **Service Unit Tests** – casos de serviço individuais (35 testes)
-- **Integration HTTP Tests** – endpoints Produtos + Pedidos (36 testes)
-- **Validator Tests** – validações de comando e requests
+- **Integration HTTP Tests** – endpoints Produtos (18 testes)
+- **Validator Tests** – validações (20+ testes)
 
-Execute com: `dotnet test`
+**Pedidos.Tests** (11 testes - Vertical Slice + Domínio Rico):
+- **Domain Unit Tests** – agregado Pedido com Result pattern (11 testes)
+  - Criar, AdicionarItem, Confirmar, Cancelar com validações
+
+Execute com: `dotnet test ProdutosAPI.slnx`
 
 ### ✅ .NET 10 Minimal API Enhancements (NOVO)
 
@@ -139,8 +204,17 @@ Execute com: `dotnet test`
 ## 🧪 Executando Testes
 
 ```bash
-# Todos os testes
+# Todos os testes (ProdutosAPI.Tests + Pedidos.Tests)
 dotnet test
+
+# Ou explicitamente a solução
+dotnet test ProdutosAPI.slnx
+
+# Testes específicos do projeto Produtos
+dotnet test ProdutosAPI.Tests
+
+# Testes específicos do projeto Pedidos
+dotnet test Pedidos.Tests
 
 # Teste específico
 dotnet test --filter "Name=ObterProdutoAsync_WithValidId_ReturnsProduto"
@@ -169,12 +243,15 @@ dotnet test --verbosity detailed
    - Comparativas antes/depois
 
 3. **[ProdutosAPI.Tests/ESTRATEGIA-DE-TESTES.md](./ProdutosAPI.Tests/ESTRATEGIA-DE-TESTES.md)** 🧪
-   - Estratégia completa de testes
+   - Estratégia completa de testes (ProdutosAPI.Tests + Pedidos.Tests)
    - Como executar testes
    - Padrão AAA (Arrange-Act-Assert)
    - Cobertura esperada
 
-4. **Outros Guias** (em `docs/`)
+4. **[Pedidos.Tests/ESTRATEGIA-TESTES-PEDIDOS.md](./Pedidos.Tests/ESTRATEGIA-TESTES-PEDIDOS.md)** 🧪
+   - Estratégia de testes para Vertical Slice
+   - Testes de agregado Pedido
+   - Domain-driven design com Result pattern
    - [ARQUITETURA.md](./docs/ARQUITETURA.md) - Diagramas de arquitetura
    - [INICIO-RAPIDO.md](./docs/INICIO-RAPIDO.md) - Quick start guide
    - [INDEX.md](./docs/INDEX.md) - Índice completo

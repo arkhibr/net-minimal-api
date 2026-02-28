@@ -1,8 +1,8 @@
 using Xunit;
 using FluentAssertions;
-using ProdutosAPI.Features.Pedidos.Domain;
+using ProdutosAPI.Pedidos.Domain;
 using ProdutosAPI.Tests.Builders;
-using ProdutosAPI.Models;
+using ProdutosAPI.Produtos.Models;
 
 namespace ProdutosAPI.Tests.Unit.Domain;
 

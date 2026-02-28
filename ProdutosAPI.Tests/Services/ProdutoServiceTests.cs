@@ -1,11 +1,11 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using ProdutosAPI.Models;
-using ProdutosAPI.DTOs;
-using ProdutosAPI.Services;
-using ProdutosAPI.Data;
-using ProdutosAPI.Validators;
+using ProdutosAPI.Produtos.Models;
+using ProdutosAPI.Produtos.DTOs;
+using ProdutosAPI.Produtos.Services;
+using ProdutosAPI.Shared.Data;
+using ProdutosAPI.Produtos.Validators;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
