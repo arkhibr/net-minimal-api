@@ -87,9 +87,8 @@ HTTP → src/Pedidos/CreatePedido/CreatePedidoEndpoint → CreatePedidoValidator
 | Aspecto | Produtos (Clean) | Pedidos (Vertical Slice) |
 |---------|-----------------|--------------------------|
 | **Organização** | Por camada | Por feature |
-| **Modelo** | Anêmico (dados) | Rico (dados + regras) |
+| **Modelo** | Rico (dados + regras)| Rico (dados + regras) |
 | **Validação** | Em separado | Encapsulada |
-| **Escalabilidade** | Até ~50 endpoints | 100+ features |
 | **Ideal para** | Domínio simples | Domínio complexo |
 
 📖 **Saiba mais:** [ARQUITETURA.md](docs/ARQUITETURA.md) | [VERTICAL-SLICE-DOMINIO-RICO.md](docs/VERTICAL-SLICE-DOMINIO-RICO.md)
