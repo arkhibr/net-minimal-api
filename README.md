@@ -100,39 +100,35 @@ HTTP → src/Pedidos/CreatePedido/CreatePedidoEndpoint → CreatePedidoValidator
 ```
 net-minimal-api/
 ├── Program.cs                              # Configuração principal (.NET 10)
-├── ProdutosAPI.csproj                      # Arquivo de projeto (net10.0)
+├── ProdutosAPI.csproj                      # Arquivo de projeto principal
+├── ProdutosAPI.slnx                        # Solution explorer setup
 ├── appsettings.json                        # Configurações de ambiente
 │
-├── src/                                     # Código principal
-│   ├── Common/MappingProfile.cs            # AutoMapper
-│   ├── Data/
-│   │   ├── AppDbContext.cs                # EF Core DbContext
-│   │   └── DbSeeder.cs                    # Dados iniciais
-│   ├── DTOs/ProdutoDTO.cs                 # 8 classes DTO
-│   ├── Endpoints/ProdutoEndpoints.cs      # 6 endpoints (Typed Results)
-│   ├── Features/                          # Vertical slice (Pedidos)
-│   │   └── Pedidos/                       # cada operação em sua pasta
-│   ├── Middleware/ExceptionHandlingMiddleware.cs
-│   ├── Models/Produto.cs                  # Domain model (Produtos)
-│   ├── Services/ProdutoService.cs         # Business logic
-│   └── Validators/ProdutoValidator.cs     # FluentValidation
+├── src/                                    # Código principal particionado
+│   ├── Pedidos/                            # Módulo Pedidos (Vertical Slice + Domínio Rico)
+│   │   ├── CreatePedido/                   # Slices (Create, Get, List, Cancel)
+│   │   └── Domain/                         # Agregado Pedido, Entidades e Regras de Negócio
+│   ├── Produtos/                           # Módulo Produtos (Clean Architecture)
+│   │   ├── DTOs/                           # Data Transfer Objects
+│   │   ├── Endpoints/                      # Endpoints Minimal API (Typed Results)
+│   │   ├── Models/                         # Entidades de Dados
+│   │   ├── Services/                       # Business Logic services
+│   │   └── Validators/                     # FluentValidation
+│   └── Shared/                             # Infraestrutura e Código Comum
+│       ├── Common/                         # Helper classes, Result pattern
+│       ├── Data/                           # Entity Framework DbContext e Seeder
+│       ├── Middlewares/                    # Global Exception Handler
+│       └── Security/                       # Setup de Segurança (JWT, etc.)
 │
 ├── ProdutosAPI.Tests/                      # Testes do módulo Produtos (Clean Architecture)
-│   ├── ProdutosAPI.Tests.csproj          # xUnit + Moq + FluentAssertions
-│   ├── ESTRATEGIA-DE-TESTES.md           # Documentação estratégia de testes
-│   ├── Services/ProdutoServiceTests.cs     # Unit tests (35 testes)
-│   ├── Endpoints/ProdutoEndpointsTests.cs  # Integration tests (18 testes)
-│   ├── Validators/ProdutoValidatorTests.cs # Validator tests (20+ testes)
-│   ├── Domain/PedidoTests.cs             # Domain tests (40+ testes)
-│   ├── Unit/
-│   ├── Integration/Pedidos/
-│   └── Builders/
+│   ├── Domain/                             # Domain tests
+│   ├── Services/                           # Unit tests (35 testes)
+│   ├── Endpoints/                          # Integration tests HTTP (18 testes)
+│   └── Validators/                         # Validator tests (20+ testes)
 │
-├── Pedidos.Tests/                        # Testes do módulo Pedidos (Vertical Slice + Domínio Rico)
-│   ├── Pedidos.Tests.csproj              # xUnit + FluentAssertions (11 testes)
-│   ├── ESTRATEGIA-TESTES-PEDIDOS.md      # Documentação específica de Pedidos
-│   ├── Domain/PedidoTests.cs             # 11 testes de agregado
-│   └── Builders/ProdutoTestBuilder.cs   # Builder utilities
+├── Pedidos.Tests/                          # Testes do módulo Pedidos (Vertical Slice + Domínio Rico)
+│   ├── Domain/                             # Testes de agregado (11 testes)
+│   └── Builders/                           # Construtores para massa de testes
 │
 ├── docs/                                   # 📖 Documentação completa
 │   ├── 00-LEIA-PRIMEIRO.md               # Índice geral do projeto
@@ -140,6 +136,8 @@ net-minimal-api/
 │   ├── MELHORES-PRATICAS-MINIMAL-API.md  # Implementação das práticas
 │   ├── MELHORIAS-DOTNET-10.md            # Features .NET 10
 │   ├── ARQUITETURA.md                    # Diagramas de arquitetura
+│   ├── VERTICAL-SLICE-DOMINIO-RICO.md    # Detalhamento de Vertical Slice
+│   ├── ESTRATEGIA-DE-TESTES.md           # Planejamento global de testes
 │   ├── INICIO-RAPIDO.md                  # Quick start
 │   ├── INDEX.md                          # Índice completo
 │   ├── CHECKLIST.md                      # Verificação de práticas
@@ -242,16 +240,18 @@ dotnet test --verbosity detailed
    - Enhanced OpenAPI
    - Comparativas antes/depois
 
-3. **[ProdutosAPI.Tests/ESTRATEGIA-DE-TESTES.md](./ProdutosAPI.Tests/ESTRATEGIA-DE-TESTES.md)** 🧪
+3. **[docs/ESTRATEGIA-DE-TESTES.md](./docs/ESTRATEGIA-DE-TESTES.md)** 🧪
    - Estratégia completa de testes (ProdutosAPI.Tests + Pedidos.Tests)
-   - Como executar testes
+   - Como executar testes em Clean Architecture e Vertical Slice
    - Padrão AAA (Arrange-Act-Assert)
-   - Cobertura esperada
+   - Cobertura esperada e documentação do Domínio
 
-4. **[Pedidos.Tests/ESTRATEGIA-TESTES-PEDIDOS.md](./Pedidos.Tests/ESTRATEGIA-TESTES-PEDIDOS.md)** 🧪
-   - Estratégia de testes para Vertical Slice
-   - Testes de agregado Pedido
-   - Domain-driven design com Result pattern
+4. **[docs/VERTICAL-SLICE-DOMINIO-RICO.md](./docs/VERTICAL-SLICE-DOMINIO-RICO.md)** 🚀
+   - Fundamentos do Vertical Slice
+   - Detalhamento prático das implementações de Request Handlers
+   - Utilização do Padrão Result no design do Domínio
+
+   - **Outros recursos:**
    - [ARQUITETURA.md](./docs/ARQUITETURA.md) - Diagramas de arquitetura
    - [INICIO-RAPIDO.md](./docs/INICIO-RAPIDO.md) - Quick start guide
    - [INDEX.md](./docs/INDEX.md) - Índice completo
