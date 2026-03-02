@@ -64,7 +64,7 @@ HTTP → src/Produtos/Endpoints/ProdutoEndpoints → ProdutoValidator → Produt
 **Explore:**
 - Rota simples: [src/Produtos/Endpoints/ProdutoEndpoints.cs](src/Produtos/Endpoints/ProdutoEndpoints.cs)
 - Lógica: [src/Produtos/Services/ProdutoService.cs](src/Produtos/Services/ProdutoService.cs)
-- Entidade anêmica: [src/Produtos/Models/Produto.cs](src/Produtos/Models/Produto.cs)
+- Entidade rica: [src/Produtos/Models/Produto.cs](src/Produtos/Models/Produto.cs)
 - Testes: [ProdutosAPI.Tests/Services/](ProdutosAPI.Tests/Services/)
 
 ### 🔵 Trilha 2: Vertical Slice + Domínio Rico (Pedidos)
