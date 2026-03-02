@@ -52,7 +52,7 @@ dotnet run
 
 Este projeto não escolhe **um** padrão — ele demonstra **dois** lado a lado, cada um em sua estrutura de diretório, facilitando comparação educacional:
 
-### 🟢 Trilha 1: Clean Architecture em Camadas (Produtos)
+### 🟢 Trilha 1: Clean Architecture (Produtos)
 
 **Diretórios:** `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Produtos/Models/`, `src/Produtos/Validators/`, `src/Shared/Data/`
 
@@ -152,7 +152,7 @@ net-minimal-api/
 
 ### ✅ 11 Endpoints REST Completos com Typed Results
 
-#### Produtos (camadas horizontais)
+#### Produtos (Clean Architecture)
 
 | Método | Rota | Descrição | Status |
 |--------|------|-----------|---------|
