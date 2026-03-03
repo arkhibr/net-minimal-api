@@ -1,10 +1,5 @@
-namespace ProdutosAPI.Produtos.DTOs;
+namespace ProdutosAPI.Produtos.Application.DTOs;
 
-/// <summary>
-/// DTO para requisições de criação/atualização de produto
-/// Referência: Melhores-Praticas-API.md - Seção "Validação de Dados"
-/// Separa a representação externa da entidade interna
-/// </summary>
 public class CriarProdutoRequest
 {
     public string Nome { get; set; } = string.Empty;
@@ -15,11 +10,6 @@ public class CriarProdutoRequest
     public string ContatoEmail { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// DTO para requisições de atualização parcial de produto
-/// Referência: Melhores-Praticas-API.md - Seção "Design de Endpoints - PUT vs PATCH"
-/// Permite atualizações de apenas alguns campos
-/// </summary>
 public class AtualizarProdutoRequest
 {
     public string? Nome { get; set; }
@@ -30,11 +20,6 @@ public class AtualizarProdutoRequest
     public string? ContatoEmail { get; set; }
 }
 
-/// <summary>
-/// DTO para resposta de produto
-/// Referência: Melhores-Praticas-API.md - Seção "Representação de Recursos"
-/// Consistência na estrutura de responses
-/// </summary>
 public class ProdutoResponse
 {
     public int Id { get; set; }
@@ -49,20 +34,12 @@ public class ProdutoResponse
     public DateTime DataAtualizacao { get; set; }
 }
 
-/// <summary>
-/// DTO para resposta paginada
-/// Referência: Melhores-Praticas-API.md - Seção "Paginação"
-/// Padroniza respostas com dados paginados
-/// </summary>
 public class PaginatedResponse<T>
 {
     public List<T> Data { get; set; } = new();
     public PaginationInfo Pagination { get; set; } = new();
 }
 
-/// <summary>
-/// Informações de paginação
-/// </summary>
 public class PaginationInfo
 {
     public int Page { get; set; }
@@ -71,11 +48,6 @@ public class PaginationInfo
     public int TotalPages { get; set; }
 }
 
-/// <summary>
-/// DTO para resposta de erro
-/// Referência: Melhores-Praticas-API.md - Seção "Tratamento de Erros"
-/// Formato padronizado para todas as respostas de erro
-/// </summary>
 public class ErrorResponse
 {
     public string Type { get; set; } = string.Empty;
@@ -86,10 +58,6 @@ public class ErrorResponse
     public Dictionary<string, List<string>> Errors { get; set; } = new();
 }
 
-/// <summary>
-/// DTO para resposta de autenticação
-/// Referência: Melhores-Praticas-API.md - Seção "Segurança - Autenticação"
-/// </summary>
 public class AuthResponse
 {
     public string Token { get; set; } = string.Empty;
@@ -98,9 +66,6 @@ public class AuthResponse
     public string TokenType { get; set; } = "Bearer";
 }
 
-/// <summary>
-/// DTO para requisição de login
-/// </summary>
 public class LoginRequest
 {
     public string Email { get; set; } = string.Empty;

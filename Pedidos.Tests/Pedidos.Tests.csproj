@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../ProdutosAPI.csproj" />
+    <ProjectReference Include="../src/Produtos/Produtos.Domain/Produtos.Domain.csproj" />
   </ItemGroup>
 
 </Project>

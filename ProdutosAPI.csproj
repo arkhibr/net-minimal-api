@@ -14,6 +14,16 @@
     <!-- Exclude test projects from main build -->
     <Compile Remove="ProdutosAPI.Tests/**" />
     <Compile Remove="Pedidos.Tests/**" />
+    <!-- Exclude new sub-projects (compiled separately, referenced via ProjectReference) -->
+    <Compile Remove="src/Produtos/Produtos.Domain/**" />
+    <Compile Remove="src/Produtos/Produtos.Application/**" />
+    <Compile Remove="src/Produtos/Produtos.Infrastructure/**" />
+    <Compile Remove="src/Produtos/Produtos.API/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="src/Produtos/Produtos.API/Produtos.API.csproj" />
+    <ProjectReference Include="src/Produtos/Produtos.Infrastructure/Produtos.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Pedidos.Domain;
-using ProdutosAPI.Produtos.Models;
+using ProdutosAPI.Produtos.Application.Interfaces;
+using ProdutosAPI.Produtos.Domain;
 
 namespace ProdutosAPI.Shared.Data;
 
@@ -9,7 +10,7 @@ namespace ProdutosAPI.Shared.Data;
 /// Referência: Melhores-Praticas-API.md - Seção "Segurança - SQL Injection"
 /// Usando ORM para proteção contre SQL Injection
 /// </summary>
-public class AppDbContext : DbContext
+public class AppDbContext : DbContext, IProdutoContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -19,6 +20,12 @@ public class AppDbContext : DbContext
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
+
+    // IProdutoContext: explicit implementation — DbSet<T> não satisfaz IQueryable<T> implicitamente
+    IQueryable<Produto> IProdutoContext.Produtos => Set<Produto>();
+    // IProdutoContext: SaveChangesAsync já satisfeito por DbContext
+
+    public void AddProduto(Produto produto) => this.Add(produto);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

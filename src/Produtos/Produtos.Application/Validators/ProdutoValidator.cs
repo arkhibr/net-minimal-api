@@ -1,18 +1,12 @@
 using FluentValidation;
-using ProdutosAPI.Produtos.DTOs;
+using ProdutosAPI.Produtos.Application.DTOs;
 
-namespace ProdutosAPI.Produtos.Validators;
+namespace ProdutosAPI.Produtos.Application.Validators;
 
-/// <summary>
-/// Validador para criação de produto
-/// Referência: Melhores-Praticas-API.md - Seção "Validação de Dados"
-/// Implementa business rules para criação de novo produto
-/// </summary>
 public class CriarProdutoValidator : AbstractValidator<CriarProdutoRequest>
 {
     public CriarProdutoValidator()
     {
-        // Validação: Nome obrigatório e com tamanho mínimo
         RuleFor(p => p.Nome)
             .NotEmpty()
             .WithMessage("Nome é obrigatório")
@@ -21,35 +15,30 @@ public class CriarProdutoValidator : AbstractValidator<CriarProdutoRequest>
             .MaximumLength(100)
             .WithMessage("Nome não pode exceder 100 caracteres");
 
-        // Validação: Descrição obrigatória
         RuleFor(p => p.Descricao)
             .NotEmpty()
             .WithMessage("Descrição é obrigatória")
             .MaximumLength(500)
             .WithMessage("Descrição não pode exceder 500 caracteres");
 
-        // Validação: Preço deve ser maior que zero
         RuleFor(p => p.Preco)
             .GreaterThan(0)
             .WithMessage("Preço deve ser maior que zero")
             .LessThan(999999.99m)
             .WithMessage("Preço não pode ser tão alto");
 
-        // Validação: Categoria obrigatória
         RuleFor(p => p.Categoria)
             .NotEmpty()
             .WithMessage("Categoria é obrigatória")
             .Must(c => new[] { "Eletrônicos", "Livros", "Roupas", "Alimentos", "Outros" }.Contains(c))
             .WithMessage("Categoria inválida");
 
-        // Validação: Estoque não pode ser negativo
         RuleFor(p => p.Estoque)
             .GreaterThanOrEqualTo(0)
             .WithMessage("Estoque não pode ser negativo")
             .LessThan(1000000)
             .WithMessage("Estoque muito alto");
 
-        // Validação: Email válido
         RuleFor(p => p.ContatoEmail)
             .NotEmpty()
             .WithMessage("Email de contato é obrigatório")
@@ -58,16 +47,10 @@ public class CriarProdutoValidator : AbstractValidator<CriarProdutoRequest>
     }
 }
 
-/// <summary>
-/// Validador para atualização parcial de produto
-/// Referência: Melhores-Praticas-API.md - Seção "Design de Endpoints - PATCH"
-/// </summary>
 public class AtualizarProdutoValidator : AbstractValidator<AtualizarProdutoRequest>
 {
     public AtualizarProdutoValidator()
     {
-        // Todos os campos são opcionais, mas se fornecidos, devem ser válidos
-        
         RuleFor(p => p.Nome)
             .MinimumLength(3)
             .WithMessage("Nome deve ter no mínimo 3 caracteres")
@@ -102,9 +85,6 @@ public class AtualizarProdutoValidator : AbstractValidator<AtualizarProdutoReque
     }
 }
 
-/// <summary>
-/// Validador para login
-/// </summary>
 public class LoginValidator : AbstractValidator<LoginRequest>
 {
     public LoginValidator()

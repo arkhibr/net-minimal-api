@@ -1,18 +1,18 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using ProdutosAPI.Shared.Common;
 using ProdutosAPI.Shared.Data;
-using ProdutosAPI.Shared.Common;
 using ProdutosAPI.Pedidos.CreatePedido;
 using ProdutosAPI.Pedidos.GetPedido;
 using ProdutosAPI.Pedidos.ListPedidos;
 using ProdutosAPI.Pedidos.AddItemPedido;
 using ProdutosAPI.Pedidos.CancelPedido;
-using ProdutosAPI.Produtos.DTOs;
-using ProdutosAPI.Produtos.Endpoints;
+using ProdutosAPI.Produtos.API.Endpoints;
+using ProdutosAPI.Produtos.API.Extensions;
+using ProdutosAPI.Produtos.Application.Interfaces;
+using ProdutosAPI.Produtos.Application.Mappings;
+using ProdutosAPI.Produtos.Infrastructure.Data;
+using ProdutosAPI.Shared.Common;
 using ProdutosAPI.Shared.Middleware;
-using ProdutosAPI.Produtos.Services;
-using ProdutosAPI.Produtos.Validators;
 using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -24,8 +24,6 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 // CONFIGURAÇÃO DE LOGGING
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Logging e Monitoramento"
-// Structured logging com Serilog
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -43,13 +41,9 @@ builder.Host.UseSerilog();
 // ==========================================
 // CONFIGURAÇÃO DE BANCO DE DADOS
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Segurança - SQL Injection"
-// Using Entity Framework Core para proteção contra SQL Injection
 
 if (builder.Environment.IsEnvironment("Testing"))
 {
-    // Use a fixed DB name per application instance for testing
-    // The Guid is captured once in the closure, not re-evaluated per scope
     var testDbName = "TestDb_" + Guid.NewGuid();
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseInMemoryDatabase(testDbName));
@@ -66,9 +60,15 @@ else
 // ==========================================
 // CONFIGURAÇÃO DE DEPENDENCY INJECTION
 // ==========================================
-// Registrar serviços
 
-builder.Services.AddScoped<IProdutoService, ProdutoService>();
+// Conectar AppDbContext → IProdutoContext para injeção de dependência do repositório
+builder.Services.AddScoped<IProdutoContext>(sp => sp.GetRequiredService<AppDbContext>());
+
+// Registrar todos os serviços do feature Produtos
+builder.Services.AddProdutos();
+
+// Registrar validators dos slices de Pedidos (no assembly principal)
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Registrar slices de Pedidos via scan automático
 builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
@@ -81,24 +81,14 @@ builder.Services.AddScoped<AddItemHandler>();
 builder.Services.AddScoped<CancelPedidoHandler>();
 
 // ==========================================
-// CONFIGURAÇÃO DE VALIDAÇÃO
-// ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Validação de Dados"
-// FluentValidation para validações robustas
-
-builder.Services.AddValidatorsFromAssemblyContaining<CriarProdutoValidator>();
-
-// ==========================================
 // CONFIGURAÇÃO DE MAPEAMENTO
 // ==========================================
-// AutoMapper para mapeamento entre entidades e DTOs
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(ProdutoMappingProfile));
 
 // ==========================================
 // CONFIGURAÇÃO DE CORS
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Segurança - CORS"
 
 builder.Services.AddCors(options =>
 {
@@ -117,7 +107,6 @@ builder.Services.AddMemoryCache();
 // ==========================================
 // CONFIGURAÇÃO DE SEGURANÇA (JWT)
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Segurança"
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "MinhaChaveSuperSecretaDePeloMenos32BytesAki123!";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -140,7 +129,6 @@ builder.Services.AddAuthorization();
 // ==========================================
 // CONFIGURAÇÃO DE DOCUMENTAÇÃO (SWAGGER)
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Documentação"
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -162,14 +150,12 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Adicionar XML comments se existir
     var xmlFile = Path.Combine(AppContext.BaseDirectory, "ProdutosAPI.xml");
     if (File.Exists(xmlFile))
     {
         c.IncludeXmlComments(xmlFile);
     }
 
-    // Informar ao Swagger como mandar o Token nas rotas para teste pelo UI (Botão "Authorize" no Swagger)
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Insira o token JWT neste campo da seguinte forma: 'Bearer {seu_token_aqui}'",
@@ -204,7 +190,6 @@ var app = builder.Build();
 // ==========================================
 // EXECUTAR MIGRATIONS E SEED
 // ==========================================
-// Aplicar migrations e popular dados iniciais
 
 // Skip DB initialization in test environment — ApiFactory handles seeding
 if (!app.Environment.IsEnvironment("Testing"))
@@ -218,22 +203,15 @@ if (!app.Environment.IsEnvironment("Testing"))
 // ==========================================
 // CONFIGURAR MIDDLEWARE
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Tratamento de Erros"
 
-// Middleware de tratamento global de exceções
 app.UseExceptionHandling();
-
-// CORS
 app.UseCors("AllowAll");
 
-// HTTPS redirect
 if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
 
-// Swagger/OpenAPI
-// Referência: Melhores-Praticas-API.md - Seção "Documentação"
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -244,17 +222,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Segurança (Identifica e Protege rotas baseadas no Token)
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Idempotência (Evita reprocessamentos duplo de escrita de dados)
 app.UseMiddleware<IdempotencyMiddleware>();
 
 // ==========================================
 // CONFIGURAR ENDPOINTS
 // ==========================================
-// Referência: Melhores-Praticas-API.md - Seção "Design de Endpoints"
 
 app.MapAuthEndpoints();
 app.MapProdutoEndpoints();

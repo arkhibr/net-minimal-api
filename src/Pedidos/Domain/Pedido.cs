@@ -1,5 +1,5 @@
 using ProdutosAPI.Shared.Common;
-using ProdutosAPI.Produtos.Models;
+using ProdutosAPI.Produtos.Domain;
 
 namespace ProdutosAPI.Pedidos.Domain;
 

@@ -1,6 +1,6 @@
-using ProdutosAPI.Shared.Common;
+using ProdutosAPI.Produtos.Domain.Common;
 
-namespace ProdutosAPI.Produtos.Models;
+namespace ProdutosAPI.Produtos.Domain;
 
 public class Produto
 {
@@ -97,7 +97,8 @@ public class Produto
 
     public bool TemEstoqueDisponivel(int qtd) => Ativo && Estoque >= qtd;
 
-    internal void AjustarEstoque(int quantidade)
+    // public (não mais internal): chamado por Application e Infrastructure
+    public void AjustarEstoque(int quantidade)
     {
         if (quantidade < 0) throw new InvalidOperationException("Estoque não pode ser negativo.");
         if (quantidade > EstoqueMaximo) throw new InvalidOperationException($"Estoque não pode exceder {EstoqueMaximo} unidades.");
@@ -105,6 +106,6 @@ public class Produto
         DataAtualizacao = DateTime.UtcNow;
     }
 
-    // For testing purposes only
+    // Mantém internal: apenas para testes
     internal void SetIdForTesting(int id) => Id = id;
 }

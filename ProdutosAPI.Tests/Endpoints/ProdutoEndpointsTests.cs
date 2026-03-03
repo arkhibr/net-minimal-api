@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
-using ProdutosAPI.Produtos.DTOs;
+using ProdutosAPI.Produtos.Application.DTOs;
 using ProdutosAPI.Tests.Integration;
 using Xunit;
 

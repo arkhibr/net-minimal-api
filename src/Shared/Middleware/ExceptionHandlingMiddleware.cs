@@ -1,6 +1,6 @@
 using System.Net;
 using FluentValidation;
-using ProdutosAPI.Produtos.DTOs;
+using ProdutosAPI.Produtos.Application.DTOs;
 
 namespace ProdutosAPI.Shared.Middleware;
 
