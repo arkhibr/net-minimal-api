@@ -114,21 +114,20 @@ http://localhost:5000
 O projeto também possui:
 
 ```
-✅ Features/Pedidos    → Vertical slices com Command/Handler/Validator/Endpoint
-✅ Domain/             → Agregados rico (Pedido, PedidoItem, Result<T>)
+✅ src/Pedidos/        → Vertical slices com Command/Validator/Endpoint
+✅ src/Pedidos/Domain/ → Agregado rico (Pedido, PedidoItem, StatusPedido)
 ```
 O projeto já inclui:
 
 ```
-✅ Models           → Entidades do domínio
-✅ DTOs            → Transfer objects para API
-✅ Endpoints        → Mapeamento de rotas
-✅ Services         → Lógica de negócio
-✅ Validators       → Validações com FluentValidation
-✅ Data/DbContext   → Banco de dados com EF Core
-✅ Middleware       → Tratamento global de erros
-✅ Logging          → Estruturado com Serilog
-✅ Documentação     → Swagger/OpenAPI
+✅ Produtos.Domain          → Entidades e regras de domínio
+✅ Produtos.Application     → DTOs, serviços, validadores e mappings
+✅ Produtos.API             → Endpoints e rotas
+✅ Produtos.Infrastructure  → Repositórios EF e seeding
+✅ Shared/Data/AppDbContext → Banco de dados com EF Core
+✅ Shared/Middleware        → Tratamento global de erros
+✅ Logging                  → Estruturado com Serilog
+✅ Documentação             → Swagger/OpenAPI
 ```
 
 ---
@@ -137,13 +136,13 @@ O projeto já inclui:
 
 | Conceito | Onde Encontrar |
 |----------|----------------|
-| **RESTful Design** | [Endpoints](../src/Produtos/Endpoints/ProdutoEndpoints.cs) |
-| **HTTP Verbs** | [Endpoints](../src/Produtos/Endpoints/ProdutoEndpoints.cs#L29-L60) |
-| **Paginação** | [Services](../src/Produtos/Services/ProdutoService.cs#L32-L75) |
-| **Validação** | [Validators](../src/Produtos/Validators/ProdutoValidator.cs) |
+| **RESTful Design** | [Endpoints](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs) |
+| **HTTP Verbs** | [Endpoints](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs#L29-L60) |
+| **Paginação** | [Services](../src/Produtos/Produtos.Application/Services/ProdutoService.cs#L32-L75) |
+| **Validação** | [Validators](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs) |
 | **Tratamento de Erros** | [Middleware](../src/Shared/Middleware/ExceptionHandlingMiddleware.cs) |
-| **Logging** | [Services](../src/Produtos/Services/ProdutoService.cs#L34) |
-| **DTOs** | [DTOs](../src/Produtos/DTOs/ProdutoDTO.cs) |
+| **Logging** | [Services](../src/Produtos/Produtos.Application/Services/ProdutoService.cs#L34) |
+| **DTOs** | [DTOs](../src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs) |
 | **Injeção de Dependência** | [Program.cs](Program.cs#L36-L45) |
 | **Entity Framework** | [Data](../src/Shared/Data/AppDbContext.cs) |
 | **Swagger/OpenAPI** | [Program.cs](Program.cs#L80-L100) |
@@ -256,11 +255,11 @@ Após entender este projeto:
 | Arquivo | Propósito |
 |---------|-----------|
 | `Program.cs` | Configuração central da aplicação |
-| `src/Produtos/Models/Produto.cs` | Entidade do domínio |
-| `src/Produtos/DTOs/ProdutoDTO.cs` | Transfer objects |
-| `src/Produtos/Endpoints/ProdutoEndpoints.cs` | Mapeamento de rotas |
-| `src/Produtos/Services/ProdutoService.cs` | Lógica de negócio |
-| `src/Produtos/Validators/ProdutoValidator.cs` | Validações |
+| `src/Produtos/Produtos.Domain/Produto.cs` | Entidade do domínio |
+| `src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs` | Transfer objects |
+| `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs` | Mapeamento de rotas |
+| `src/Produtos/Produtos.Application/Services/ProdutoService.cs` | Lógica de negócio |
+| `src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs` | Validações |
 | `src/Shared/Middleware/ExceptionHandlingMiddleware.cs` | Tratamento de erros |
 | `appsettings.json` | Configurações de ambiente |
 

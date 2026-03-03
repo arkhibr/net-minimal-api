@@ -63,11 +63,11 @@
 
 ### Camadas Horizontais (Produtos)
 ```
-└─ src/Produtos/Endpoints/ProdutoEndpoints.cs      # 6 endpoints REST
-└─ src/Produtos/Services/ProdutoService.cs         # Lógica de negócios
-└─ src/Produtos/Models/Produto.cs                  # Entidade de domínio
-└─ src/Produtos/Validators/ProdutoValidator.cs     # Regras FluentValidation
-└─ src/Produtos/DTOs/ProdutoDTO.cs                 # Transferência de dados
+└─ src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs      # 6 endpoints REST
+└─ src/Produtos/Produtos.Application/Services/ProdutoService.cs         # Lógica de negócios
+└─ src/Produtos/Produtos.Domain/Produto.cs                  # Entidade de domínio
+└─ src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs     # Regras FluentValidation
+└─ src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs                 # Transferência de dados
 ```
 
 ### Vertical Slice (Pedidos)
@@ -171,14 +171,14 @@ dotnet run
 
 **Models:**
 ```
-└─ src/Produtos/Models/Produto.cs
+└─ src/Produtos/Produtos.Domain/Produto.cs
    └─ Entidade principal com 11 propriedades
    └─ Soft delete, audit fields, XML comments
 ```
 
 **DTOs (8 classes):**
 ```
-└─ src/Produtos/DTOs/ProdutoDTO.cs
+└─ src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs
    ├─ CriarProdutoRequest
    ├─ AtualizarProdutoRequest
    ├─ ProdutoResponse
@@ -191,7 +191,7 @@ dotnet run
 
 **Endpoints (6 rotas):**
 ```
-└─ src/Produtos/Endpoints/ProdutoEndpoints.cs
+└─ src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs
    ├─ GET    /       (listar com paginação)
    ├─ GET    /{id}   (obter específico)
    ├─ POST   /       (criar)
@@ -202,14 +202,14 @@ dotnet run
 
 **Services:**
 ```
-└─ src/Produtos/Services/ProdutoService.cs
+└─ src/Produtos/Produtos.Application/Services/ProdutoService.cs
    └─ 6 métodos async com logging e validação
 ```
 
 **Data Access:**
 ```
 ├─ src/Shared/Data/AppDbContext.cs         [EF Core context com índices]
-├─ src/Shared/Data/DbSeeder.cs             [8 produtos de exemplo]
+├─ src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs             [8 produtos de exemplo]
 └─ src/Shared/Data/Migrations/
    ├─ 20250225000000_CreateInitialSchema.cs
    └─ AppDbContextModelSnapshot.cs
@@ -217,7 +217,7 @@ dotnet run
 
 **Validação (3 validadores):**
 ```
-└─ src/Produtos/Validators/ProdutoValidator.cs
+└─ src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs
    ├─ CriarProdutoValidator
    ├─ AtualizarProdutoValidator
    └─ LoginValidator
@@ -231,7 +231,7 @@ dotnet run
 
 **Common:**
 ```
-└─ src/Common/MappingProfile.cs
+└─ src/Produtos/Produtos.Application/Mappings/ProdutoMappingProfile.cs
    └─ Configuração AutoMapper
 ```
 
@@ -335,23 +335,23 @@ net-minimal-api/
 │   └── ENTREGA-FINAL.md
 │
 ├── 📁 src/                        [Código-fonte]
-│   ├── Models/Produto.cs
-│   ├── DTOs/ProdutoDTO.cs
-│   ├── Endpoints/ProdutoEndpoints.cs
-│   ├── Features/Pedidos/  # Vertical slices (5 operações)
+│   ├── Produtos/
+│   │   ├── Produtos.API/Endpoints/ProdutoEndpoints.cs
+│   │   ├── Produtos.Application/Services/ProdutoService.cs
+│   │   ├── Produtos.Application/DTOs/ProdutoDTO.cs
+│   │   ├── Produtos.Application/Validators/ProdutoValidator.cs
+│   │   ├── Produtos.Application/Mappings/ProdutoMappingProfile.cs
+│   │   ├── Produtos.Domain/Produto.cs
+│   │   └── Produtos.Infrastructure/Data/DbSeeder.cs
+│   ├── Pedidos/  # Vertical slices (5 operações)
 │   │   ├── CreatePedido/
 │   │   ├── GetPedido/
 │   │   ├── ListPedidos/
 │   │   ├── AddItemPedido/
 │   │   └── CancelPedido/
-│   ├── Services/ProdutoService.cs
-│   ├── Data/AppDbContext.cs
-│   ├── Data/DbSeeder.cs
-│   ├── Data/Migrations/
-│   ├── Validators/ProdutoValidator.cs
-│   ├── Validators/*Pedido*  # validadores de comando
-│   ├── Middleware/ExceptionHandlingMiddleware.cs
-│   └── Common/MappingProfile.cs
+│   ├── Shared/Data/AppDbContext.cs
+│   ├── Shared/Data/Migrations/
+│   └── Shared/Middleware/ExceptionHandlingMiddleware.cs
 │
 └── 📁 ProdutosAPI.Tests/          [Testes]
     ├── Services/ProdutoServiceTests.cs
@@ -371,5 +371,4 @@ net-minimal-api/
 4. Explore a documentação em `docs/`
 
 Ou comece lendo: `docs/INICIO-RAPIDO.md`
-
 

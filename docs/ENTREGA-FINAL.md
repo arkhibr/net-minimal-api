@@ -83,31 +83,31 @@ Banco de Dados (SQLite)
 ### Código-Fonte (10 arquivos)
 
 #### Models
-- `src/Produtos/Models/Produto.cs` - Entidade principal
+- `src/Produtos/Produtos.Domain/Produto.cs` - Entidade principal
 
 #### DTOs (Transfer Objects)
-- `src/Produtos/DTOs/ProdutoDTO.cs` - 8 classes DTO
+- `src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs` - 8 classes DTO
 
 #### Endpoints
-- `src/Produtos/Endpoints/ProdutoEndpoints.cs` - 6 endpoints REST
+- `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs` - 6 endpoints REST
 - `src/Pedidos/` - vertical slices para 5 endpoints de pedido
 
 #### Services (Lógica)
-- `src/Produtos/Services/ProdutoService.cs` - Implementação + Interface
+- `src/Produtos/Produtos.Application/Services/ProdutoService.cs` - Implementação + Interface
 
 #### Data Access
 - `src/Shared/Data/AppDbContext.cs` - Entity Framework Context
-- `src/Shared/Data/DbSeeder.cs` - Dados iniciais
+- `src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs` - Dados iniciais
 - `src/Shared/Data/Migrations/` - Migration do banco
 
 #### Validação
-- `src/Produtos/Validators/ProdutoValidator.cs` - 3 Validadores
+- `src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs` - 3 Validadores
 
 #### Middleware
 - `src/Shared/Middleware/ExceptionHandlingMiddleware.cs` - Tratamento de erros
 
 #### Utilities
-- `src/Common/MappingProfile.cs` - AutoMapper config
+- `src/Produtos/Produtos.Application/Mappings/ProdutoMappingProfile.cs` - AutoMapper config
 
 ### Exemplos e Testes
 
@@ -352,14 +352,14 @@ Após dominar este projeto:
 - **Arquitetura**: [ARQUITETURA.md](ARQUITETURA.md)
 
 ### Arquivos-chave de código
-- **Endpoints**: [src/Produtos/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Endpoints/ProdutoEndpoints.cs)
-- **Service**: [src/Produtos/Services/ProdutoService.cs](../src/Produtos/Services/ProdutoService.cs)
-- **Validation**: [src/Produtos/Validators/ProdutoValidator.cs](../src/Produtos/Validators/ProdutoValidator.cs)
+- **Endpoints**: [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
+- **Service**: [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
+- **Validation**: [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs)
 - **Setup**: [Program.cs](../Program.cs)
 
 ### Exemplos
 - **Testes**: [ProdutosAPI.Tests/](../ProdutosAPI.Tests/)
-- **Dados**: [src/Shared/Data/DbSeeder.cs](../src/Shared/Data/DbSeeder.cs)
+- **Dados**: [src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs](../src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs)
 
 ---
 

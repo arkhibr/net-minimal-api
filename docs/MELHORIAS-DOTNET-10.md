@@ -169,7 +169,7 @@ group.MapGet("/", ListarProdutos)
 
 ## 📋 Mudanças Implementadas no Projeto
 
-### Arquivo: `src/Produtos/Endpoints/ProdutoEndpoints.cs`
+### Arquivo: `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs`
 
 #### **Assinatura de Método - Antes**
 ```csharp

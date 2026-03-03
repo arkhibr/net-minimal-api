@@ -2,7 +2,7 @@
 
 O repositório demonstra **duas arquiteturas complementares** coexistindo de forma **apartada e paralela**:
 
-1. **Clean Architecture com Camadas Horizontais** (📁 `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Shared/Data/`)
+1. **Clean Architecture em Projetos Separados** (📁 `src/Produtos/Produtos.API/`, `src/Produtos/Produtos.Application/`, `src/Produtos/Produtos.Domain/`, `src/Produtos/Produtos.Infrastructure/`)
    - Utilizada para o caso de uso **Produtos** — iniciado na primeira fase
    - Ideal para aprender separação por responsabilidades tradicionais
 
@@ -18,18 +18,11 @@ Ambas compartilham o mesmo pipeline de middleware, `AppDbContext` em `src/Shared
 
 ```
 src/
-├── 🟢 Camadas Horizontais — Produtos
-│   ├── Endpoints/
-│   │   ├── ProdutoEndpoints.cs      # 6 endpoints REST
-│   │   └── AuthEndpoints.cs         # Autenticação JWT
-│   ├── Services/
-│   │   └── ProdutoService.cs        # Lógica orquestrada
-│   ├── Models/
-│   │   └── Produto.cs              # Entidade anêmica
-│   ├── DTOs/
-│   │   └── ProdutoDTO.cs           # Transferência de dados
-│   └── Validators/
-│       └── ProdutoValidator.cs     # Validações centralizadas
+├── 🟢 Clean Architecture — Produtos
+│   ├── Produtos.API/               # Endpoints Minimal API + DI
+│   ├── Produtos.Application/       # DTOs, serviços, validadores e mappings
+│   ├── Produtos.Domain/            # Entidades e invariantes
+│   └── Produtos.Infrastructure/    # Repositórios EF e DbSeeder
 │
 ├── 🔵 Vertical Slice — Pedidos
 │   ├── Domain/                     # Agregado Pedido (rico)
@@ -46,11 +39,11 @@ src/
     └── Middleware/                 # Processamento global
 ```
 
-**Consequência didática:** Um estudante pode navegar `src/Produtos/Endpoints/` para ver camadas, e logo depois explorar `src/Pedidos/CreatePedido/` para comparar lado a lado.
+**Consequência didática:** Um estudante pode navegar `src/Produtos/Produtos.API/Endpoints/` para ver camadas, e logo depois explorar `src/Pedidos/CreatePedido/` para comparar lado a lado.
 
 ---
 
-## 1. Camadas Horizontais (Produtos)
+## 1. Clean Architecture (Produtos)
 
 ```mermaid
 flowchart TD
@@ -62,7 +55,7 @@ flowchart TD
     F --> G[SQLite]
 ```
 
-*src/Produtos/Endpoints/ProdutoEndpoints.cs | CORS, Logging, Exception Handling | FluentValidation | src/Produtos/Services/ProdutoService.cs | EF Core | produtos-api.db*
+*src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs | CORS, Logging, Exception Handling | FluentValidation | src/Produtos/Produtos.Application/Services/ProdutoService.cs | EF Core | produtos-api.db*
 
 Cada camada tem responsabilidade única e clara: endpoints expõem rotas, validadores checam entrada, serviços orquestram lógica e o contexto de dados conversa com o banco.
 
@@ -100,13 +93,13 @@ Estes slices são descobertos automaticamente durante o startup graças à inter
 
 ---
 
-## 3. Comparação: Camadas Horizontais vs Vertical Slice
+## 3. Comparação: Clean Architecture vs Vertical Slice
 
-| Aspecto | Produtos (Camadas) | Pedidos (Vertical Slice) |
+| Aspecto | Produtos (Clean) | Pedidos (Vertical Slice) |
 |--------|-------------------|------------------------|
 | **Organização** | Por responsabilidade | Por feature/caso de uso |
-| **Diretório principal** | `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Produtos/Models/` | `src/Pedidos/` |
-| **Modelo de domínio** | Anêmico (apenas dados) | Rico (inclui regras) |
+| **Diretório principal** | `src/Produtos/Produtos.*` | `src/Pedidos/` |
+| **Modelo de domínio** | Rico com regras centrais em `Produto` | Rico (inclui regras) |
 | **Coesão** | Baixa (lógica em Services) | Alta (cada slice é autossuficiente) |
 | **Escalabilidade** | Boa até ~50 endpoints | Excelente (features isoladas) |
 | **Teste unitário** | Testa serviço isolado | Testa handler + domínio |
@@ -115,11 +108,11 @@ Estes slices são descobertos automaticamente durante o startup graças à inter
 
 ### Detalhamento de um Fluxo
 
-#### Produtos (Horizontal Layers)
+#### Produtos (Clean Architecture)
 ```
 HTTP POST /api/v1/produtos
     ↓
-Rota em Produtos/Endpoints/ProdutoEndpoints
+Rota em Produtos.API/Endpoints/ProdutoEndpoints
     ↓
 ProdutoValidator (validação)
     ↓

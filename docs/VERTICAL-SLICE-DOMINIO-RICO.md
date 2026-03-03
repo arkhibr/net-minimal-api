@@ -2,7 +2,7 @@
 
 Este guia conceitual explica a **segunda abordagem arquitetural** adotada no projeto para o caso de uso de **Pedidos**, enquanto os produtos continuam usando a arquitetura em camadas.
 
-Se você ainda não entendeu a primeira abordagem (Clean Architecture em camadas), comece por [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) e explore `src/Produtos/Endpoints/ProdutoEndpoints.cs`.
+Se você ainda não entendeu a primeira abordagem (Clean Architecture em camadas), comece por [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) e explore `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs`.
 
 ---
 
@@ -427,9 +427,9 @@ Quando for adicionar um novo slice de Pedidos:
 ## 9. Referências no Código
 
 ### Clean Architecture (Produtos)
-- Endpoints: [src/Produtos/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Endpoints/ProdutoEndpoints.cs)
-- Service: [src/Produtos/Services/ProdutoService.cs](../src/Produtos/Services/ProdutoService.cs)
-- Validators: [src/Validators/ProdutoValidator.cs](../src/Validators/ProdutoValidator.cs)
+- Endpoints: [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
+- Service: [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
+- Validators: [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs)
 - Testes: [ProdutosAPI.Tests/Services/ProdutoServiceTests.cs](../ProdutosAPI.Tests/Services/ProdutoServiceTests.cs)
 
 ### Vertical Slice (Pedidos)
@@ -445,9 +445,9 @@ Quando for adicionar um novo slice de Pedidos:
 | Dimensão | Clean (Produtos) | Vertical Slice (Pedidos) |
 |----------|-----------------|--------------------------|
 | **Organização** | Por camada | Por feature |
-| **Diretório** | `src/Produtos/Endpoints/`, `src/Produtos/Services/` | `src/Pedidos/` |
+| **Diretório** | `src/Produtos/Produtos.*` | `src/Pedidos/` |
 | **Independência** | Fraca (mudanças globais) | Forte (slice isolada) |
-| **Modelo** | Anêmico | Rico |
+| **Modelo** | Rico | Rico |
 | **Validação** | Em Validator + Service | No agregado + Validator |
 | **Erro** | Exception | Result pattern |
 | **Coesão** | Baixa (espalhada) | Alta (tudo junto) |

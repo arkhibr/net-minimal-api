@@ -23,7 +23,7 @@
 - [x] **.gitignore** - Arquivos ignorados pelo Git
 
 ### Models
-- [x] **src/Produtos/Models/Produto.cs** - Entidade principal com XML comments
+- [x] **src/Produtos/Produtos.Domain/Produto.cs** - Entidade principal com XML comments
   - [x] Propriedades com validação
   - [x] Datas de criação e atualização
   - [x] Status de ativação (soft delete)
@@ -36,7 +36,7 @@
   - [x] Referência a produto e quantidade
 
 ### DTOs
-- [x] **src/Produtos/DTOs/ProdutoDTO.cs** - 8 classes DTO
+- [x] **src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs** - 8 classes DTO
   - [x] CriarProdutoRequest
   - [x] AtualizarProdutoRequest
   - [x] ProdutoResponse
@@ -47,7 +47,7 @@
   - [x] LoginRequest
 
 ### Endpoints
-- [x] **src/Produtos/Endpoints/ProdutoEndpoints.cs** - 6 endpoints
+- [x] **src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs** - 6 endpoints
   - [x] GET / (Listar com paginação)
   - [x] GET /{id} (Obter específico)
   - [x] POST / (Criar)
@@ -63,7 +63,7 @@
   - [x] Result pattern aplicado nos handlers
 
 ### Services
-- [x] **src/Produtos/Services/ProdutoService.cs** - Interface e Implementação
+- [x] **src/Produtos/Produtos.Application/Services/ProdutoService.cs** - Interface e Implementação
   - [x] IProdutoService interface
   - [x] ListarProdutosAsync com paginação
   - [x] ObterProdutoAsync
@@ -86,7 +86,7 @@
   - [x] Precision de decimais
   - [x] Max lengths de strings
 
-- [x] **src/Shared/Data/DbSeeder.cs** - Dados iniciais
+- [x] **src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs** - Dados iniciais
   - [x] 8 produtos de exemplo
   - [x] Diferentes categorias
   - [x] Preços e estoque realistas
@@ -100,7 +100,7 @@
   - [x] Constraints definidos
 
 ### Validação
-- [x] **src/Produtos/Validators/ProdutoValidator.cs** - FluentValidation
+- [x] **src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs** - FluentValidation
   - [x] CriarProdutoValidator com regras completas
   - [x] AtualizarProdutoValidator para PATCH
   - [x] LoginValidator para autenticação futura
@@ -121,7 +121,7 @@
   - [x] Fallback para erros genéricos
 
 ### Utilidades Comuns
-- [x] **src/Common/MappingProfile.cs** - AutoMapper
+- [x] **src/Produtos/Produtos.Application/Mappings/ProdutoMappingProfile.cs** - AutoMapper
   - [x] Mapping Produto ↔ ProdutoResponse
   - [x] Mapping CriarProdutoRequest → Produto
   - [x] Mapping AtualizarProdutoRequest → Produto

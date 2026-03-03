@@ -54,17 +54,17 @@ Este projeto não escolhe **um** padrão — ele demonstra **dois** lado a lado,
 
 ### 🟢 Trilha 1: Clean Architecture (Produtos)
 
-**Diretórios:** `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Produtos/Models/`, `src/Produtos/Validators/`, `src/Shared/Data/`
+**Diretórios:** `src/Produtos/Produtos.API/`, `src/Produtos/Produtos.Application/`, `src/Produtos/Produtos.Domain/`, `src/Produtos/Produtos.Infrastructure/`
 
 Padrão tradicional com separação por responsabilidade:
 ```
-HTTP → src/Produtos/Endpoints/ProdutoEndpoints → ProdutoValidator → ProdutoService → src/Shared/Data/AppDbContext → Database
+HTTP → Produtos.API/Endpoints → Produtos.Application (Validators + Services) → Produtos.Infrastructure/Repositories → AppDbContext → Database
 ```
 
 **Explore:**
-- Rota simples: [src/Produtos/Endpoints/ProdutoEndpoints.cs](src/Produtos/Endpoints/ProdutoEndpoints.cs)
-- Lógica: [src/Produtos/Services/ProdutoService.cs](src/Produtos/Services/ProdutoService.cs)
-- Entidade rica: [src/Produtos/Models/Produto.cs](src/Produtos/Models/Produto.cs)
+- Rota simples: [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
+- Lógica: [src/Produtos/Produtos.Application/Services/ProdutoService.cs](src/Produtos/Produtos.Application/Services/ProdutoService.cs)
+- Entidade rica: [src/Produtos/Produtos.Domain/Produto.cs](src/Produtos/Produtos.Domain/Produto.cs)
 - Testes: [ProdutosAPI.Tests/Services/](ProdutosAPI.Tests/Services/)
 
 ### 🔵 Trilha 2: Vertical Slice + Domínio Rico (Pedidos)
@@ -108,16 +108,14 @@ net-minimal-api/
 │   │   ├── CreatePedido/                   # Slices (Create, Get, List, Cancel)
 │   │   └── Domain/                         # Agregado Pedido, Entidades e Regras de Negócio
 │   ├── Produtos/                           # Módulo Produtos (Clean Architecture)
-│   │   ├── DTOs/                           # Data Transfer Objects
-│   │   ├── Endpoints/                      # Endpoints Minimal API (Typed Results)
-│   │   ├── Models/                         # Entidades de Dados
-│   │   ├── Services/                       # Business Logic services
-│   │   └── Validators/                     # FluentValidation
+│   │   ├── Produtos.Domain/                # Entidades e regras de domínio
+│   │   ├── Produtos.Application/           # DTOs, serviços, validadores, mappings
+│   │   ├── Produtos.Infrastructure/        # Repositórios EF e seeding
+│   │   └── Produtos.API/                   # Endpoints e composição de DI
 │   └── Shared/                             # Infraestrutura e Código Comum
 │       ├── Common/                         # Helper classes, Result pattern
-│       ├── Data/                           # Entity Framework DbContext e Seeder
-│       ├── Middlewares/                    # Global Exception Handler
-│       └── Security/                       # Setup de Segurança (JWT, etc.)
+│       ├── Data/                           # Entity Framework DbContext e migrations
+│       └── Middleware/                     # ExceptionHandling e Idempotency
 │
 ├── ProdutosAPI.Tests/                      # Testes do módulo Produtos (Clean Architecture)
 │   ├── Domain/                             # Domain tests
@@ -391,4 +389,3 @@ Este projeto foi criado com fins **didáticos** para demonstrar:
 ✅ Minimal API patterns  
 ✅ Testes automatizados completos  
 ✅ Documentação profissional  
-

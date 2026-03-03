@@ -6,9 +6,9 @@ Este projeto demonstra **dois padrões arquiteturais paralelos e apartados** no 
 
 ---
 
-## 🟢 Trilha 1 – Produtos (Clean Architecture em Camadas Horizontais)
+## 🟢 Trilha 1 – Produtos (Clean Architecture em Projetos Separados)
 
-**Localização:** `src/Produtos/Endpoints/`, `src/Produtos/Services/`, `src/Produtos/Models/`, `src/Produtos/Validators/`, `src/Produtos/DTOs/`
+**Localização:** `src/Produtos/Produtos.API/`, `src/Produtos/Produtos.Application/`, `src/Produtos/Produtos.Domain/`, `src/Produtos/Produtos.Infrastructure/`
 
 Ideal para aprender:
 - ✅ Separação clara de responsabilidades (Endpoints → Services → Data)
@@ -19,12 +19,13 @@ Ideal para aprender:
 **Struct:**
 ```
 src/Produtos/
-  ├─ Endpoints/ProdutoEndpoints.cs    # 6 rotas REST (GET, POST, PUT, PATCH, DELETE)
-  ├─ Endpoints/AuthEndpoints.cs       # Autenticação JWT
-  ├─ Services/ProdutoService.cs       # Orquestração e lógica de negócio
-  ├─ Models/Produto.cs               # Entidade anêmica (apenas dados)
-  ├─ Validators/ProdutoValidator.cs   # Regras de validação (separadas)
-  └─ DTOs/ProdutoDTO.cs              # Transferência de dados
+  ├─ Produtos.API/Endpoints/ProdutoEndpoints.cs
+  ├─ Produtos.API/Endpoints/AuthEndpoints.cs
+  ├─ Produtos.Application/Services/ProdutoService.cs
+  ├─ Produtos.Application/Validators/ProdutoValidator.cs
+  ├─ Produtos.Application/DTOs/ProdutoDTO.cs
+  ├─ Produtos.Domain/Produto.cs
+  └─ Produtos.Infrastructure/Repositories/EfProdutoRepository.cs
 ```
 
 **Fluxo de Requisição:**
@@ -43,9 +44,9 @@ HTTP Response
 ```
 
 **Começar aqui:**
-1. Abra [src/Produtos/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Endpoints/ProdutoEndpoints.cs)
+1. Abra [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
 2. Veja como cada rota é mapeada
-3. Siga para [src/Produtos/Services/ProdutoService.cs](../src/Produtos/Services/ProdutoService.cs)
+3. Siga para [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
 4. Explore [src/Shared/Data/AppDbContext.cs](../src/Shared/Data/AppDbContext.cs)
 
 ---
@@ -193,8 +194,8 @@ src/Shared/
 3. **Clean Architecture — Produtos (45 min)**
    - Leia [ARQUITETURA.md](ARQUITETURA.md) — seção "Camadas Horizontais"
    - Leia [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) — Trilha 1
-   - Explore [src/Produtos/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Endpoints/ProdutoEndpoints.cs)
-   - Explore [src/Produtos/Services/ProdutoService.cs](../src/Produtos/Services/ProdutoService.cs)
+   - Explore [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
+   - Explore [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
 
 4. **Prática (30 min)**
    - Execute `dotnet run`
@@ -250,7 +251,7 @@ Arquivo principal de orquestração.
 
 ### 📦 Trilha 1: Clean Architecture (Produtos)
 
-#### [src/Produtos/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Endpoints/ProdutoEndpoints.cs)
+#### [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
 - 6 endpoints RESTful
 - GET /api/v1/produtos (com paginação)
 - GET /api/v1/produtos/{id}
@@ -259,25 +260,25 @@ Arquivo principal de orquestração.
 - PATCH /api/v1/produtos/{id}
 - DELETE /api/v1/produtos/{id}
 
-#### [src/Produtos/Services/ProdutoService.cs](../src/Produtos/Services/ProdutoService.cs)
+#### [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
 - Interface `IProdutoService`
 - Lógica de negócio centralizada
 - Orquestração de operações
 - Mapeamento de DTOs
 
-#### [src/Produtos/Models/Produto.cs](../src/Produtos/Models/Produto.cs)
-- Entidade anêmica (apenas dados)
-- 11 propriedades
-- Sem regras de negócio encapsuladas
-- Soft delete
+#### [src/Produtos/Produtos.Domain/Produto.cs](../src/Produtos/Produtos.Domain/Produto.cs)
+- Entidade de domínio com invariantes
+- Métodos de comportamento (`Criar`, `AtualizarPreco`, `ReporEstoque`, etc.)
+- Regras encapsuladas sem dependência de infraestrutura
+- Soft delete por `Desativar()`
 
-#### [src/Produtos/Validators/ProdutoValidator.cs](../src/Produtos/Validators/ProdutoValidator.cs)
+#### [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs)
 - `CriarProdutoValidator`
 - `AtualizarProdutoValidator`
 - Regras centralizadas em validadores
 - FluentValidation
 
-#### [src/Produtos/DTOs/ProdutoDTO.cs](../src/Produtos/DTOs/ProdutoDTO.cs)
+#### [src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs](../src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs)
 - `CriarProdutoRequest`
 - `AtualizarProdutoRequest`
 - `ProdutoResponse`
@@ -349,9 +350,9 @@ Slice para cancelar pedido
 
 | Aspecto | Produtos (Clean) | Pedidos (Vertical Slice) |
 |---------|------------------|------------------------|
-| **Diretório** | `src/Produtos/Endpoints/`, `src/Produtos/Services/`, etc | `src/Pedidos/` |
+| **Diretório** | `src/Produtos/Produtos.*` | `src/Pedidos/` |
 | **Organização** | Por camada | Por feature |
-| **Modelo** | Anêmico | Rico |
+| **Modelo** | Rico | Rico |
 | **Regras de negócio** | Em `Service` e `Validator` | Em `Domain` |
 | **Alterar um campo** | Toca: Service, DTO, Endpoint | Toca: Domain, Handler, Command |
 | **Coesão** | Baixa (espalhado) | Alta (tudo junto) |
@@ -392,9 +393,9 @@ dotnet run
 | Quero aprender... | Arquivo | Seção |
 |-------------------|---------|-------|
 | REST Principles | [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) | Introdução |
-| Endpoints Produtos | [src/Produtos/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Endpoints/ProdutoEndpoints.cs) | Todas as rotas |
-| Serviços | [src/Produtos/Services/ProdutoService.cs](../src/Produtos/Services/ProdutoService.cs) | Implementação |
-| Validadores | [src/Produtos/Validators/ProdutoValidator.cs](../src/Produtos/Validators/ProdutoValidator.cs) | Rules |
+| Endpoints Produtos | [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs) | Todas as rotas |
+| Serviços | [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs) | Implementação |
+| Validadores | [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs) | Rules |
 | Domínio Rico | [src/Pedidos/Domain/Pedido.cs](../src/Pedidos/Domain/Pedido.cs) | Aggregate |
 | Vertical Slice | [src/Pedidos/CreatePedido/](../src/Pedidos/CreatePedido/) | Exemplo completo |
 | Testes | [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) | Exemplos |
