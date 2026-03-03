@@ -95,13 +95,15 @@ public static class ProdutoEndpoints
         IProdutoService produtoService,
         int page = 1,
         int pageSize = 20,
+        string? categoria = null,
+        string? search = null,
         ILogger<Program> logger = null!)
     {
         logger?.LogInformation("GET /api/v1/produtos - Page: {Page}, PageSize: {PageSize}", page, pageSize);
 
         try
         {
-            var resultado = await produtoService.ListarProdutosAsync(page, pageSize);
+            var resultado = await produtoService.ListarProdutosAsync(page, pageSize, categoria, search);
             return Results.Ok(resultado);
         }
         catch (ArgumentException ex)
@@ -127,23 +129,21 @@ public static class ProdutoEndpoints
     {
         logger?.LogInformation("GET /api/v1/produtos/{Id}", id);
 
-        try
-        {
-            var produto = await produtoService.ObterProdutoAsync(id);
-            return Results.Ok(produto);
-        }
-        catch (KeyNotFoundException ex)
+        var produto = await produtoService.ObterProdutoAsync(id);
+        if (produto is null)
         {
             logger?.LogWarning("Produto {ProductId} não encontrado", id);
             return Results.NotFound(new ErrorResponse
             {
                 Status = 404,
                 Title = "Produto não encontrado",
-                Detail = ex.Message,
+                Detail = $"Produto com ID {id} não encontrado.",
                 Type = "https://api.example.com/errors/not-found",
                 Instance = $"/api/v1/produtos/{id}"
             });
         }
+
+        return Results.Ok(produto);
     }
 
     /// <summary>
@@ -220,20 +220,21 @@ public static class ProdutoEndpoints
             }
 
             var produto = await produtoService.AtualizarCompletoProdutoAsync(id, request);
+            if (produto is null)
+            {
+                logger?.LogWarning("Produto {ProductId} não encontrado", id);
+                return Results.NotFound(new ErrorResponse
+                {
+                    Status = 404,
+                    Title = "Produto não encontrado",
+                    Detail = $"Produto com ID {id} não encontrado.",
+                    Type = "https://api.example.com/errors/not-found",
+                    Instance = $"/api/v1/produtos/{id}"
+                });
+            }
+
             logger?.LogInformation("Produto {ProductId} atualizado completamente com sucesso", id);
             return Results.Ok(produto);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            logger?.LogWarning("Produto {ProductId} não encontrado", id);
-            return Results.NotFound(new ErrorResponse
-            {
-                Status = 404,
-                Title = "Produto não encontrado",
-                Detail = ex.Message,
-                Type = "https://api.example.com/errors/not-found",
-                Instance = $"/api/v1/produtos/{id}"
-            });
         }
         catch (ValidationException ex)
         {
@@ -276,22 +277,22 @@ public static class ProdutoEndpoints
                 });
             }
 
-            await produtoService.AtualizarProdutoAsync(id, request);
-            var produtoAtualizado = await produtoService.ObterProdutoAsync(id);
+            var produtoAtualizado = await produtoService.AtualizarProdutoAsync(id, request);
+            if (produtoAtualizado is null)
+            {
+                logger?.LogWarning("Produto {ProductId} não encontrado", id);
+                return Results.NotFound(new ErrorResponse
+                {
+                    Status = 404,
+                    Title = "Produto não encontrado",
+                    Detail = $"Produto com ID {id} não encontrado.",
+                    Type = "https://api.example.com/errors/not-found",
+                    Instance = $"/api/v1/produtos/{id}"
+                });
+            }
+
             logger?.LogInformation("Produto {ProductId} atualizado parcialmente com sucesso", id);
             return Results.Ok(produtoAtualizado);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            logger?.LogWarning("Produto {ProductId} não encontrado", id);
-            return Results.NotFound(new ErrorResponse
-            {
-                Status = 404,
-                Title = "Produto não encontrado",
-                Detail = ex.Message,
-                Type = "https://api.example.com/errors/not-found",
-                Instance = $"/api/v1/produtos/{id}"
-            });
         }
         catch (ValidationException ex)
         {
@@ -316,23 +317,21 @@ public static class ProdutoEndpoints
     {
         logger?.LogInformation("DELETE /api/v1/produtos/{Id} - Deletando", id);
 
-        try
-        {
-            await produtoService.DeletarProdutoAsync(id);
-            logger?.LogInformation("Produto {ProductId} deletado com sucesso", id);
-            return Results.NoContent();
-        }
-        catch (KeyNotFoundException ex)
+        var deletado = await produtoService.DeletarProdutoAsync(id);
+        if (!deletado)
         {
             logger?.LogWarning("Produto {ProductId} não encontrado", id);
             return Results.NotFound(new ErrorResponse
             {
                 Status = 404,
                 Title = "Produto não encontrado",
-                Detail = ex.Message,
+                Detail = $"Produto com ID {id} não encontrado.",
                 Type = "https://api.example.com/errors/not-found",
                 Instance = $"/api/v1/produtos/{id}"
             });
         }
+
+        logger?.LogInformation("Produto {ProductId} deletado com sucesso", id);
+        return Results.NoContent();
     }
 }

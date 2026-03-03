@@ -1,536 +1,415 @@
-using Xunit;
-using Moq;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using FluentAssertions;
 using ProdutosAPI.Produtos.DTOs;
-using ProdutosAPI.Produtos.Services;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using ProdutosAPI.Tests.Integration;
+using Xunit;
 
-namespace ProdutosAPI.Tests.Endpoints
+namespace ProdutosAPI.Tests.Endpoints;
+
+/// <summary>
+/// Testes de integração para os endpoints de Produto.
+/// Verifica status HTTP, payload e headers reais via WebApplicationFactory.
+/// </summary>
+public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
 {
-    /// <summary>
-    /// Integration tests for Produto API endpoints
-    /// Tests HTTP layer, response status codes, and payload validation
-    /// References: REST API Best Practices - HTTP Status Codes
-    /// </summary>
-    public class ProdutoEndpointsTests
-    {
-        private readonly Mock<IProdutoService> _mockService;
+    private readonly ApiFactory _factory;
 
-    public ProdutoEndpointsTests()
+    public ProdutoEndpointsTests(ApiFactory factory)
     {
-        _mockService = new Mock<IProdutoService>();
+        _factory = factory;
     }
 
-    #region GET / Tests
+    private HttpClient CriarCliente() => _factory.CreateClient();
 
-    /// <summary>
-    /// Test: GET /produtos returns 200 OK with paginated list
-    /// Scenario: Request for first page of products
-    /// Expected: 200 OK with products and pagination info
-    /// </summary>
+    private async Task<HttpClient> CriarClienteAutenticadoAsync()
+    {
+        var client = _factory.CreateClient();
+        var token = await AuthHelper.ObterTokenAsync(client);
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
+
+    private static CriarProdutoRequest RequestValido(string nome = "Produto de Teste") => new()
+    {
+        Nome = nome,
+        Descricao = "Descrição detalhada do produto de teste",
+        Preco = 299.90m,
+        Categoria = "Eletrônicos",
+        Estoque = 20,
+        ContatoEmail = "vendas@teste.com"
+    };
+
+    #region GET /api/v1/produtos
+
     [Fact]
-    public void GetProdutos_WithValidRequest_Returns200OK()
+    public async Task GET_Produtos_SemFiltros_Retorna200ComListaPaginada()
     {
-        // Arrange
-        var mockResponse = new PaginatedResponse<ProdutoResponse>
-        {
-            Data = new List<ProdutoResponse>
-            {
-                new ProdutoResponse { Id = 1, Nome = "Produto 1", Preco = 100m },
-                new ProdutoResponse { Id = 2, Nome = "Produto 2", Preco = 200m }
-            },
-            Pagination = new PaginationInfo
-            {
-                Page = 1,
-                PageSize = 10,
-                TotalItems = 2,
-                TotalPages = 1
-            }
-        };
+        var client = CriarCliente();
 
-        // This would be called via HTTP GET /produtos?page=1&pageSize=10
-        // Handler should return 200 with the mockResponse data
+        var response = await client.GetAsync("/api/v1/produtos");
 
-        // Assert expectations
-        mockResponse.Data.Should().HaveCount(2);
-        mockResponse.Pagination.TotalPages.Should().Be(1);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ProdutoResponse>>();
+        result.Should().NotBeNull();
+        result!.Data.Should().NotBeEmpty();
+        result.Pagination.TotalItems.Should().BeGreaterThan(0);
+        result.Pagination.Page.Should().Be(1);
     }
 
-    /// <summary>
-    /// Test: GET /produtos with invalid page number
-    /// Scenario: Page number is 0 or negative
-    /// Expected: 400 Bad Request with error details
-    /// </summary>
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void GetProdutos_WithInvalidPageNumber_Returns400BadRequest(int page)
-    {
-        // Arrange
-        _mockService
-            .Setup(s => s.ListarProdutosAsync(page, It.IsAny<int>()))
-            .ThrowsAsync(new ArgumentException("Page must be >= 1"));
-
-        // This would be called via HTTP GET /produtos?page={page}
-        // Handler should catch ArgumentException and return 400
-
-        // Expected behavior: ArgumentException should be caught by middleware
-        Assert.Throws<ArgumentException>(() =>
-        {
-            _mockService.Object.ListarProdutosAsync(page, 10).GetAwaiter().GetResult();
-        });
-    }
-
-    /// <summary>
-    /// Test: GET /produtos returns 200 OK with empty list when no products exist
-    /// Scenario: Database is empty
-    /// Expected: 200 OK with empty data array and correct pagination
-    /// </summary>
     [Fact]
-    public void GetProdutos_WithEmptyDatabase_Returns200OKWithEmptyList()
+    public async Task GET_Produtos_ComFiltroCategoria_Retorna200ApenasComCategoriaSolicitada()
     {
-        // Arrange
-        var mockResponse = new PaginatedResponse<ProdutoResponse>
-        {
-            Data = new List<ProdutoResponse>(),
-            Pagination = new PaginationInfo
-            {
-                Page = 1,
-                PageSize = 10,
-                TotalItems = 0,
-                TotalPages = 0
-            }
-        };
+        var client = CriarCliente();
 
-        // Expected behavior: Return 200 with empty list
-        mockResponse.Data.Should().BeEmpty();
-        mockResponse.Pagination.TotalPages.Should().Be(0);
+        var response = await client.GetAsync("/api/v1/produtos?categoria=Livros");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ProdutoResponse>>();
+        result.Should().NotBeNull();
+        result!.Data.Should().AllSatisfy(p => p.Categoria.Should().Be("Livros"));
+    }
+
+    [Fact]
+    public async Task GET_Produtos_NaoRequerAutenticacao()
+    {
+        // endpoint marcado como AllowAnonymous
+        var client = CriarCliente();
+
+        var response = await client.GetAsync("/api/v1/produtos");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     #endregion
 
-    #region GET /{id} Tests
+    #region GET /api/v1/produtos/{id}
 
-    /// <summary>
-    /// Test: GET /produtos/{id} returns 200 OK with product data
-    /// Scenario: Valid product ID
-    /// Expected: 200 OK with ProdutoResponse
-    /// </summary>
     [Fact]
-    public async Task GetProdutoById_WithValidId_Returns200OK()
+    public async Task GET_Produto_ComIdExistente_Retorna200ComDados()
     {
-        // Arrange
-        var id = 1;
-        var mockResponse = new ProdutoResponse
-        {
-            Id = id,
-            Nome = "Notebook Dell",
-            Descricao = "Intel i7, 16GB RAM",
-            Preco = 5500.00m,
-            Categoria = "Computadores",
-            Estoque = 5
-        };
+        var client = CriarCliente();
 
-        _mockService
-            .Setup(s => s.ObterProdutoAsync(id))
-            .ReturnsAsync(mockResponse);
+        // ID 1 é inserido pelo DbSeeder
+        var response = await client.GetAsync("/api/v1/produtos/1");
 
-        // Act
-        var service = _mockService.Object;
-        var result = await service.ObterProdutoAsync(id);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(id);
-        result.Nome.Should().Be("Notebook Dell");
-        result.Preco.Should().Be(5500.00m);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
+        produto.Should().NotBeNull();
+        produto!.Id.Should().Be(1);
+        produto.Nome.Should().NotBeNullOrEmpty();
+        produto.Ativo.Should().BeTrue();
     }
 
-    /// <summary>
-    /// Test: GET /produtos/{id} returns 404 Not Found
-    /// Scenario: Product ID does not exist
-    /// Expected: 404 Not Found with error message
-    /// </summary>
     [Fact]
-    public async Task GetProdutoById_WithInvalidId_Returns404NotFound()
+    public async Task GET_Produto_ComIdInexistente_Retorna404()
     {
-        // Arrange
-        var id = 999;
+        var client = CriarCliente();
 
-        _mockService
-            .Setup(s => s.ObterProdutoAsync(id))
-            .ThrowsAsync(new KeyNotFoundException($"Produto com ID {id} não encontrado."));
+        var response = await client.GetAsync("/api/v1/produtos/99999");
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _mockService.Object.ObterProdutoAsync(id)
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    /// <summary>
-    /// Test: GET /produtos/{id} excludes deleted (inactive) products
-    /// Scenario: Product has been soft-deleted (Ativo = false)
-    /// Expected: 404 Not Found
-    /// </summary>
     [Fact]
-    public async Task GetProdutoById_WithDeletedProduct_Returns404NotFound()
+    public async Task GET_Produto_NaoRequerAutenticacao()
     {
-        // Arrange
-        var id = 1;
+        var client = CriarCliente();
 
-        _mockService
-            .Setup(s => s.ObterProdutoAsync(id))
-            .ThrowsAsync(new KeyNotFoundException("Produto não encontrado ou foi deletado."));
+        var response = await client.GetAsync("/api/v1/produtos/1");
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _mockService.Object.ObterProdutoAsync(id)
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     #endregion
 
-    #region POST / Tests
+    #region POST /api/v1/produtos
 
-    /// <summary>
-    /// Test: POST /produtos returns 201 Created with new product
-    /// Scenario: Valid product creation request
-    /// Expected: 201 Created with ProdutoResponse and Location header
-    /// </summary>
     [Fact]
-    public async Task PostProduto_WithValidRequest_Returns201Created()
+    public async Task POST_Produto_SemAutenticacao_Retorna401()
     {
-        // Arrange
-        var request = new CriarProdutoRequest
-        {
-            Nome = "Mouse Logitech",
-            Descricao = "Wireless USB",
-            Preco = 150.00m,
-            Categoria = "Periféricos",
-            Estoque = 50,
-            ContatoEmail = "vendor@example.com"
-        };
+        var client = CriarCliente();
 
-        var response = new ProdutoResponse
-        {
-            Id = 1,
-            Nome = request.Nome,
-            Descricao = request.Descricao,
-            Preco = request.Preco,
-            Categoria = request.Categoria,
-            Estoque = request.Estoque
-        };
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", RequestValido());
 
-        _mockService
-            .Setup(s => s.CriarProdutoAsync(request))
-            .ReturnsAsync(response);
-
-        // Act
-        var service = _mockService.Object;
-        var result = await service.CriarProdutoAsync(request);
-
-        // Assert - HTTP status 201 would be returned with Location header
-        result.Should().NotBeNull();
-        result.Id.Should().Be(1);
-        result.Nome.Should().Be("Mouse Logitech");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    /// Test: POST /produtos returns 422 Unprocessable Entity
-    /// Scenario: Validation fails (missing required field)
-    /// Expected: 422 with validation errors
-    /// </summary>
     [Fact]
-    public async Task PostProduto_WithInvalidRequest_Returns422UnprocessableEntity()
+    public async Task POST_Produto_ComDadosValidos_Retorna201ComLocationHeader()
     {
-        // Arrange
+        var client = await CriarClienteAutenticadoAsync();
+
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", RequestValido("Mouse Gamer Pro"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
+        produto.Should().NotBeNull();
+        produto!.Nome.Should().Be("Mouse Gamer Pro");
+        produto.Preco.Should().Be(299.90m);
+        produto.Ativo.Should().BeTrue();
+        response.Headers.Location.Should().NotBeNull();
+        response.Headers.Location!.ToString().Should().Contain($"/api/v1/produtos/{produto.Id}");
+    }
+
+    [Fact]
+    public async Task POST_Produto_ComNomeVazio_Retorna422()
+    {
+        var client = await CriarClienteAutenticadoAsync();
         var request = new CriarProdutoRequest
         {
-            Nome = "", // Invalid: empty name
-            Descricao = "Test",
+            Nome = "",
+            Descricao = "Descrição de teste",
             Preco = 100m,
-            Categoria = "Test",
+            Categoria = "Eletrônicos",
             Estoque = 10,
-            ContatoEmail = "test@example.com"
+            ContatoEmail = "teste@teste.com"
         };
 
-        _mockService
-            .Setup(s => s.CriarProdutoAsync(request))
-            .ThrowsAsync(new FluentValidation.ValidationException("Nome é obrigatório"));
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<FluentValidation.ValidationException>(() =>
-            _mockService.Object.CriarProdutoAsync(request)
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
-    /// <summary>
-    /// Test: POST /produtos returns 400 Bad Request
-    /// Scenario: Negative or zero price
-    /// Expected: 400 Bad Request
-    /// </summary>
-    [Theory]
-    [InlineData(-50)]
-    [InlineData(0)]
-    public async Task PostProduto_WithInvalidPrice_Returns400BadRequest(decimal price)
+    [Fact]
+    public async Task POST_Produto_ComPrecoZero_Retorna422()
     {
-        // Arrange
+        var client = await CriarClienteAutenticadoAsync();
         var request = new CriarProdutoRequest
         {
-            Nome = "Valid",
-            Descricao = "Description",
-            Preco = price,
-            Categoria = "Category",
+            Nome = "Produto Valido",
+            Descricao = "Descrição de teste",
+            Preco = 0m,
+            Categoria = "Eletrônicos",
             Estoque = 10,
-            ContatoEmail = "test@example.com"
+            ContatoEmail = "teste@teste.com"
         };
 
-        _mockService
-            .Setup(s => s.CriarProdutoAsync(request))
-            .ThrowsAsync(new FluentValidation.ValidationException("Preço deve ser maior que zero"));
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<FluentValidation.ValidationException>(() =>
-            _mockService.Object.CriarProdutoAsync(request)
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
-    #endregion
-
-    #region PUT /{id} Tests
-
-    /// <summary>
-    /// Test: PUT /produtos/{id} returns 200 OK
-    /// Scenario: Valid full update request
-    /// Expected: 200 OK with updated ProdutoResponse
-    /// </summary>
     [Fact]
-    public async Task PutProduto_WithValidRequest_Returns200OK()
+    public async Task POST_Produto_ComCategoriaInvalida_Retorna422()
     {
-        // Arrange
-        var id = 1;
+        var client = await CriarClienteAutenticadoAsync();
         var request = new CriarProdutoRequest
         {
-            Nome = "Mouse Atualizado",
-            Descricao = "Wireless + Bluetooth",
-            Preco = 200m,
-            Categoria = "Periféricos Premium",
-            Estoque = 75,
-            ContatoEmail = "newvendor@example.com"
-        };
-
-        var response = new ProdutoResponse
-        {
-            Id = id,
-            Nome = request.Nome,
-            Preco = request.Preco,
-            Estoque = request.Estoque
-        };
-
-        _mockService
-            .Setup(s => s.AtualizarCompletoProdutoAsync(id, request))
-            .ReturnsAsync(response);
-
-        // Act
-        var service = _mockService.Object;
-        var result = await service.AtualizarCompletoProdutoAsync(id, request);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Nome.Should().Be("Mouse Atualizado");
-        result.Preco.Should().Be(200m);
-    }
-
-    /// <summary>
-    /// Test: PUT /produtos/{id} returns 404 Not Found
-    /// Scenario: Product does not exist
-    /// Expected: 404
-    /// </summary>
-    [Fact]
-    public async Task PutProduto_WithInvalidId_Returns404NotFound()
-    {
-        // Arrange
-        var id = 999;
-        var request = new CriarProdutoRequest
-        {
-            Nome = "Test",
-            Descricao = "Test",
+            Nome = "Produto Valido",
+            Descricao = "Descrição de teste",
             Preco = 100m,
-            Categoria = "Test",
+            Categoria = "CategoriaInexistente",
             Estoque = 10,
-            ContatoEmail = "test@example.com"
+            ContatoEmail = "teste@teste.com"
         };
 
-        _mockService
-            .Setup(s => s.AtualizarCompletoProdutoAsync(id, request))
-            .ThrowsAsync(new KeyNotFoundException($"Produto com ID {id} não encontrado."));
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _mockService.Object.AtualizarCompletoProdutoAsync(id, request)
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
-    #endregion
-
-    #region PATCH /{id} Tests
-
-    /// <summary>
-    /// Test: PATCH /produtos/{id} returns 200 OK
-    /// Scenario: Valid partial update (only Nome field)
-    /// Expected: 200 OK with updated product
-    /// </summary>
     [Fact]
-    public async Task PatchProduto_WithValidRequest_Returns200OK()
+    public async Task POST_Produto_ComEmailInvalido_Retorna422()
     {
-        // Arrange
-        var id = 1;
-        var request = new AtualizarProdutoRequest
+        var client = await CriarClienteAutenticadoAsync();
+        var request = new CriarProdutoRequest
         {
-            Nome = "Produto Atualizado"
+            Nome = "Produto Valido",
+            Descricao = "Descrição de teste",
+            Preco = 100m,
+            Categoria = "Eletrônicos",
+            Estoque = 10,
+            ContatoEmail = "nao-e-um-email"
         };
 
-        var response = new ProdutoResponse
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+    }
+
+    #endregion
+
+    #region PUT /api/v1/produtos/{id}
+
+    [Fact]
+    public async Task PUT_Produto_SemAutenticacao_Retorna401()
+    {
+        var client = CriarCliente();
+
+        var response = await client.PutAsJsonAsync("/api/v1/produtos/1", RequestValido());
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task PUT_Produto_ComDadosValidos_Retorna200ComDadosAtualizados()
+    {
+        var client = await CriarClienteAutenticadoAsync();
+
+        // Criar produto para atualizar
+        var criado = await CriarProdutoAsync(client, "Produto para PUT");
+
+        var requestAtualizado = new CriarProdutoRequest
         {
-            Id = id,
-            Nome = "Produto Atualizado"
+            Nome = "Produto Atualizado via PUT",
+            Descricao = "Descrição atualizada",
+            Preco = 499.99m,
+            Categoria = "Eletrônicos",
+            Estoque = 5,
+            ContatoEmail = "atualizado@teste.com"
         };
 
-        _mockService
-            .Setup(s => s.AtualizarProdutoAsync(id, request))
-            .ReturnsAsync((ProdutoResponse?)response);
+        var response = await client.PutAsJsonAsync($"/api/v1/produtos/{criado.Id}", requestAtualizado);
 
-        // Act
-        await _mockService.Object.AtualizarProdutoAsync(id, request);
-
-        // Assert
-        _mockService.Verify(s => s.AtualizarProdutoAsync(id, request), Times.Once);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
+        produto.Should().NotBeNull();
+        produto!.Nome.Should().Be("Produto Atualizado via PUT");
+        produto.Preco.Should().Be(499.99m);
+        produto.Estoque.Should().Be(5);
     }
 
-    /// <summary>
-    /// Test: PATCH /produtos/{id} returns 404 Not Found
-    /// Scenario: Product does not exist
-    /// Expected: 404
-    /// </summary>
     [Fact]
-    public async Task PatchProduto_WithInvalidId_Returns404NotFound()
+    public async Task PUT_Produto_ComIdInexistente_Retorna404()
     {
-        // Arrange
-        var id = 999;
-        var request = new AtualizarProdutoRequest { Nome = "Test" };
+        var client = await CriarClienteAutenticadoAsync();
 
-        _mockService
-            .Setup(s => s.AtualizarProdutoAsync(id, request))
-            .ThrowsAsync(new KeyNotFoundException($"Produto com ID {id} não encontrado."));
+        var response = await client.PutAsJsonAsync("/api/v1/produtos/99999", RequestValido());
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _mockService.Object.AtualizarProdutoAsync(id, request)
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    #endregion
-
-    #region DELETE /{id} Tests
-
-    /// <summary>
-    /// Test: DELETE /produtos/{id} returns 204 No Content
-    /// Scenario: Valid product deletion
-    /// Expected: 204 No Content (soft delete)
-    /// </summary>
     [Fact]
-    public async Task DeleteProduto_WithValidId_Returns204NoContent()
+    public async Task PUT_Produto_ComDadosInvalidos_Retorna422()
     {
-        // Arrange
-        var id = 1;
+        var client = await CriarClienteAutenticadoAsync();
+        var criado = await CriarProdutoAsync(client, "Produto para PUT invalido");
 
-        _mockService
-            .Setup(s => s.DeletarProdutoAsync(id))
-            .ReturnsAsync(true);
-
-        // Act
-        await _mockService.Object.DeletarProdutoAsync(id);
-
-        // Assert - HTTP 204 would be returned
-        _mockService.Verify(s => s.DeletarProdutoAsync(id), Times.Once);
-    }
-
-    /// <summary>
-    /// Test: DELETE /produtos/{id} returns 404 Not Found
-    /// Scenario: Product does not exist
-    /// Expected: 404
-    /// </summary>
-    [Fact]
-    public async Task DeleteProduto_WithInvalidId_Returns404NotFound()
-    {
-        // Arrange
-        var id = 999;
-
-        _mockService
-            .Setup(s => s.DeletarProdutoAsync(id))
-            .ThrowsAsync(new KeyNotFoundException($"Produto com ID {id} não encontrado."));
-
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _mockService.Object.DeletarProdutoAsync(id)
-        );
-    }
-
-    /// <summary>
-    /// Test: DELETE /produtos/{id} returns 404 for already deleted product
-    /// Scenario: Product was already soft-deleted
-    /// Expected: 404
-    /// </summary>
-    [Fact]
-    public async Task DeleteProduto_WithAlreadyDeletedProduct_Returns404NotFound()
-    {
-        // Arrange
-        var id = 1;
-
-        _mockService
-            .Setup(s => s.DeletarProdutoAsync(id))
-            .ThrowsAsync(new KeyNotFoundException("Produto foi deletado ou não existe."));
-
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _mockService.Object.DeletarProdutoAsync(id)
-        );
-    }
-
-    #endregion
-
-    #region Error Response Format Tests
-
-    /// <summary>
-    /// Test: All error responses follow standard format
-    /// Scenario: Various error conditions
-    /// Expected: ErrorResponse with Status, Message, Details, Timestamp, TraceId
-    /// </summary>
-    [Theory]
-    [InlineData(400, "Bad Request")]
-    [InlineData(404, "Not Found")]
-    [InlineData(422, "Unprocessable Entity")]
-    [InlineData(500, "Internal Server Error")]
-    public void ErrorResponses_FollowStandardFormat(int statusCode, string title)
-    {
-        // Arrange
-        var error = new ErrorResponse
+        var requestInvalido = new CriarProdutoRequest
         {
-            Status = statusCode,
-            Title = title,
-            Detail = "Erro de descrição",
-            Type = "https://api.example.com/errors/server",
-            Instance = "/api/v1/produtos/1"
+            Nome = "",
+            Descricao = "Descrição de teste",
+            Preco = 100m,
+            Categoria = "Eletrônicos",
+            Estoque = 10,
+            ContatoEmail = "teste@teste.com"
         };
 
-        // Assert
-        error.Status.Should().Be(statusCode);
-        error.Title.Should().Be(title);
-        error.Detail.Should().NotBeNullOrEmpty();
-        error.Type.Should().NotBeNullOrEmpty();
+        var response = await client.PutAsJsonAsync($"/api/v1/produtos/{criado.Id}", requestInvalido);
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
     #endregion
-}}
+
+    #region PATCH /api/v1/produtos/{id}
+
+    [Fact]
+    public async Task PATCH_Produto_SemAutenticacao_Retorna401()
+    {
+        var client = CriarCliente();
+        var request = new AtualizarProdutoRequest { Nome = "Novo Nome" };
+
+        var response = await client.PatchAsJsonAsync("/api/v1/produtos/1", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task PATCH_Produto_ComNome_Retorna200AtualizandoApenasCampoFornecido()
+    {
+        var client = await CriarClienteAutenticadoAsync();
+        var criado = await CriarProdutoAsync(client, "Produto Original PATCH");
+
+        var request = new AtualizarProdutoRequest { Nome = "Nome Atualizado Parcialmente" };
+
+        var response = await client.PatchAsJsonAsync($"/api/v1/produtos/{criado.Id}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
+        produto.Should().NotBeNull();
+        produto!.Nome.Should().Be("Nome Atualizado Parcialmente");
+        produto.Preco.Should().Be(criado.Preco); // preço não foi alterado
+    }
+
+    [Fact]
+    public async Task PATCH_Produto_ComIdInexistente_Retorna404()
+    {
+        var client = await CriarClienteAutenticadoAsync();
+        var request = new AtualizarProdutoRequest { Nome = "Qualquer" };
+
+        var response = await client.PatchAsJsonAsync("/api/v1/produtos/99999", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    #endregion
+
+    #region DELETE /api/v1/produtos/{id}
+
+    [Fact]
+    public async Task DELETE_Produto_SemAutenticacao_Retorna401()
+    {
+        var client = CriarCliente();
+
+        var response = await client.DeleteAsync("/api/v1/produtos/1");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DELETE_Produto_ComIdExistente_Retorna204()
+    {
+        var client = await CriarClienteAutenticadoAsync();
+        var criado = await CriarProdutoAsync(client, "Produto para Deletar");
+
+        var response = await client.DeleteAsync($"/api/v1/produtos/{criado.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task DELETE_Produto_AposaDelecao_ProdutoNaoEhMaisAcessivel()
+    {
+        var client = await CriarClienteAutenticadoAsync();
+        var criado = await CriarProdutoAsync(client, "Produto Soft Delete");
+
+        await client.DeleteAsync($"/api/v1/produtos/{criado.Id}");
+
+        // Soft delete: produto deve retornar 404 após deletado
+        var getResponse = await client.GetAsync($"/api/v1/produtos/{criado.Id}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DELETE_Produto_ComIdInexistente_Retorna404()
+    {
+        var client = await CriarClienteAutenticadoAsync();
+
+        var response = await client.DeleteAsync("/api/v1/produtos/99999");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    #endregion
+
+    // Helper para criar produto e retornar o response
+    private static async Task<ProdutoResponse> CriarProdutoAsync(HttpClient client, string nome)
+    {
+        var request = new CriarProdutoRequest
+        {
+            Nome = nome,
+            Descricao = "Descrição gerada para teste",
+            Preco = 150m,
+            Categoria = "Outros",
+            Estoque = 10,
+            ContatoEmail = "helper@teste.com"
+        };
+        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ProdutoResponse>())!;
+    }
+}
