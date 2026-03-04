@@ -1,6 +1,6 @@
 # 🏗️ Arquitetura do Projeto
 
-O repositório demonstra **duas arquiteturas complementares** coexistindo de forma **apartada e paralela**:
+O repositório demonstra **três trilhas complementares** coexistindo de forma **apartada e paralela**:
 
 1. **Clean Architecture em Projetos Separados** (📁 `src/Produtos/Produtos.API/`, `src/Produtos/Produtos.Application/`, `src/Produtos/Produtos.Domain/`, `src/Produtos/Produtos.Infrastructure/`)
    - Utilizada para o caso de uso **Produtos** — iniciado na primeira fase
@@ -9,6 +9,10 @@ O repositório demonstra **duas arquiteturas complementares** coexistindo de for
 2. **Vertical Slice Architecture + Domínio Rico** (📁 `src/Pedidos/`)
    - Utilizada para o caso de uso **Pedidos** — introduzida na fase 2
    - Ideal para aprender organização por feature e modelos de domínio ricos
+
+3. **Integração Externa com API Mock + Cliente Tipado** (📁 `src/Pix/`)
+   - Utilizada para o caso de uso **Processamento PIX** — introduzida na fase 3
+   - Ideal para aprender payloads JSON complexos, idempotência e `HttpClientFactory`
 
 Ambas compartilham o mesmo pipeline de middleware, `AppDbContext` em `src/Shared/Data/` e dependências registradas em `Program.cs`, mas permanecem **isoladas em estrutura de diretórios** para facilitar aprendizado comparativo.
 
@@ -32,6 +36,11 @@ src/
 │   ├── ListPedidos/                # Slice: listar
 │   ├── AddItemPedido/              # Slice: adicionar item
 │   └── CancelPedido/               # Slice: cancelar
+│
+├── 🟣 API Mock + Cliente — PIX
+│   ├── Pix.MockServer/             # Minimal API auto-contida (OAuth2 + /pix/v1)
+│   ├── Pix.ClientDemo/             # Cliente tipado com resiliência e handlers
+│   └── Pix.MockServer.Tests/       # Testes de integração da trilha PIX
 │
 └── 🔗 Compartilhado (Shared)
     ├── Common/                     # IEndpoint, Result, MappingProfile
@@ -93,7 +102,31 @@ Estes slices são descobertos automaticamente durante o startup graças à inter
 
 ---
 
-## 3. Comparação: Clean Architecture vs Vertical Slice
+## 3. Integração PIX (Mock Server + Cliente HTTP)
+
+```mermaid
+flowchart TD
+    A[Pix.ClientDemo] --> B[Token OAuth2 Mock]
+    B --> C["POST /oauth/token"]
+    A --> D["POST /pix/v1/cobrancas"]
+    D --> E[Idempotency-Key + Correlation-ID]
+    E --> F[Pix.MockServer]
+    F --> G[State InMemory]
+    A --> H["POST /pix/v1/devolucoes"]
+    H --> F
+```
+
+*src/Pix/Pix.MockServer/Program.cs | src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs | src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs*
+
+Esta trilha complementa as duas trilhas internas com um cenário realista de integração HTTP externa:
+- segurança simulada (`Bearer` + header `X-MTLS-Client-Cert`);
+- JSON complexo (objetos aninhados, listas, metadata);
+- resiliência com `AddStandardResilienceHandler`;
+- idempotência e conflito (`409`) por fingerprint de payload.
+
+---
+
+## 4. Comparação: Clean Architecture vs Vertical Slice
 
 | Aspecto | Produtos (Clean) | Pedidos (Vertical Slice) |
 |--------|-------------------|------------------------|
@@ -144,14 +177,14 @@ StatusCode 201 + DTO
 
 ---
 
-## 4. Coexistência das duas abordagens
+## 5. Coexistência das abordagens
 
 - Ambos consumen o mesmo `AppDbContext`, tabelas e migrações.
 - Serviços de Produtos continuam funcionando ao lado de slices de Pedidos.
 - A migração para Vertical Slice foi incremental: as peças existentes de Produtos permaneceram inalteradas.
 - Middlewares, autenticação JWT e logging são aplicados globalmente.
 
-## 4. Coexistência das duas abordagens
+## 5. Coexistência das abordagens
 
 - Ambas consomem o mesmo `AppDbContext`, tabelas e migrações.
 - Serviços de Produtos continuam funcionando ao lado de slices de Pedidos.
@@ -165,7 +198,7 @@ StatusCode 201 + DTO
 
 ---
 
-## 5. Modelo de Dados Unificado
+## 6. Modelo de Dados Unificado
 
 ```mermaid
 classDiagram
@@ -479,7 +512,7 @@ Request
 
 ---
 
-**Versão**: 1.0.0  
-**Data**: 25 de Fevereiro de 2025  
+**Versão**: 3.1.0  
+**Data**: 4 de março de 2026  
 **Framework**: .NET 10 LTS  
-**Pattern**: Minimal API + REST + Clean Architecture
+**Patterns**: Clean Architecture + Vertical Slice + API Client Patterns

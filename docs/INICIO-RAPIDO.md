@@ -1,8 +1,8 @@
-# Início Rápido - Produtos API
+# Início Rápido - Produtos API + PIX Demo
 
 ## 🎯 Objetivo Didático
 
-Este projeto é um **exemplo educacional completo** que demonstra como implementar uma API REST moderna seguindo as melhores práticas em .NET 10 com Minimal API. Inclui dois casos de uso: Produtos (Clean Architecture) e Pedidos (Vertical Slice + Domínio Rico).
+Este projeto é um **exemplo educacional completo** que demonstra como implementar uma API REST moderna seguindo as melhores práticas em .NET 10 com Minimal API. Inclui três trilhas: Produtos (Clean Architecture), Pedidos (Vertical Slice + Domínio Rico) e Integração PIX (Mock Server + Cliente HTTP).
 ## 📚 Três Documentos Principais
 
 ### 1️⃣ Guia Conceitual
@@ -83,6 +83,27 @@ http://localhost:5000
 
 ---
 
+## 💸 Rodar a Trilha PIX (5 minutos)
+
+### Terminal 1: Subir servidor mock PIX
+```bash
+dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
+```
+
+### Terminal 2: Executar cliente didático
+```bash
+dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
+```
+
+### Validar cenários automatizados da trilha PIX
+```bash
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+```
+
+Guia detalhado: [PIX-DEMO.md](PIX-DEMO.md)
+
+---
+
 ## 📖 Fluxo de Aprendizado Recomendado
 
 ```
@@ -128,6 +149,9 @@ O projeto já inclui:
 ✅ Shared/Middleware        → Tratamento global de erros
 ✅ Logging                  → Estruturado com Serilog
 ✅ Documentação             → Swagger/OpenAPI
+✅ src/Pix/Pix.MockServer   → Servidor auto-contido de processamento PIX
+✅ src/Pix/Pix.ClientDemo   → Cliente tipado com HttpClientFactory + resiliência
+✅ src/Pix/Pix.MockServer.Tests → Testes de integração PIX
 ```
 
 ---
@@ -261,11 +285,14 @@ Após entender este projeto:
 | `src/Produtos/Produtos.Application/Services/ProdutoService.cs` | Lógica de negócio |
 | `src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs` | Validações |
 | `src/Shared/Middleware/ExceptionHandlingMiddleware.cs` | Tratamento de erros |
+| `src/Pix/Pix.MockServer/Program.cs` | Endpoints OAuth2/PIX mock |
+| `src/Pix/Pix.ClientDemo/Program.cs` | Cenário fim-a-fim de cliente HTTP |
+| `docs/PIX-DEMO.md` | Guia de integração PIX |
 | `appsettings.json` | Configurações de ambiente |
 
 ---
 
-**Versão**: 1.0.0  
-**Última atualização**: 25 de Fevereiro de 2025  
+**Versão**: 3.1.0  
+**Última atualização**: 4 de março de 2026  
 **Framework**: .NET 10 LTS  
-**Padrão**: Minimal API
+**Padrões**: Clean Architecture + Vertical Slice + API Client Patterns

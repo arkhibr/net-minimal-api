@@ -1,0 +1,122 @@
+# PIX Demo: Mock Server + Cliente HTTP
+
+## Objetivo pedagógico
+Este módulo demonstra como estruturar chamadas de API com `HttpClientFactory` e como modelar payloads JSON complexos de forma organizada, com validação, idempotência, correlação e tratamento padronizado de erro.
+
+## Arquitetura da demo
+
+```text
+Pix.ClientDemo (Console)
+  -> OAuth2 mock (/oauth/token)
+  -> Pix.MockServer (/pix/v1/...)
+
+Pix.MockServer
+  - Contracts: payloads HTTP
+  - Application: regras de negócio e validações
+  - Infrastructure/InMemory: repositórios thread-safe
+  - Security: Bearer + mTLS simulado por header
+```
+
+## Endpoints
+- `POST /oauth/token`
+- `POST /pix/v1/cobrancas`
+- `GET /pix/v1/cobrancas/{txid}`
+- `POST /pix/v1/cobrancas/{txid}/simular-liquidacao`
+- `POST /pix/v1/devolucoes`
+- `GET /pix/v1/devolucoes/{devolucaoId}`
+- `GET /health`
+
+## Exemplo completo de payload (cobrança)
+
+```json
+{
+  "calendario": {
+    "expiracao": 3600
+  },
+  "devedor": {
+    "nome": "Cliente de Teste",
+    "cpfCnpj": "12345678901",
+    "endereco": {
+      "logradouro": "Rua das Flores",
+      "numero": "100",
+      "cidade": "Sao Paulo",
+      "uf": "SP",
+      "cep": "01001000"
+    }
+  },
+  "recebedor": {
+    "nome": "Empresa Demo",
+    "ispb": "12345678",
+    "agencia": "0001",
+    "conta": "123456",
+    "tipoConta": "CACC"
+  },
+  "valor": {
+    "original": 150.75,
+    "abatimento": 0,
+    "desconto": 5,
+    "juros": 0,
+    "multa": 0
+  },
+  "chavePix": "chave-pix-demo-123",
+  "solicitacaoPagador": "Pagamento referente ao pedido #12345",
+  "split": [
+    {
+      "favorecido": "Parceiro A",
+      "documento": "98765432100",
+      "valor": 30,
+      "percentual": 20
+    },
+    {
+      "favorecido": "Parceiro B",
+      "documento": "11222333000181",
+      "valor": 15,
+      "percentual": 10
+    }
+  ],
+  "infoAdicionais": [
+    { "nome": "pedido", "valor": "12345" },
+    { "nome": "canal", "valor": "mobile" }
+  ],
+  "metadata": {
+    "origemSistema": "erp",
+    "prioridade": "alta",
+    "tags": ["pix", "educacional"]
+  }
+}
+```
+
+## Anti-padrões comuns vs boa prática
+- Anti-padrão: objeto JSON monolítico sem subestruturas semânticas.
+- Boa prática: quebrar em blocos (`devedor`, `recebedor`, `valor`, `split`, `metadata`) e validar cada bloco.
+
+- Anti-padrão: ausência de `Idempotency-Key` em `POST` financeiro.
+- Boa prática: sempre enviar `Idempotency-Key` e rejeitar reaproveitamento com payload diferente.
+
+- Anti-padrão: sem correlação entre chamadas.
+- Boa prática: enviar `X-Correlation-Id` em todas as requisições.
+
+- Anti-padrão: `HttpClient` criado manualmente por chamada.
+- Boa prática: `HttpClientFactory` + cliente tipado + resiliência (`AddStandardResilienceHandler`).
+
+## Como executar (2 terminais)
+
+### Terminal 1: subir mock server
+```bash
+dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
+```
+
+### Terminal 2: rodar cliente didático
+```bash
+dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
+```
+
+### Executar testes da demo
+```bash
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+```
+
+## Observações
+- Persistência é em memória (objetivo didático).
+- Segurança é simulada (`Bearer` + header `X-MTLS-Client-Cert`).
+- Não há webhook nesta primeira versão.

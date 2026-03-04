@@ -2,7 +2,7 @@
 
 ## ✅ O Que Foi Criado
 
-Um **projeto exemplo** demonstrando duas arquiteturas em uma API REST em .NET 10 com Minimal API: Clean Architecture para Produtos e Vertical Slice + Domínio Rico para Pedidos.
+Um **projeto exemplo** demonstrando três trilhas complementares em .NET 10: Clean Architecture para Produtos, Vertical Slice + Domínio Rico para Pedidos e Integração Externa com servidor mock PIX + cliente HTTP tipado.
 
 ---
 
@@ -30,7 +30,8 @@ Prática específica mostrando EXATAMENTE como cada conceito foi implementado:
 
 ### 3. 🚀 **Aplicação Executável**
 Código completo e funcional:
-- 11 endpoints RESTful (6 Produtos + 5 Pedidos)
+- 11 endpoints RESTful internos (6 Produtos + 5 Pedidos)
+- 7 endpoints da trilha PIX mock (OAuth2 + cobranças + devoluções + health)
 - 8 DTOs tradicionais + comandos/queries para Pedidos
 - Vários validadores (Produtos e Pedidos)
 - Serviços para Produtos e handlers para Pedidos
@@ -59,7 +60,7 @@ Banco de Dados (SQLite)
 
 ## 📁 Estrutura de Arquivos
 
-### Documentação (10 arquivos)
+### Documentação (11 arquivos)
 
 | Arquivo | Propósito | Tempo |
 |---------|----------|-------|
@@ -68,7 +69,7 @@ Banco de Dados (SQLite)
 | **README.md** | Como usar o projeto | 15min |
 | **INICIO-RAPIDO.md** | Quick start + FAQ | 10min |
 | **INDEX.md** | Índice completo | 5min |
-| **SUMARIO.md** | Resumo do projeto | 5min |
+| **PIX-DEMO.md** | Trilha de integração PIX | 15min |
 | **CHECKLIST.md** | Verificação completa | 5min |
 | **ARQUITETURA.md** | Diagramas e arquitetura | 10min |
 
@@ -111,7 +112,9 @@ Banco de Dados (SQLite)
 
 ### Exemplos e Testes
 
-- `ProdutosAPI.Tests/` - Exemplos de 111 testes (unitários de domínio/serviço e integração HTTP)
+- `ProdutosAPI.Tests/` - 111 testes (Produtos + integrações de Pedidos)
+- `Pedidos.Tests/` - 11 testes de domínio/estrutura de Pedidos
+- `src/Pix/Pix.MockServer.Tests/` - 7 testes de integração da trilha PIX
 - `setup.sh` - Script auxiliar de setup
 
 ---
@@ -207,6 +210,18 @@ dotnet run
 # http://localhost:5000
 ```
 
+### Quick Start PIX (5 minutos)
+
+```bash
+# Terminal 1
+dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
+
+# Terminal 2
+dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
+```
+
+Fluxo detalhado em [PIX-DEMO.md](PIX-DEMO.md).
+
 ### Fluxo Recomendado (2-3 horas)
 
 1. **Leia** [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) (45min)
@@ -262,6 +277,9 @@ Ao estudar este projeto, você aprenderá:
 - DTO pattern
 - Middleware pipeline
 - Error handling
+- API mock server design
+- Typed HTTP clients com resiliência
+- Idempotência e correlação em integrações
 
 ---
 
@@ -269,15 +287,15 @@ Ao estudar este projeto, você aprenderá:
 
 | Tecnologia | Versão | Propósito |
 |-----------|--------|----------|
-| .NET | 9 LTS | Framework |
+| .NET | 10 LTS | Framework |
 | Minimal API | Integrado | Web API |
-| Entity Framework Core | 9 | ORM |
+| Entity Framework Core | 10 | ORM |
 | SQLite | Integrado | Banco de dados |
-| FluentValidation | 11.9.2 | Validação |
+| FluentValidation | 11.10.0 | Validação |
 | AutoMapper | 13.0.1 | Mapeamento |
-| Serilog | 4.0.1 | Logging |
-| Swashbuckle | 6.4.10 | Swagger/OpenAPI |
-| JWT | 7.4.0 | Autenticação (prep) |
+| Serilog | 4.2.0 | Logging |
+| Swashbuckle | 6.9.0 | Swagger/OpenAPI |
+| HttpClientFactory + Resilience | 10.0.0 | Integração HTTP robusta |
 
 ---
 
@@ -380,8 +398,8 @@ Pronto para aprender e codificar! 🚀
 
 ---
 
-**Versão**: 1.0.0  
-**Data**: 25 de Fevereiro de 2025  
+**Versão**: 3.1.0  
+**Data**: 4 de março de 2026  
 **Framework**: .NET 10 LTS  
 **Padrão**: Minimal API + REST  
 **Status**: ✅ **COMPLETO E PRONTO PARA USO**

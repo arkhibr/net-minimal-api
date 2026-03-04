@@ -1,6 +1,6 @@
 # ✅ Checklist de Verificação do Projeto
 
-## 📚 Documentação (10 arquivos)
+## 📚 Documentação (11 arquivos)
 
 - [x] **MELHORES-PRATICAS-API.md** - Guia conceitual completo (10 seções)
 - [x] **MELHORES-PRATICAS-MINIMAL-API.md** - Implementação prática com links para código
@@ -12,6 +12,7 @@
 - [x] **CHECKLIST.md** - Este checklist
 - [x] **ARQUITETURA.md** - Diagramas (camadas + slices)
 - [x] **ENTREGA-FINAL.md** - Resumo executivo atualizado
+- [x] **PIX-DEMO.md** - Trilha completa de integração PIX (mock + cliente)
 
 ## 🏗️ Estrutura do Projeto
 
@@ -21,6 +22,9 @@
 - [x] **appsettings.json** - Configurações de ambiente
 - [x] **Properties/launchSettings.json** - Settings de execução
 - [x] **.gitignore** - Arquivos ignorados pelo Git
+- [x] **src/Pix/Pix.MockServer/Pix.MockServer.csproj** - Projeto do servidor mock PIX
+- [x] **src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj** - Projeto do cliente didático PIX
+- [x] **src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj** - Projeto de testes da trilha PIX
 
 ### Models
 - [x] **src/Produtos/Produtos.Domain/Produto.cs** - Entidade principal com XML comments
@@ -61,6 +65,14 @@
   - [x] Cada slice contém Command/Handler/Validator/Endpoint
   - [x] Endpoints usam JWT obrigatório (quando aplicável)
   - [x] Result pattern aplicado nos handlers
+- [x] **src/Pix/Pix.MockServer/Program.cs** - 7 endpoints da trilha PIX
+  - [x] POST /oauth/token
+  - [x] POST /pix/v1/cobrancas
+  - [x] GET /pix/v1/cobrancas/{txid}
+  - [x] POST /pix/v1/cobrancas/{txid}/simular-liquidacao
+  - [x] POST /pix/v1/devolucoes
+  - [x] GET /pix/v1/devolucoes/{devolucaoId}
+  - [x] GET /health
 
 ### Services
 - [x] **src/Produtos/Produtos.Application/Services/ProdutoService.cs** - Interface e Implementação
@@ -244,6 +256,15 @@
 - [x] Logging em JSON
 - [x] Request ID correlation
 - [x] Logs em serviços
+- [x] Logging de request/response no cliente PIX (DelegatingHandler)
+
+### Integração Externa (PIX)
+- [x] `HttpClientFactory` com cliente tipado
+- [x] `AddStandardResilienceHandler` aplicado
+- [x] Header `Idempotency-Key` automático em operações de cobrança
+- [x] Header `X-Correlation-Id` automático nas chamadas
+- [x] OAuth2 mock e mTLS simulado em header
+- [x] Erros padronizados com `application/problem+json`
 
 ### Arquitetura
 - [x] Separation of Concerns
@@ -261,17 +282,19 @@
   - [x] FluentAssertions
   - [x] TestAsync helpers
   - [x] Instruções de setup
+- [x] src/Pix/Pix.MockServer.Tests/ - Testes de integração da trilha PIX
+  - [x] Segurança (401/403)
+  - [x] Idempotência (replay e conflito)
+  - [x] Fluxo de liquidação e devolução
 
 ## 📊 Resumo
 
-- [x] 4 arquivos de documentação
+- [x] 11 arquivos de documentação na pasta `docs/`
 - [x] 5 arquivos de configuração
-- [x] 10 arquivos de código-fonte
+- [x] Código-fonte organizado em 3 trilhas (`Produtos`, `Pedidos`, `Pix`)
 - [x] 2 arquivos de migrations
-- [x] 1 arquivo de exemplo de testes
-- [x] Total: ~21 arquivos
-- [x] ~850 linhas de código production
-- [x] ~200 linhas de exemplo testes
+- [x] 3 projetos de testes ativos
+- [x] 129 testes automatizados
 - [x] Totalmente comentado e referenciado
 
 ## 🚀 Testes de Executabilidade
@@ -324,7 +347,7 @@ Este projeto está pronto para:
 
 **Status**: ✅ COMPLETO E PRONTO PARA USO
 
-**Data**: 25 de Fevereiro de 2025  
-**Versão**: 1.0.0  
+**Data**: 4 de março de 2026  
+**Versão**: 3.1.0  
 **Framework**: .NET 10 LTS  
-**Padrão**: Minimal API + REST
+**Padrões**: Clean Architecture + Vertical Slice + API Client Patterns

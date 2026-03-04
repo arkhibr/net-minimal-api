@@ -2,7 +2,7 @@
 
 ## 🎯 Por Onde Começar?
 
-Este projeto demonstra **dois padrões arquiteturais paralelos e apartados** no mesmo codebase. Escolha a trilha de aprendizado de acordo com seu foco:
+Este projeto demonstra **três trilhas complementares** no mesmo codebase. Escolha o caminho de aprendizado de acordo com seu foco:
 
 ---
 
@@ -106,7 +106,44 @@ HTTP Response
 
 ---
 
-## 🔗 Compartilhado (ambas as trilhas usam)
+## 🟣 Trilha 3 – PIX Mock Processing (Servidor + Cliente HTTP)
+
+**Localização:** `src/Pix/Pix.MockServer/`, `src/Pix/Pix.ClientDemo/`, `src/Pix/Pix.MockServer.Tests/`
+
+Ideal para aprender:
+- ✅ Modelagem de JSON complexo com payloads aninhados
+- ✅ Boas práticas de chamadas HTTP com `HttpClientFactory`
+- ✅ Resiliência com `AddStandardResilienceHandler`
+- ✅ Idempotência, correlação e segurança simulada (OAuth2 + mTLS header)
+- ✅ Testes de integração para APIs financeiras simuladas
+
+**Struct:**
+```
+src/Pix/
+  ├─ Pix.MockServer/
+  │  ├─ Contracts/                  # Requests/responses complexos
+  │  ├─ Application/                # Regras de negócio e validações
+  │  ├─ Domain/                     # Estados e entidades do mock
+  │  ├─ Infrastructure/InMemory/    # Repositórios thread-safe
+  │  ├─ Security/                   # Token + mTLS simulado
+  │  └─ Program.cs                  # Endpoints /oauth e /pix/v1
+  ├─ Pix.ClientDemo/
+  │  ├─ Client/                     # Cliente tipado e token provider
+  │  ├─ Client/Handlers/            # Correlation, idempotency, logging
+  │  ├─ Scenarios/                  # Fluxo fim-a-fim didático
+  │  └─ Program.cs                  # Execução do cenário
+  └─ Pix.MockServer.Tests/          # Testes de integração do mock
+```
+
+**Começar aqui:**
+1. Abra [docs/PIX-DEMO.md](PIX-DEMO.md)
+2. Suba [src/Pix/Pix.MockServer/Program.cs](../src/Pix/Pix.MockServer/Program.cs)
+3. Execute [src/Pix/Pix.ClientDemo/Program.cs](../src/Pix/Pix.ClientDemo/Program.cs)
+4. Rode os testes em [src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs](../src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs)
+
+---
+
+## 🔗 Compartilhado (trilhas internas usam)
 
 ```
 src/Shared/
@@ -126,7 +163,7 @@ src/Shared/
 
 ---
 
-## 📚 Documentação (6 guias)
+## 📚 Documentação (7 guias)
 
 ### 1. [ARQUITETURA.md](ARQUITETURA.md) ⭐⭐⭐
 **Guia de Estrutura Comparativa — VISUAL**
@@ -177,6 +214,14 @@ src/Shared/
 - ✅ Acesso ao Swagger
 - **Comece aqui se está com pressa**
 
+### 7. [PIX-DEMO.md](PIX-DEMO.md) 💸
+**Trilha de Integração HTTP — PRÁTICO**
+- ✅ Mock PIX auto-contido
+- ✅ Cliente com `HttpClientFactory` e resiliência
+- ✅ Payload JSON complexo
+- ✅ Fluxo: autenticar, cobrar, liquidar e devolver
+- **Leia para estudar integrações externas**
+
 ---
 
 ## ⚡ Roteiros de Aprendizado
@@ -211,13 +256,18 @@ src/Shared/
    - Explore um slice: [src/Pedidos/CreatePedido/](../src/Pedidos/CreatePedido/)
 
 2. **Testes (30 min)**
-   - Execute `dotnet test` (111 testes)
+   - Execute `dotnet test` (129 testes)
    - Explore [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) — estrutura de testes
 
 3. **Prática Comparativa (30 min)**
    - Teste endpoints de Pedidos (requer JWT)
    - Compare estrutura de código entre Produtos (camadas) e Pedidos (slices)
    - Veja em Swagger como ambas funcionam lado a lado
+
+4. **Integração Externa (30 min)**
+   - Leia [PIX-DEMO.md](PIX-DEMO.md)
+   - Execute `dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj`
+   - Execute `dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj`
 
 ### Roteiro 3: Para arquitetos/mentores (full)
 
@@ -228,6 +278,7 @@ src/Shared/
    - [MELHORES-PRATICAS-API.md](MELHORES-PRATICAS-API.md) — completo
    - [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) — completo
    - [VERTICAL-SLICE-DOMINIO-RICO.md](VERTICAL-SLICE-DOMINIO-RICO.md) — completo
+   - [PIX-DEMO.md](PIX-DEMO.md) — completo
 
 3. **Código Completo**
    - Leia toda `src/` de ambas as trilhas
@@ -310,6 +361,24 @@ Slice para adicionar item ao pedido
 #### [src/Pedidos/CancelPedido/](../src/Pedidos/CancelPedido/)
 Slice para cancelar pedido
 
+### 📦 Trilha 3: Integração PIX (Mock + Cliente)
+
+#### [src/Pix/Pix.MockServer/Program.cs](../src/Pix/Pix.MockServer/Program.cs)
+- Endpoints de autenticação mock (`/oauth/token`)
+- Endpoints PIX (`/pix/v1/cobrancas`, `/pix/v1/devolucoes`)
+- Segurança simulada (`Bearer` + `X-MTLS-Client-Cert`)
+- Erros padronizados com `problem+json`
+
+#### [src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs](../src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs)
+- Cliente HTTP tipado com `HttpClientFactory`
+- Chamadas para criar/consultar cobrança e devolução
+- Preparação de headers de segurança
+
+#### [src/Pix/Pix.ClientDemo/Scenarios/PixScenarioRunner.cs](../src/Pix/Pix.ClientDemo/Scenarios/PixScenarioRunner.cs)
+- Cenário fim-a-fim didático
+- Geração de payload complexo com `metadata` e `split`
+- Resumo final em console
+
 ### 🔗 Compartilhado
 
 #### [src/Shared/Common/IEndpoint.cs](../src/Shared/Common/IEndpoint.cs)
@@ -332,7 +401,7 @@ Slice para cancelar pedido
 
 ---
 
-## 🧪 Testes (111 testes)
+## 🧪 Testes (129 testes)
 
 ### ProdutosAPI.Tests/
 
@@ -343,6 +412,13 @@ Slice para cancelar pedido
 #### Integration Tests
 - [Endpoints/](../ProdutosAPI.Tests/Endpoints/) — testes HTTP dos endpoints
 - [Pedidos/](../ProdutosAPI.Tests/Integration/Pedidos/) — testes de slices
+
+### Pedidos.Tests/
+- [Unit/Domain/](../Pedidos.Tests/Unit/Domain/) — agregado `Pedido`
+- [Integration/](../Pedidos.Tests/Integration/) — apoio para testes HTTP
+
+### Pix.MockServer.Tests/
+- [PixMockServerTests.cs](../src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs) — 7 cenários de aceite (auth, idempotência, liquidação, devolução)
 
 ---
 
@@ -376,7 +452,14 @@ Swagger: http://localhost:5000/swagger
 ```bash
 dotnet test
 ```
-Resultado: 111 testes passando
+Resultado esperado: 129 testes passando
+
+### Executar Trilha PIX
+```bash
+dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
+dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+```
 
 ### Clonar e Começar
 ```bash
@@ -408,6 +491,8 @@ dotnet run
 
 ✅ **Clean Architecture** — Separação por responsabilidades  
 ✅ **Vertical Slice Architecture** — Organização por feature  
+✅ **Integração HTTP Externa** — Cliente tipado + mock server  
+✅ **JSON Complexo** — Contratos aninhados com metadata  
 ✅ **Domain-Driven Design** — Modelos ricos com regras  
 ✅ **Minimal API** — API REST sem controllers  
 ✅ **Validação Fluente** — FluentValidation  
@@ -432,9 +517,9 @@ dotnet run
 
 ---
 
-**Versão:** 3.0.0  
-**Data:** 28 de fevereiro de 2026  
+**Versão:** 3.1.0  
+**Data:** 4 de março de 2026  
 **Framework:** .NET 10 LTS  
-**Padrões:** Clean Architecture + Vertical Slice + DDD  
+**Padrões:** Clean Architecture + Vertical Slice + DDD + API Client Patterns  
 
 🎉 Escolha sua trilha e comece a aprender!

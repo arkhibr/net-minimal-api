@@ -23,6 +23,8 @@ A Minimal API é ideal para:
 ## Estrutura do Projeto
 
 ```
+
+> **Atualização 2026-03-04:** além das trilhas internas (`Produtos` e `Pedidos`), o projeto inclui `src/Pix/` com servidor mock PIX e cliente HTTP tipado. Consulte [docs/PIX-DEMO.md](PIX-DEMO.md).
 net-minimal-api/
 ├── Program.cs                          # Configuração central da aplicação
 ├── ProdutosAPI.csproj                 # Configuração do projeto
@@ -51,6 +53,19 @@ net-minimal-api/
 ---
 
 ## Implementação das Melhores Práticas
+
+### Boas práticas de cliente HTTP (integrações externas)
+
+Além dos endpoints internos, o projeto também demonstra consumo de API externa simulada:
+- `HttpClientFactory` com cliente tipado (`PixProcessingClient`);
+- `AddStandardResilienceHandler` para retry e timeout;
+- `DelegatingHandler` para `X-Correlation-Id`, `Idempotency-Key` e logging;
+- `AuthTokenProvider` com cache de token OAuth2 mock.
+
+Referências:
+- [src/Pix/Pix.ClientDemo/Program.cs](../src/Pix/Pix.ClientDemo/Program.cs)
+- [src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs](../src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs)
+- [src/Pix/Pix.ClientDemo/Client/AuthTokenProvider.cs](../src/Pix/Pix.ClientDemo/Client/AuthTokenProvider.cs)
 
 ### 1. RESTful Design
 
@@ -974,4 +989,3 @@ Todos os métodos retornam `Result<T>` em vez de lançar exceções, seguindo a 
 - Deseja-se manter cada caso de uso isolado e testável
 
 Os slices coexistem pacificamente com os endpoints de Produtos baseados em camadas; ambos compartilham o mesmo contexto de dados e pipeline de middleware.
-

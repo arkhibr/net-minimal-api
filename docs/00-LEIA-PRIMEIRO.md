@@ -4,9 +4,10 @@
 ## 🎯 OBJETIVO DO PROJETO
 =====================
 
-✅ Demonstrar duas abordagens arquiteturais modernas em uma API .NET 10:
+✅ Demonstrar três trilhas modernas em uma API .NET 10:
    • **Clean Architecture** (camadas horizontais) para o caso de Produtos
    • **Vertical Slice Architecture + Domínio Rico** para o caso de Pedidos
+   • **Mock Server + Cliente HTTP Tipado** para integração PIX
 ✅ Fornecer guia conceitual, código de exemplo e cobertura de testes
 ✅ Ser um ponto de partida para aprender Minimal API, EF Core e padrões DDD
 
@@ -41,6 +42,9 @@
 
 9. 🎉 **ENTREGA-FINAL.md** (resumo executivo)
    └─ O que foi criado, como começar e o que você vai aprender
+
+10. 💸 **PIX-DEMO.md** (integração externa)
+   └─ Servidor mock PIX auto-contido + cliente com HttpClientFactory
 
 ---
 
@@ -81,6 +85,14 @@
    └─ CancelPedido/
 ```
 
+### Integração Externa (PIX Mock + Cliente)
+```
+└─ src/Pix/
+   ├─ Pix.MockServer/              # Servidor mock de processamento PIX
+   ├─ Pix.ClientDemo/              # Cliente HTTP tipado + resiliência
+   └─ Pix.MockServer.Tests/        # Testes de integração da trilha PIX
+```
+
 ### Compartilhado
 ```
 ├─ src/Shared/Common/                           # Padrões e utilitários
@@ -97,7 +109,7 @@ Ambas as abordagens compartilham `AppDbContext`, o pipeline de middleware e a me
 ## 🧪 TESTES (`ProdutosAPI.Tests/`)
 =====================================
 
-- ✅ **111 testes automatizados** (versão 3.0.0)
+- ✅ **129 testes automatizados** (versão 3.1.0)
 - 🧱 **3 categorias**:
   1. Domain Unit Tests (agregados, regras de negócio) – 40+ testes
   2. Service Unit Tests (serviços individuais) – 35 testes
@@ -148,7 +160,7 @@ dotnet run
 1. Leia: `docs/MELHORES-PRATICAS-API.md`
 2. Leia: `docs/MELHORES-PRATICAS-MINIMAL-API.md`
 3. Experimente os endpoints de Produtos e Pedidos
-4. Execute os testes para ver os 111 casos
+4. Execute os testes para ver os 129 casos
 
 ---
 
@@ -284,7 +296,7 @@ dotnet run
 ✓ **Arquitetura**            → Clean Architecture, separation of concerns  
 ✓ **DTOs**                   → Separação entre modelos internos e externos  
 ✓ **Injeção de Dependência** → Services registrados em Program.cs  
-✓ **Testes Automatizados**   → 111 testes (unitários de domínio/serviço e integrações HTTP)  
+✓ **Testes Automatizados**   → 129 testes (Produtos, Pedidos e trilha PIX)  
 
 ---
 
@@ -371,4 +383,3 @@ net-minimal-api/
 4. Explore a documentação em `docs/`
 
 Ou comece lendo: `docs/INICIO-RAPIDO.md`
-

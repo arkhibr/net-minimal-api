@@ -4,9 +4,9 @@
 
 Este documento descreve as melhorias implementadas no projeto **ProdutosAPI** para aproveitar os novos recursos do **.NET 10 LTS** com foco em **Minimal API** patterns modernos e best practices.
 
-**Versão do Projeto**: 2.0.0  
+**Versão do Projeto**: 3.1.0  
 **Framework**: .NET 10.0  
-**Data de Atualização**: 2025
+**Data de Atualização**: 2026-03-04
 
 ---
 
@@ -118,6 +118,44 @@ return TypedResults.Created(uri, produto); // Results<Created<T>>
 return TypedResults.NoContent();           // Results<NoContent>
 return TypedResults.NotFound(error);       // Results<NotFound<T>>
 return TypedResults.BadRequest(error);     // Results<BadRequest<T>>
+
+---
+
+### 5. **Resiliência HTTP Padrão para Clientes**
+
+A trilha PIX aplica os recursos modernos de cliente HTTP do ecossistema .NET:
+
+```csharp
+builder.Services.AddHttpClient<PixProcessingClient>(...)
+    .AddStandardResilienceHandler();
+```
+
+**Benefícios**:
+- ✅ Retry e timeout padronizados sem código repetido
+- ✅ Menor risco de chamadas frágeis em integrações externas
+- ✅ Configuração centralizada por cliente tipado
+
+**Implementação**: `src/Pix/Pix.ClientDemo/Program.cs`
+
+---
+
+### 6. **JSON Source Generation**
+
+No servidor mock PIX, o fingerprint de idempotência usa serialização com `JsonSerializerContext`:
+
+```csharp
+[JsonSerializable(typeof(CriarCobrancaRequest))]
+internal partial class JsonContext : JsonSerializerContext
+{
+}
+```
+
+**Benefícios**:
+- ✅ Menor custo de reflexão em serialização
+- ✅ Contratos JSON mais explícitos
+- ✅ Performance e previsibilidade em payloads complexos
+
+**Implementação**: `src/Pix/Pix.MockServer/Application/JsonContext.cs`
 return TypedResults.UnprocessableEntity(error);  // Results<UnprocessableEntity<T>>
 
 // vs. IResult genérico (não tipado)
@@ -369,7 +407,7 @@ dotnet run --project ProdutosAPI.csproj
 ```xml
 <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Version>2.0.0</Version>
+    <Version>3.1.0</Version>
 </PropertyGroup>
 
 <ItemGroup>
@@ -437,13 +475,13 @@ dotnet run --project ProdutosAPI.csproj
 ✅ Testes unitários criados (xUnit, Moq)  
 ✅ Testes de integração criados  
 ✅ Documentação atualizada  
-✅ Versionamento de projeto: 1.0.0 → 2.0.0  
+✅ Versionamento de projeto: 1.0.0 → 3.1.0  
 
 ---
 
 ## 🏆 Conclusão
 
-O projeto **ProdutosAPI v2.0.0** agora demonstra as melhores práticas modernas do **.NET 10 LTS** com:
+O projeto **ProdutosAPI v3.1.0** agora demonstra as melhores práticas modernas do **.NET 10 LTS** com:
 
 🎯 **Type-Safety** através de Typed Results  
 🎯 **Documentação Precisa** com OpenAPI automático  
@@ -456,5 +494,5 @@ O projeto **ProdutosAPI v2.0.0** agora demonstra as melhores práticas modernas 
 ---
 
 **Autor**: GitHub Copilot  
-**Última Atualização**: 2025  
+**Última Atualização**: 2026-03-04  
 **Status**: ✅ Completo para .NET 10 LTS

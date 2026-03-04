@@ -73,6 +73,11 @@ Na matemática e na programação, **Idempotência é a propriedade de uma opera
 Nesta API (Projeto Exemplo), implementamos uma defesa real através de um **IdempotencyMiddleware**: 
 Quando fazemos um POST, se passarmos um cabeçalho chamado `Idempotency-Key: xyz-123`, a API o grava temporariamente num *Cache*, de forma que se a mesma requisição chegar batendo duplicada por lag de rede, ela rejeita o processamento repetido e protege o banco!
 
+Na trilha de integração PIX (`docs/PIX-DEMO.md`), essa prática é demonstrada ponta a ponta em operações financeiras simuladas, incluindo:
+- replay com mesma chave e mesmo payload;
+- conflito `409` com mesma chave e payload diferente;
+- correlação por `X-Correlation-Id`.
+
 ---
 
 ## 4. Segurança e JWT

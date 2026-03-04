@@ -2,6 +2,8 @@
 
 Este guia conceitual explica a **segunda abordagem arquitetural** adotada no projeto para o caso de uso de **Pedidos**, enquanto os produtos continuam usando a arquitetura em camadas.
 
+> Complemento didático: para integração externa com APIs e JSON complexo, veja a trilha [PIX-DEMO.md](PIX-DEMO.md), que cobre `HttpClientFactory`, idempotência e servidor mock auto-contido.
+
 Se você ainda não entendeu a primeira abordagem (Clean Architecture em camadas), comece por [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) e explore `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs`.
 
 ---

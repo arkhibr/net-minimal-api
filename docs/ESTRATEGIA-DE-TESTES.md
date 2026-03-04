@@ -2,161 +2,156 @@
 
 ## 📋 Sumário Executivo
 
-A suite de testes da solução é distribuída em **2 projetos paralelos** para validar os diferentes padrões arquiteturais empregados:
-- **ProdutosAPI.Tests**: Cobre os casos para Clean Architecture (focado no domínio de Produtos).
-- **Pedidos.Tests**: Cobre os casos para Vertical Slice + Domínio Rico (focado no domínio de Pedidos).
+A solução está organizada em **3 projetos de teste** cobrindo as 3 trilhas do repositório:
 
-**Total de testes**: **150+ casos automatizados** (abrangendo Domain, Services, Handlers, Integrations e Validations).
+- **ProdutosAPI.Tests**: Clean Architecture (Produtos) e integração de endpoints.
+- **Pedidos.Tests**: Vertical Slice + Domínio Rico (Pedidos).
+- **Pix.MockServer.Tests**: integração HTTP da trilha PIX (mock server).
 
-**Framework de Testes**: xUnit  
-**Mocking**: Moq + NSubstitute  
-**Assertions**: FluentAssertions  
-**Cobertura alvo**: ≥ 80% das operações críticas  
+### Contagem real de testes (executada em 4 de março de 2026)
 
----
+Comando de referência:
 
-## 📁 Estrutura de Projetos de Testes
-
-### **ProdutosAPI.Tests/** (Clean Architecture - Produtos)
-Focado no CRUD de Produtos, testando a Clean Architecture em isolamento.
-- **Domain**: Valida as entidades e regras de domínio puras.
-- **Services**: Maior volume de testes (unitários de serviço).
-- **Endpoints**: Testes de integração HTTP completos.
-- **Validators**: Regras de validação de Request/DTO.
-
-### **Pedidos.Tests/** (Vertical Slice - Pedidos)
-Focado nas transações de Pedidos usando o modelo Vertical Slice.
-- **Builders**: Utilitários para criação de massa de dados complexa (`ProdutoTestBuilder`).
-- **Domain**: Testes de Agregado e regras de negócio complexas do `Pedido` (Rascunho, Confirmar, Cancelar).
-- **Endpoints/Integração**: Testes dos fluxos completos via HTTP.
-
----
-
-## 🧪 Categorias de Testes
-
-### 1. **Domain Unit Tests**
-Testam as entidades de domínio ricas, invariantes estruturais e transições de estado.
-
-*Em Produtos:*
-- Criação de produtos válidos e rejeição de estados inválidos.
-
-*Em Pedidos:*
-- Criação de pedido em status `Rascunho`.
-- Adição de item valida estoque e preço.
-- Regras de confirmação de pedido (ex: Valor mínimo R$ 10,00).
-- Transições de estado (Rascunho → Confirmado → Cancelado).
-
-### 2. **Service / Handler Unit Tests**
-Testam a lógica de aplicação isolada do banco de dados (mock).
-
-*Em Produtos (Services):*
-- Regras de CRUD: Obter, Listar paginado, Criar, Atualizar (PUT/PATCH), e Soft Delete.
-
-*Em Pedidos (Handlers):*
-- Fluxo de execução de Comandos (MediatR/Handlers) como `CreatePedidoHandler`.
-- Validação de comandos antes da persistência.
-
-### 3. **Integration HTTP Tests**
-Testam a API como cliente usando `WebApplicationFactory`.
-
-- **Produtos**: 18+ testes (mapeamento dos 6 endpoints), lidando com 200 OK, 400 Bad Request, 404 Not Found e 422 Unprocessable Entity.
-- **Pedidos**: Testes de todo o Workflow do Pedido.
-
-### 4. **Validation Tests**
-Garante o funcionamento do modelo de validação por FluentValidation. Covers requests structure.
-
----
-
-## 🔍 Estratégia de Mocking
-
-### 1. AppDbContext Mock
-Para serviços, usamos o padrão em memória ou EntityFramework in-memory para evitar complexidade excessiva com Mocks puros em queries linq.
-```csharp
-var options = new DbContextOptionsBuilder<AppDbContext>()
-    .UseInMemoryDatabase("TestDb")
-    .Options;
-```
-
-### 2. Builders de Mocks
-O `ProdutoTestBuilder` e padrões semelhantes são empregados para criar massa de dados realista e flexível sem poluir o teste:
-```csharp
-var produto = ProdutoTestBuilder.Padrao()
-    .ComEstoque(10)
-    .ComPreco(100m)
-    .Build();
-```
-
----
-
-## 📊 Cobertura de Código - Alvo
-
-| Componente | Tipo | Alvo | Status |
-|-----------|------|------|--------|
-| **ProdutoService** | Métodos | 100% | ✅ |
-| **ProdutoValidator** | Regras | 95%+ | ✅ |
-| **Agregado Pedido**| Regras de Negócio | 100% | ✅ |
-| **Endpoints (Ambos)** | Paths HTTP | 100% | ✅ |
-| **Error Handling** | Middleware | 90%+ | ✅ |
-
----
-
-## 🛠️ Exemplos Completos
-
-### Exemplo de Teste de Domínio (Pedidos) - Padrão AAA
-```csharp
-[Fact]
-public void AdicionarItem_ProdutoComEstoqueInsuficiente_RetornaFalha()
-{
-    // Arrange
-    var pedido = Pedido.Criar();
-    var produto = ProdutoTestBuilder.Padrao()
-        .ComEstoque(1)
-        .Build();
-
-    // Act
-    var resultado = pedido.AdicionarItem(produto, 5);
-
-    // Assert
-    resultado.IsSuccess.Should().BeFalse();
-    resultado.Error.Should().Contain("estoque");
-}
-```
-
-### Exemplo de Teste de Serviço (Produtos)
-```csharp
-[Fact]
-public async Task CriarProdutoAsync_WithValidRequest_CreatesProduto()
-{
-    // Arrange
-    var request = new CriarProdutoRequest { Nome = "Mouse", Preco = 150m };
-    // Config Mocks...
-    
-    // Act
-    var result = await _service.CriarProdutoAsync(request);
-
-    // Assert
-    result.Should().NotBeNull();
-    _mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
-}
-```
-
----
-
-## 🚀 Como Executar os Testes
-
-**Console (Todos os testes)**
 ```bash
-dotnet test
+dotnet test ProdutosAPI.slnx -v minimal
 ```
 
-**Por Categoria**
+Resultado consolidado:
+
+| Projeto | Aprovados | Falhas | Ignorados | Total |
+|---|---:|---:|---:|---:|
+| `ProdutosAPI.Tests` | 112 | 0 | 0 | 112 |
+| `Pedidos.Tests` | 47 | 0 | 0 | 47 |
+| `Pix.MockServer.Tests` | 7 | 0 | 0 | 7 |
+| **Total da solução** | **166** | **0** | **0** | **166** |
+
+---
+
+## 🧪 Matriz por Tipo de Teste
+
+### 1) ProdutosAPI.Tests (112)
+
+| Tipo | Escopo | Qtde |
+|---|---|---:|
+| Unit Domain | Entidades/regras de domínio | 34 |
+| Unit Common | Tipos utilitários comuns | 4 |
+| Services | Regras de aplicação e orquestração | 14 |
+| Endpoints | Contrato HTTP de Produtos | 23 |
+| Integration/Pedidos | Fluxos HTTP de Pedidos dentro deste projeto | 13 |
+| Validators | Regras FluentValidation | 24 |
+| **Total** |  | **112** |
+
+### 2) Pedidos.Tests (47)
+
+| Tipo | Escopo | Qtde |
+|---|---|---:|
+| Domain (agregado) | `PedidoTests` (invariantes e transições) | 11 |
+| Unit Domain (avançado) | `PedidoAdvancedTests` | 4 |
+| Unit Common | `CommonTypesTests` | 3 |
+| Validators | `CreatePedidoValidatorTests` | 3 |
+| Endpoints | Contratos HTTP por endpoint de pedido | 17 |
+| Integration | Workflows e cenários E2E de pedidos | 9 |
+| **Total** |  | **47** |
+
+### 3) Pix.MockServer.Tests (7)
+
+| Tipo | Escopo | Qtde |
+|---|---|---:|
+| Integration HTTP | Auth mock, segurança, idempotência, liquidação e devolução | 7 |
+| **Total** |  | **7** |
+
+---
+
+## 🧱 Objetivo de Cada Camada de Teste
+
+### Unit (Domain/Common)
+- Garantir invariantes de negócio sem dependência de infraestrutura.
+- Validar transições de estado do agregado (`Rascunho`, `Confirmado`, `Cancelado`, etc.).
+- Verificar tipos compartilhados usados por endpoints e respostas.
+
+### Services / Handlers
+- Validar regras de aplicação (fluxo, orquestração, efeitos de operação).
+- Garantir que persistência e mapeamentos ocorram conforme esperado.
+- Evitar regressão em regras de atualização, paginação e soft delete.
+
+### Validators
+- Garantir contrato de entrada estável e mensagens de erro consistentes.
+- Cobrir limites, obrigatoriedade e formatos inválidos.
+
+### Integration HTTP
+- Validar contrato real de API (status code, payload, headers).
+- Cobrir fluxos críticos fim a fim (`POST` + `GET` + transições de estado).
+- Na trilha PIX: validar segurança mock (`Bearer`, `X-MTLS-Client-Cert`) e idempotência (`Idempotency-Key`).
+
+---
+
+## 🔐 Cenários Críticos Cobertos
+
+### Produtos
+- CRUD completo com validações e paginação.
+- Erros de contrato (`400`, `404`, `422`) e retornos de sucesso (`200`, `201`, `204`).
+
+### Pedidos
+- Criação, consulta, listagem, cancelamento e adição de item.
+- Regras de domínio (valor mínimo, estado permitido, consistência do pedido).
+
+### PIX Mock
+- Emissão de token OAuth2 mock.
+- Falha de segurança por ausência de token/header mTLS simulado (`401`/`403`).
+- Idempotência com replay seguro e conflito `409` para payload divergente.
+- Fluxo financeiro: criar cobrança, simular liquidação, criar devolução, consultar devolução.
+
+---
+
+## 🛠️ Execução e Diagnóstico
+
+### Executar tudo
+
 ```bash
-dotnet test --filter "Category=Domain"
-dotnet test --filter "Namespace~=Endpoints"
+dotnet test ProdutosAPI.slnx -v minimal
 ```
 
-**Cobertura (Requer ReportGenerator / Coverlet)**
+### Executar por projeto
+
 ```bash
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
-reportgenerator -reports:"coverage.opencover.xml" -targetdir:"coveragereport"
+dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj -v minimal
+dotnet test Pedidos.Tests/Pedidos.Tests.csproj -v minimal
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj -v minimal
 ```
+
+### Executar por tipo (filtro)
+
+```bash
+# ProdutosAPI.Tests
+dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Unit.Domain"
+dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Services"
+dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Endpoints"
+dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Validators"
+
+# Pedidos.Tests
+dotnet test Pedidos.Tests/Pedidos.Tests.csproj --filter "FullyQualifiedName~Pedidos.Tests.Domain"
+dotnet test Pedidos.Tests/Pedidos.Tests.csproj --filter "FullyQualifiedName~Pedidos.Tests.Endpoints"
+
+# PIX
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj --filter "FullyQualifiedName~Pix.MockServer.Tests"
+```
+
+---
+
+## 📈 Diretrizes de Evolução da Suíte
+
+- Ao adicionar endpoint novo, incluir:
+  - teste de sucesso (2xx),
+  - teste de validação (4xx),
+  - teste de recurso inexistente (404 quando aplicável).
+- Ao adicionar regra de domínio, incluir teste unitário do agregado antes do teste HTTP.
+- Ao alterar contrato JSON, atualizar teste de integração e exemplos de documentação juntos.
+- Em integrações externas (PIX), nunca remover cobertura de `Idempotency-Key`, `X-Correlation-Id` e segurança mock.
+
+---
+
+## ✅ Status Atual
+
+- Suíte íntegra e verde na data de referência.
+- Cobertura distribuída entre domínio, aplicação, validação e contrato HTTP.
+- Estratégia preparada para crescimento das 3 trilhas sem perder rastreabilidade.

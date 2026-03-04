@@ -19,6 +19,7 @@
     <Compile Remove="src/Produtos/Produtos.Application/**" />
     <Compile Remove="src/Produtos/Produtos.Infrastructure/**" />
     <Compile Remove="src/Produtos/Produtos.API/**" />
+    <Compile Remove="src/Pix/**" />
   </ItemGroup>
 
   <ItemGroup>

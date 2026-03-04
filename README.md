@@ -1,18 +1,18 @@
 # ProdutosAPI - Projeto para Aprendizado com .NET 10 e Minimal API [![.NET 10](https://img.shields.io/badge/.NET-10.0%20LTS-blue?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com)
 
-![Version](https://img.shields.io/badge/version-3.0.0-success?style=flat-square)
+![Version](https://img.shields.io/badge/version-3.1.0-success?style=flat-square)
 ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
 ## 📚 Sobre o Projeto
 
-**ProdutosAPI** é um projeto educacional completo demonstrando melhores práticas de desenvolvimento de APIs REST usando **.NET 10 LTS** e **Minimal API** com cobertura completa de testes. Ele ilustra dois estilos arquiteturais coexistindo no mesmo código: **Clean Architecture** em camadas para o caso de Produtos e **Vertical Slice Architecture com Domínio Rico** para o caso de Pedidos.
+**ProdutosAPI** é um projeto educacional completo demonstrando melhores práticas de desenvolvimento de APIs REST usando **.NET 10 LTS** e **Minimal API** com cobertura completa de testes. Ele ilustra três trilhas coexistindo no mesmo código: **Clean Architecture** em camadas para Produtos, **Vertical Slice + Domínio Rico** para Pedidos e **integração externa com servidor mock PIX + cliente HTTP tipado**.
 
 ### Objetivo
 Fornecer um recurso abrangente incluindo:
 - 📖 Guia conceitual de melhores práticas de APIs REST
 - 💻 Implementação pronta para produção com padrões modernos (.NET 10 e Minimal API)
-- 🎯 Demonstração de dois padrões arquiteturais: **Clean Architecture** (Produtos) e **Vertical Slice + Domínio Rico** (Pedidos)
+- 🎯 Demonstração de três trilhas: **Clean Architecture** (Produtos), **Vertical Slice + Domínio Rico** (Pedidos) e **API Client Patterns** (PIX)
 
 ---
 
@@ -48,9 +48,9 @@ dotnet run
 ```
 ---
 
-## 🏗️ Dois Padrões Arquiteturais — Apartados e Paralelos
+## 🏗️ Três Trilhas Arquiteturais — Apartadas e Paralelas
 
-Este projeto não escolhe **um** padrão — ele demonstra **dois** lado a lado, cada um em sua estrutura de diretório, facilitando comparação educacional:
+Este projeto não escolhe **um** padrão — ele demonstra **três** trilhas lado a lado, cada uma em sua estrutura de diretório, facilitando comparação educacional:
 
 ### 🟢 Trilha 1: Clean Architecture (Produtos)
 
@@ -93,6 +93,21 @@ HTTP → src/Pedidos/CreatePedido/CreatePedidoEndpoint → CreatePedidoValidator
 
 📖 **Saiba mais:** [ARQUITETURA.md](docs/ARQUITETURA.md) | [VERTICAL-SLICE-DOMINIO-RICO.md](docs/VERTICAL-SLICE-DOMINIO-RICO.md)
 
+### 🟣 Trilha 3: Integração PIX (Mock Server + Cliente HTTP)
+
+**Diretórios:** `src/Pix/Pix.MockServer/`, `src/Pix/Pix.ClientDemo/`, `src/Pix/Pix.MockServer.Tests/`
+
+Padrão de integração externa com contratos JSON complexos:
+```
+Pix.ClientDemo (HttpClientFactory + Resilience) → Pix.MockServer (/oauth/token + /pix/v1/*) → InMemory State
+```
+
+**Explore:**
+- Mock server: [src/Pix/Pix.MockServer/Program.cs](src/Pix/Pix.MockServer/Program.cs)
+- Cliente tipado: [src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs](src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs)
+- Cenário fim-a-fim: [src/Pix/Pix.ClientDemo/Scenarios/PixScenarioRunner.cs](src/Pix/Pix.ClientDemo/Scenarios/PixScenarioRunner.cs)
+- Testes: [src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs](src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs)
+
 ---
 ## � Estrutura do Projeto
 
@@ -112,6 +127,10 @@ net-minimal-api/
 │   │   ├── Produtos.Application/           # DTOs, serviços, validadores, mappings
 │   │   ├── Produtos.Infrastructure/        # Repositórios EF e seeding
 │   │   └── Produtos.API/                   # Endpoints e composição de DI
+│   ├── Pix/                                # Trilha de integração externa (mock + cliente)
+│   │   ├── Pix.MockServer/                 # Servidor PIX auto-contido
+│   │   ├── Pix.ClientDemo/                 # Cliente HTTP didático
+│   │   └── Pix.MockServer.Tests/           # Testes de integração PIX
 │   └── Shared/                             # Infraestrutura e Código Comum
 │       ├── Common/                         # Helper classes, Result pattern
 │       ├── Data/                           # Entity Framework DbContext e migrations
@@ -119,12 +138,12 @@ net-minimal-api/
 │
 ├── ProdutosAPI.Tests/                      # Testes do módulo Produtos (Clean Architecture)
 │   ├── Domain/                             # Domain tests
-│   ├── Services/                           # Unit tests (35 testes)
-│   ├── Endpoints/                          # Integration tests HTTP (18 testes)
-│   └── Validators/                         # Validator tests (20+ testes)
+│   ├── Services/                           # Unit tests de serviços
+│   ├── Endpoints/                          # Integration tests HTTP de endpoints
+│   └── Validators/                         # Validator tests
 │
 ├── Pedidos.Tests/                          # Testes do módulo Pedidos (Vertical Slice + Domínio Rico)
-│   ├── Domain/                             # Testes de agregado (11 testes)
+│   ├── Domain/                             # Testes de agregado
 │   └── Builders/                           # Construtores para massa de testes
 │
 ├── docs/                                   # 📖 Documentação completa
@@ -171,19 +190,30 @@ net-minimal-api/
 | `POST` | `/api/v1/pedidos/{id}/itens` | Adicionar item | 201/404/422/401 |
 | `GET` | `/api/v1/pedidos` | Listar pedidos | 200/401 |
 
-### ✅ 122 Testes Automatizados (NOVO em v3.0.0)
+### ✅ 166 Testes Automatizados (v3.1.0)
 
-Distribuídos em **2 projetos paralelos**:
+Distribuídos em **3 projetos** (contagem real executada via `dotnet test ProdutosAPI.slnx`):
 
-**ProdutosAPI.Tests** (111 testes - Clean Architecture):
-- **Domain Unit Tests** – regras de negócio de agregados (40+ testes)
-- **Service Unit Tests** – casos de serviço individuais (35 testes)
-- **Integration HTTP Tests** – endpoints Produtos (18 testes)
-- **Validator Tests** – validações (20+ testes)
+**ProdutosAPI.Tests** (112 testes):
+- Unit Domain: 34
+- Unit Common: 4
+- Services: 14
+- Endpoints (Produtos): 23
+- Integration/Pedidos: 13
+- Validators: 24
 
-**Pedidos.Tests** (11 testes - Vertical Slice + Domínio Rico):
-- **Domain Unit Tests** – agregado Pedido com Result pattern (11 testes)
-  - Criar, AdicionarItem, Confirmar, Cancelar com validações
+**Pedidos.Tests** (47 testes):
+- Domain tests (agregado rico)
+- Validator tests
+- Endpoint tests
+- Integration support tests
+
+**Pix.MockServer.Tests** (7 testes):
+- Auth mock
+- Segurança (401/403)
+- Idempotência (replay e conflito)
+- Liquidação de cobrança
+- Devolução após liquidação
 
 Execute com: `dotnet test ProdutosAPI.slnx`
 
@@ -199,7 +229,7 @@ Execute com: `dotnet test ProdutosAPI.slnx`
 ## 🧪 Executando Testes
 
 ```bash
-# Todos os testes (ProdutosAPI.Tests + Pedidos.Tests)
+# Todos os testes da solução (Produtos + Pedidos + PIX)
 dotnet test
 
 # Ou explicitamente a solução
@@ -210,6 +240,9 @@ dotnet test ProdutosAPI.Tests
 
 # Testes específicos do projeto Pedidos
 dotnet test Pedidos.Tests
+
+# Testes específicos da trilha PIX
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 
 # Teste específico
 dotnet test --filter "Name=ObterProdutoAsync_WithValidId_ReturnsProduto"
@@ -238,8 +271,8 @@ dotnet test --verbosity detailed
    - Comparativas antes/depois
 
 3. **[docs/ESTRATEGIA-DE-TESTES.md](./docs/ESTRATEGIA-DE-TESTES.md)** 🧪
-   - Estratégia completa de testes (ProdutosAPI.Tests + Pedidos.Tests)
-   - Como executar testes em Clean Architecture e Vertical Slice
+   - Estratégia completa de testes (ProdutosAPI.Tests + Pedidos.Tests + Pix.MockServer.Tests)
+   - Como executar testes por tipo/categoria em cada trilha
    - Padrão AAA (Arrange-Act-Assert)
    - Cobertura esperada e documentação do Domínio
 
@@ -376,6 +409,33 @@ public async Task ObterProduto_WithValidId_ReturnsProduto()
 - 📖 [Entity Framework Core](https://learn.microsoft.com/en-us/ef/core/)
 - 📖 [FluentValidation](https://docs.fluentvalidation.net/)
 - 📖 [xUnit Testing](https://xunit.net/)
+- 📖 [Demo PIX Mock + Cliente](./docs/PIX-DEMO.md)
+
+---
+
+## 💸 Demo PIX (Mock Server + Cliente)
+
+Este repositório agora inclui uma trilha didática para integração PIX com payload JSON complexo:
+
+- `src/Pix/Pix.MockServer/` - servidor auto-contido com OAuth2 mock, mTLS simulado, idempotência e estado em memória.
+- `src/Pix/Pix.ClientDemo/` - cliente console com `HttpClientFactory`, handlers de correlação/idempotência e resiliência.
+- `src/Pix/Pix.MockServer.Tests/` - testes de integração dos cenários principais.
+
+Execução rápida:
+
+```bash
+# Terminal 1
+dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
+
+# Terminal 2
+dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
+```
+
+Testes da demo PIX:
+
+```bash
+dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+```
 
 ---
 
