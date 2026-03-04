@@ -12,8 +12,9 @@
 
   <ItemGroup>
     <!-- Exclude test projects from main build -->
-    <Compile Remove="ProdutosAPI.Tests/**" />
-    <Compile Remove="Pedidos.Tests/**" />
+    <Compile Remove="tests/ProdutosAPI.Tests/**" />
+    <Compile Remove="tests/Pedidos.Tests/**" />
+    <Compile Remove="tests/Pix.MockServer.Tests/**" />
     <!-- Exclude new sub-projects (compiled separately, referenced via ProjectReference) -->
     <Compile Remove="src/Produtos/Produtos.Domain/**" />
     <Compile Remove="src/Produtos/Produtos.Application/**" />

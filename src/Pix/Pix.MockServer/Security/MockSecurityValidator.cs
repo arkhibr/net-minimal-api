@@ -1,3 +1,6 @@
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Hosting;
+
 namespace Pix.MockServer.Security;
 
 public interface IMockSecurityValidator
@@ -5,19 +8,22 @@ public interface IMockSecurityValidator
     bool TryValidate(HttpContext context, out IResult? failureResult, out string correlationId);
 }
 
-public sealed class MockSecurityValidator(ITokenService tokenService) : IMockSecurityValidator
+public sealed class MockSecurityValidator(
+    ITokenService tokenService,
+    PixMtlsCertificateBundle mtlsBundle,
+    IHostEnvironment hostEnvironment) : IMockSecurityValidator
 {
-    private const string MtlsHeaderName = "X-MTLS-Client-Cert";
+    private const string TestingMtlsHeaderName = "X-MTLS-Client-Cert";
 
     public bool TryValidate(HttpContext context, out IResult? failureResult, out string correlationId)
     {
         correlationId = EnsureCorrelationId(context);
 
-        if (!context.Request.Headers.TryGetValue(MtlsHeaderName, out var certHeader) || string.IsNullOrWhiteSpace(certHeader))
+        if (!HasValidMutualTls(context))
         {
             failureResult = Results.Problem(
-                title: "mTLS simulado ausente",
-                detail: $"Header obrigatório '{MtlsHeaderName}' não foi informado.",
+                title: "mTLS obrigatório",
+                detail: "Certificado de cliente TLS não encontrado ou inválido.",
                 statusCode: StatusCodes.Status403Forbidden,
                 extensions: BuildExtensions(context, correlationId));
             return false;
@@ -47,6 +53,26 @@ public sealed class MockSecurityValidator(ITokenService tokenService) : IMockSec
 
         failureResult = null;
         return true;
+    }
+
+    private bool HasValidMutualTls(HttpContext context)
+    {
+        if (context.Connection.ClientCertificate is X509Certificate2 clientCertificate)
+        {
+            return PixMtlsCertificateStore.ValidateClientCertificate(
+                clientCertificate,
+                mtlsBundle.CaCertificatePath,
+                mtlsBundle.ExpectedClientSubject);
+        }
+
+        // Fallback apenas para ambiente de testes com TestServer (sem handshake TLS real).
+        if (hostEnvironment.IsEnvironment("Testing"))
+        {
+            return context.Request.Headers.TryGetValue(TestingMtlsHeaderName, out var value)
+                && !string.IsNullOrWhiteSpace(value);
+        }
+
+        return false;
     }
 
     private static string EnsureCorrelationId(HttpContext context)

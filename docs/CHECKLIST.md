@@ -24,7 +24,7 @@
 - [x] **.gitignore** - Arquivos ignorados pelo Git
 - [x] **src/Pix/Pix.MockServer/Pix.MockServer.csproj** - Projeto do servidor mock PIX
 - [x] **src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj** - Projeto do cliente didático PIX
-- [x] **src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj** - Projeto de testes da trilha PIX
+- [x] **tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj** - Projeto de testes da trilha PIX
 
 ### Models
 - [x] **src/Produtos/Produtos.Domain/Produto.cs** - Entidade principal com XML comments
@@ -263,7 +263,8 @@
 - [x] `AddStandardResilienceHandler` aplicado
 - [x] Header `Idempotency-Key` automático em operações de cobrança
 - [x] Header `X-Correlation-Id` automático nas chamadas
-- [x] OAuth2 mock e mTLS simulado em header
+- [x] OAuth2 mock e mTLS real (certificado de cliente no TLS)
+- [x] Fallback por header somente em ambiente `Testing` para WebApplicationFactory
 - [x] Erros padronizados com `application/problem+json`
 
 ### Arquitetura
@@ -276,13 +277,13 @@
 
 ## 📝 Exemplos e Testes
 
-- [x] ProdutosAPI.Tests/ - Exemplos de testes unitários
+- [x] tests/ProdutosAPI.Tests/ - Exemplos de testes unitários
   - [x] Padrão AAA (Arrange, Act, Assert)
   - [x] Uso de Moq
   - [x] FluentAssertions
   - [x] TestAsync helpers
   - [x] Instruções de setup
-- [x] src/Pix/Pix.MockServer.Tests/ - Testes de integração da trilha PIX
+- [x] tests/Pix.MockServer.Tests/ - Testes de integração da trilha PIX
   - [x] Segurança (401/403)
   - [x] Idempotência (replay e conflito)
   - [x] Fluxo de liquidação e devolução
@@ -294,7 +295,7 @@
 - [x] Código-fonte organizado em 3 trilhas (`Produtos`, `Pedidos`, `Pix`)
 - [x] 2 arquivos de migrations
 - [x] 3 projetos de testes ativos
-- [x] 129 testes automatizados
+- [x] 166 testes automatizados
 - [x] Totalmente comentado e referenciado
 
 ## 🚀 Testes de Executabilidade

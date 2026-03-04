@@ -737,7 +737,7 @@ dotnet add package FluentAssertions
 #### ✅ Exemplo de Teste Unitário
 
 ```csharp
-// ProdutosAPI.Tests/Services/ProdutoServiceTests.cs
+// tests/ProdutosAPI.Tests/Services/ProdutoServiceTests.cs
 [Fact]
 public async Task ListarProdutos_DeveRetornarPaginado()
 {

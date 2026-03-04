@@ -65,7 +65,7 @@ HTTP → Produtos.API/Endpoints → Produtos.Application (Validators + Services)
 - Rota simples: [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
 - Lógica: [src/Produtos/Produtos.Application/Services/ProdutoService.cs](src/Produtos/Produtos.Application/Services/ProdutoService.cs)
 - Entidade rica: [src/Produtos/Produtos.Domain/Produto.cs](src/Produtos/Produtos.Domain/Produto.cs)
-- Testes: [ProdutosAPI.Tests/Services/](ProdutosAPI.Tests/Services/)
+- Testes: [tests/ProdutosAPI.Tests/Services/](tests/ProdutosAPI.Tests/Services/)
 
 ### 🔵 Trilha 2: Vertical Slice + Domínio Rico (Pedidos)
 
@@ -80,7 +80,7 @@ HTTP → src/Pedidos/CreatePedido/CreatePedidoEndpoint → CreatePedidoValidator
 - Agregado rico: [src/Pedidos/Domain/Pedido.cs](src/Pedidos/Domain/Pedido.cs)
 - Uma slice completa: [src/Pedidos/CreatePedido/](src/Pedidos/CreatePedido/)
 - Result pattern: [src/Shared/Common/Result.cs](src/Shared/Common/Result.cs)
-- Testes: [ProdutosAPI.Tests/Integration/Pedidos/](ProdutosAPI.Tests/Integration/Pedidos/)
+- Testes: [tests/ProdutosAPI.Tests/Integration/Pedidos/](tests/ProdutosAPI.Tests/Integration/Pedidos/)
 
 ### 📊 Comparação Rápida
 
@@ -95,7 +95,7 @@ HTTP → src/Pedidos/CreatePedido/CreatePedidoEndpoint → CreatePedidoValidator
 
 ### 🟣 Trilha 3: Integração PIX (Mock Server + Cliente HTTP)
 
-**Diretórios:** `src/Pix/Pix.MockServer/`, `src/Pix/Pix.ClientDemo/`, `src/Pix/Pix.MockServer.Tests/`
+**Diretórios:** `src/Pix/Pix.MockServer/`, `src/Pix/Pix.ClientDemo/`, `tests/Pix.MockServer.Tests/`
 
 Padrão de integração externa com contratos JSON complexos:
 ```
@@ -106,7 +106,7 @@ Pix.ClientDemo (HttpClientFactory + Resilience) → Pix.MockServer (/oauth/token
 - Mock server: [src/Pix/Pix.MockServer/Program.cs](src/Pix/Pix.MockServer/Program.cs)
 - Cliente tipado: [src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs](src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs)
 - Cenário fim-a-fim: [src/Pix/Pix.ClientDemo/Scenarios/PixScenarioRunner.cs](src/Pix/Pix.ClientDemo/Scenarios/PixScenarioRunner.cs)
-- Testes: [src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs](src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs)
+- Testes: [tests/Pix.MockServer.Tests/PixMockServerTests.cs](tests/Pix.MockServer.Tests/PixMockServerTests.cs)
 
 ---
 ## � Estrutura do Projeto
@@ -130,21 +130,22 @@ net-minimal-api/
 │   ├── Pix/                                # Trilha de integração externa (mock + cliente)
 │   │   ├── Pix.MockServer/                 # Servidor PIX auto-contido
 │   │   ├── Pix.ClientDemo/                 # Cliente HTTP didático
-│   │   └── Pix.MockServer.Tests/           # Testes de integração PIX
 │   └── Shared/                             # Infraestrutura e Código Comum
 │       ├── Common/                         # Helper classes, Result pattern
 │       ├── Data/                           # Entity Framework DbContext e migrations
 │       └── Middleware/                     # ExceptionHandling e Idempotency
 │
-├── ProdutosAPI.Tests/                      # Testes do módulo Produtos (Clean Architecture)
+├── tests/ProdutosAPI.Tests/                # Testes do módulo Produtos (Clean Architecture)
 │   ├── Domain/                             # Domain tests
 │   ├── Services/                           # Unit tests de serviços
 │   ├── Endpoints/                          # Integration tests HTTP de endpoints
 │   └── Validators/                         # Validator tests
 │
-├── Pedidos.Tests/                          # Testes do módulo Pedidos (Vertical Slice + Domínio Rico)
+├── tests/Pedidos.Tests/                    # Testes do módulo Pedidos (Vertical Slice + Domínio Rico)
 │   ├── Domain/                             # Testes de agregado
 │   └── Builders/                           # Construtores para massa de testes
+│
+├── tests/Pix.MockServer.Tests/             # Testes da trilha PIX (integração HTTP)
 │
 ├── docs/                                   # 📖 Documentação completa
 │   ├── 00-LEIA-PRIMEIRO.md               # Índice geral do projeto
@@ -236,13 +237,13 @@ dotnet test
 dotnet test ProdutosAPI.slnx
 
 # Testes específicos do projeto Produtos
-dotnet test ProdutosAPI.Tests
+dotnet test tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj
 
 # Testes específicos do projeto Pedidos
-dotnet test Pedidos.Tests
+dotnet test tests/Pedidos.Tests/Pedidos.Tests.csproj
 
 # Testes específicos da trilha PIX
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 
 # Teste específico
 dotnet test --filter "Name=ObterProdutoAsync_WithValidId_ReturnsProduto"
@@ -417,9 +418,9 @@ public async Task ObterProduto_WithValidId_ReturnsProduto()
 
 Este repositório agora inclui uma trilha didática para integração PIX com payload JSON complexo:
 
-- `src/Pix/Pix.MockServer/` - servidor auto-contido com OAuth2 mock, mTLS simulado, idempotência e estado em memória.
+- `src/Pix/Pix.MockServer/` - servidor auto-contido com OAuth2 mock, mTLS real, idempotência e estado em memória.
 - `src/Pix/Pix.ClientDemo/` - cliente console com `HttpClientFactory`, handlers de correlação/idempotência e resiliência.
-- `src/Pix/Pix.MockServer.Tests/` - testes de integração dos cenários principais.
+- `tests/Pix.MockServer.Tests/` - testes de integração dos cenários principais.
 
 Execução rápida:
 
@@ -434,8 +435,12 @@ dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
 Testes da demo PIX:
 
 ```bash
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 ```
+
+Observação sobre segurança:
+- Em execução normal (`Development`), o mock usa **mTLS real** no handshake TLS.
+- Em `Testing` (WebApplicationFactory), há fallback de validação por header apenas para viabilizar testes sem socket TLS real.
 
 ---
 

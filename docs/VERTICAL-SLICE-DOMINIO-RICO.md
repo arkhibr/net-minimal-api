@@ -421,7 +421,7 @@ Quando for adicionar um novo slice de Pedidos:
 - [ ] Criar `NovoSliceHandler.cs` (orquestração)
 - [ ] Criar `NovoSliceEndpoint.cs` (implementa `IEndpoint`)
 - [ ] Adicionar método ao agregado `Pedido` (se necessário)
-- [ ] Criar testes em `ProdutosAPI.Tests/Integration/Pedidos/`
+- [ ] Criar testes em `tests/ProdutosAPI.Tests/Integration/Pedidos/`
 - [ ] Testar via `dotnet run` + Swagger
 
 ---
@@ -432,13 +432,13 @@ Quando for adicionar um novo slice de Pedidos:
 - Endpoints: [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
 - Service: [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
 - Validators: [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs)
-- Testes: [ProdutosAPI.Tests/Services/ProdutoServiceTests.cs](../ProdutosAPI.Tests/Services/ProdutoServiceTests.cs)
+- Testes: [tests/ProdutosAPI.Tests/Services/ProdutoServiceTests.cs](../tests/ProdutosAPI.Tests/Services/ProdutoServiceTests.cs)
 
 ### Vertical Slice (Pedidos)
 - Domain: [src/Pedidos/Domain/](../src/Pedidos/Domain/)
 - CreatePedido: [src/Pedidos/CreatePedido/](../src/Pedidos/CreatePedido/)
 - Result Pattern: [src/Shared/Common/Result.cs](../src/Shared/Common/Result.cs)
-- Testes: [ProdutosAPI.Tests/Integration/Pedidos/](../ProdutosAPI.Tests/Integration/Pedidos/)
+- Testes: [tests/ProdutosAPI.Tests/Integration/Pedidos/](../tests/ProdutosAPI.Tests/Integration/Pedidos/)
 
 ---
 

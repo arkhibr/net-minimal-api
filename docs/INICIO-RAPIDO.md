@@ -97,7 +97,7 @@ dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
 
 ### Validar cenários automatizados da trilha PIX
 ```bash
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 ```
 
 Guia detalhado: [PIX-DEMO.md](PIX-DEMO.md)
@@ -151,7 +151,7 @@ O projeto já inclui:
 ✅ Documentação             → Swagger/OpenAPI
 ✅ src/Pix/Pix.MockServer   → Servidor auto-contido de processamento PIX
 ✅ src/Pix/Pix.ClientDemo   → Cliente tipado com HttpClientFactory + resiliência
-✅ src/Pix/Pix.MockServer.Tests → Testes de integração PIX
+✅ Pix.MockServer.Tests → Testes de integração PIX
 ```
 
 ---

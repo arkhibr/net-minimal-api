@@ -14,7 +14,7 @@ Pix.MockServer
   - Contracts: payloads HTTP
   - Application: regras de negócio e validações
   - Infrastructure/InMemory: repositórios thread-safe
-  - Security: Bearer + mTLS simulado por header
+  - Security: Bearer + mTLS real (certificado de cliente no handshake TLS)
 ```
 
 ## Endpoints
@@ -113,10 +113,11 @@ dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
 
 ### Executar testes da demo
 ```bash
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 ```
 
 ## Observações
 - Persistência é em memória (objetivo didático).
-- Segurança é simulada (`Bearer` + header `X-MTLS-Client-Cert`).
+- Segurança usa mTLS real + Bearer token.
+- Em ambiente `Testing`, existe fallback de validação por header apenas para testes automatizados (`WebApplicationFactory`).
 - Não há webhook nesta primeira versão.

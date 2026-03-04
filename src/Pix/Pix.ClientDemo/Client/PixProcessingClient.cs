@@ -1,14 +1,12 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Microsoft.Extensions.Options;
 using Pix.ClientDemo.Models;
 
 namespace Pix.ClientDemo.Client;
 
 public sealed class PixProcessingClient(
     HttpClient httpClient,
-    IAuthTokenProvider tokenProvider,
-    IOptions<PixClientOptions> options)
+    IAuthTokenProvider tokenProvider)
 {
     public async Task<CobrancaResponse> CriarCobrancaAsync(CriarCobrancaRequest request, CancellationToken cancellationToken = default)
     {
@@ -65,11 +63,12 @@ public sealed class PixProcessingClient(
         var token = await tokenProvider.GetTokenAsync(cancellationToken);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        if (httpClient.DefaultRequestHeaders.Contains("X-MTLS-Client-Cert"))
+        if (httpClient.DefaultRequestHeaders.Contains("X-MTLS-Mode"))
         {
-            httpClient.DefaultRequestHeaders.Remove("X-MTLS-Client-Cert");
+            httpClient.DefaultRequestHeaders.Remove("X-MTLS-Mode");
         }
 
-        httpClient.DefaultRequestHeaders.Add("X-MTLS-Client-Cert", options.Value.MtlsHeaderValue);
+        // Header apenas informativo para observabilidade; autenticação mTLS real ocorre no handshake TLS.
+        httpClient.DefaultRequestHeaders.Add("X-MTLS-Mode", "real");
     }
 }

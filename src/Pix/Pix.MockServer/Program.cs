@@ -1,11 +1,41 @@
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Pix.MockServer.Application;
 using Pix.MockServer.Contracts;
 using Pix.MockServer.Infrastructure.InMemory;
 using Pix.MockServer.OpenApi;
 using Pix.MockServer.Security;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
+const string mtlsCertPassword = "pix-demo-123";
+const string expectedClientSubject = "pix-demo-client";
+
+var mtlsBundle = PixMtlsCertificateStore.Ensure(builder.Environment.ContentRootPath, mtlsCertPassword, expectedClientSubject);
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenLocalhost(5099, listenOptions =>
+        {
+            listenOptions.UseHttps(httpsOptions =>
+            {
+                httpsOptions.ServerCertificate = X509CertificateLoader.LoadPkcs12FromFile(
+                    mtlsBundle.ServerCertificatePath,
+                    mtlsBundle.CertificatePassword,
+                    X509KeyStorageFlags.Exportable);
+                httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+                httpsOptions.CheckCertificateRevocation = false;
+                httpsOptions.ClientCertificateValidation = (certificate, _, _) =>
+                    PixMtlsCertificateStore.ValidateClientCertificate(
+                        certificate,
+                        mtlsBundle.CaCertificatePath,
+                        mtlsBundle.ExpectedClientSubject);
+            });
+        });
+    });
+}
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -25,6 +55,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(mtlsBundle);
 builder.Services.AddSingleton<ICobrancaRepository, InMemoryCobrancaRepository>();
 builder.Services.AddSingleton<IDevolucaoRepository, InMemoryDevolucaoRepository>();
 builder.Services.AddSingleton<IIdempotencyRepository, InMemoryIdempotencyRepository>();

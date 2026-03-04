@@ -40,12 +40,14 @@ src/
 ├── 🟣 API Mock + Cliente — PIX
 │   ├── Pix.MockServer/             # Minimal API auto-contida (OAuth2 + /pix/v1)
 │   ├── Pix.ClientDemo/             # Cliente tipado com resiliência e handlers
-│   └── Pix.MockServer.Tests/       # Testes de integração da trilha PIX
 │
 └── 🔗 Compartilhado (Shared)
     ├── Common/                     # IEndpoint, Result, MappingProfile
     ├── Data/                       # AppDbContext (ambas usam)
     └── Middleware/                 # Processamento global
+
+tests/
+└── Pix.MockServer.Tests/           # Testes de integração da trilha PIX
 ```
 
 **Consequência didática:** Um estudante pode navegar `src/Produtos/Produtos.API/Endpoints/` para ver camadas, e logo depois explorar `src/Pedidos/CreatePedido/` para comparar lado a lado.
@@ -116,10 +118,10 @@ flowchart TD
     H --> F
 ```
 
-*src/Pix/Pix.MockServer/Program.cs | src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs | src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs*
+*src/Pix/Pix.MockServer/Program.cs | src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs | tests/Pix.MockServer.Tests/PixMockServerTests.cs*
 
 Esta trilha complementa as duas trilhas internas com um cenário realista de integração HTTP externa:
-- segurança simulada (`Bearer` + header `X-MTLS-Client-Cert`);
+- segurança com mTLS real (`Bearer` + certificado de cliente no handshake TLS);
 - JSON complexo (objetos aninhados, listas, metadata);
 - resiliência com `AddStandardResilienceHandler`;
 - idempotência e conflito (`409`) por fingerprint de payload.
@@ -300,7 +302,7 @@ net-minimal-api/
 │   ├── INDEX.md                              [Índice completo]
 │   ├── SUMARIO.md                            [Resumo]
 │   ├── CHECKLIST.md                          [Verificação]
-│   └── ProdutosAPI.Tests/                     [Exemplos de testes]
+│   └── tests/ProdutosAPI.Tests/                     [Exemplos de testes]
 │
 ├── ⚙️ CONFIGURAÇÃO
 │   ├── ProdutosAPI.csproj                    [Dependências]

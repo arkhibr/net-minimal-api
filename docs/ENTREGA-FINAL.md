@@ -112,9 +112,9 @@ Banco de Dados (SQLite)
 
 ### Exemplos e Testes
 
-- `ProdutosAPI.Tests/` - 111 testes (Produtos + integrações de Pedidos)
-- `Pedidos.Tests/` - 11 testes de domínio/estrutura de Pedidos
-- `src/Pix/Pix.MockServer.Tests/` - 7 testes de integração da trilha PIX
+- `tests/ProdutosAPI.Tests/` - 112 testes (Produtos + integrações de Pedidos)
+- `tests/Pedidos.Tests/` - 47 testes de domínio/estrutura de Pedidos
+- `tests/Pix.MockServer.Tests/` - 7 testes de integração da trilha PIX
 - `setup.sh` - Script auxiliar de setup
 
 ---
@@ -345,7 +345,7 @@ Após dominar este projeto:
 
 3. **Escreva testes**
    - Projeto xunit
-   - Use [ProdutosAPI.Tests/](../ProdutosAPI.Tests/)
+   - Use [tests/ProdutosAPI.Tests/](../tests/ProdutosAPI.Tests/)
    - `dotnet test`
 
 4. **Configure CI/CD**
@@ -376,7 +376,7 @@ Após dominar este projeto:
 - **Setup**: [Program.cs](../Program.cs)
 
 ### Exemplos
-- **Testes**: [ProdutosAPI.Tests/](../ProdutosAPI.Tests/)
+- **Testes**: [tests/ProdutosAPI.Tests/](../tests/ProdutosAPI.Tests/)
 - **Dados**: [src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs](../src/Produtos/Produtos.Infrastructure/Data/DbSeeder.cs)
 
 ---

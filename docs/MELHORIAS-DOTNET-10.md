@@ -435,7 +435,7 @@ dotnet run --project ProdutosAPI.csproj
 
 ### Referências do Projeto
 - [Melhores Praticas API](./MELHORES-PRATICAS-API.md)
-- [Estratégia de Testes](./ProdutosAPI.Tests/ESTRATEGIA-DE-TESTES.md)
+- [Estratégia de Testes](./ESTRATEGIA-DE-TESTES.md)
 - [Code Structure](./ESTRUTURA-DO-CODIGO.md)
 
 ---

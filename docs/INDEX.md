@@ -108,13 +108,13 @@ HTTP Response
 
 ## 🟣 Trilha 3 – PIX Mock Processing (Servidor + Cliente HTTP)
 
-**Localização:** `src/Pix/Pix.MockServer/`, `src/Pix/Pix.ClientDemo/`, `src/Pix/Pix.MockServer.Tests/`
+**Localização:** `src/Pix/Pix.MockServer/`, `src/Pix/Pix.ClientDemo/`, `tests/Pix.MockServer.Tests/`
 
 Ideal para aprender:
 - ✅ Modelagem de JSON complexo com payloads aninhados
 - ✅ Boas práticas de chamadas HTTP com `HttpClientFactory`
 - ✅ Resiliência com `AddStandardResilienceHandler`
-- ✅ Idempotência, correlação e segurança simulada (OAuth2 + mTLS header)
+- ✅ Idempotência, correlação e segurança com mTLS real (OAuth2 + certificado de cliente)
 - ✅ Testes de integração para APIs financeiras simuladas
 
 **Struct:**
@@ -125,13 +125,15 @@ src/Pix/
   │  ├─ Application/                # Regras de negócio e validações
   │  ├─ Domain/                     # Estados e entidades do mock
   │  ├─ Infrastructure/InMemory/    # Repositórios thread-safe
-  │  ├─ Security/                   # Token + mTLS simulado
+  │  ├─ Security/                   # Token + mTLS real
   │  └─ Program.cs                  # Endpoints /oauth e /pix/v1
   ├─ Pix.ClientDemo/
   │  ├─ Client/                     # Cliente tipado e token provider
   │  ├─ Client/Handlers/            # Correlation, idempotency, logging
   │  ├─ Scenarios/                  # Fluxo fim-a-fim didático
   │  └─ Program.cs                  # Execução do cenário
+
+tests/
   └─ Pix.MockServer.Tests/          # Testes de integração do mock
 ```
 
@@ -139,7 +141,7 @@ src/Pix/
 1. Abra [docs/PIX-DEMO.md](PIX-DEMO.md)
 2. Suba [src/Pix/Pix.MockServer/Program.cs](../src/Pix/Pix.MockServer/Program.cs)
 3. Execute [src/Pix/Pix.ClientDemo/Program.cs](../src/Pix/Pix.ClientDemo/Program.cs)
-4. Rode os testes em [src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs](../src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs)
+4. Rode os testes em [tests/Pix.MockServer.Tests/PixMockServerTests.cs](../tests/Pix.MockServer.Tests/PixMockServerTests.cs)
 
 ---
 
@@ -256,8 +258,8 @@ src/Shared/
    - Explore um slice: [src/Pedidos/CreatePedido/](../src/Pedidos/CreatePedido/)
 
 2. **Testes (30 min)**
-   - Execute `dotnet test` (129 testes)
-   - Explore [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) — estrutura de testes
+   - Execute `dotnet test` (166 testes)
+   - Explore [tests/ProdutosAPI.Tests/](../tests/ProdutosAPI.Tests/) — estrutura de testes
 
 3. **Prática Comparativa (30 min)**
    - Teste endpoints de Pedidos (requer JWT)
@@ -282,7 +284,7 @@ src/Shared/
 
 3. **Código Completo**
    - Leia toda `src/` de ambas as trilhas
-   - Leia testes em `ProdutosAPI.Tests/`
+   - Leia testes em `tests/ProdutosAPI.Tests/`
 
 4. **Validação**
    - Execute `dotnet test`
@@ -366,7 +368,7 @@ Slice para cancelar pedido
 #### [src/Pix/Pix.MockServer/Program.cs](../src/Pix/Pix.MockServer/Program.cs)
 - Endpoints de autenticação mock (`/oauth/token`)
 - Endpoints PIX (`/pix/v1/cobrancas`, `/pix/v1/devolucoes`)
-- Segurança simulada (`Bearer` + `X-MTLS-Client-Cert`)
+- Segurança com mTLS real + `Bearer` token
 - Erros padronizados com `problem+json`
 
 #### [src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs](../src/Pix/Pix.ClientDemo/Client/PixProcessingClient.cs)
@@ -401,24 +403,24 @@ Slice para cancelar pedido
 
 ---
 
-## 🧪 Testes (129 testes)
+## 🧪 Testes (166 testes)
 
-### ProdutosAPI.Tests/
+### tests/ProdutosAPI.Tests/
 
 #### Unit Tests
-- [Domain/](../ProdutosAPI.Tests/Unit/Domain/) — testes de modelos e agregados
-- [Services/](../ProdutosAPI.Tests/Services/) — testes de serviços
+- [Domain/](../tests/ProdutosAPI.Tests/Unit/Domain/) — testes de modelos e agregados
+- [Services/](../tests/ProdutosAPI.Tests/Services/) — testes de serviços
 
 #### Integration Tests
-- [Endpoints/](../ProdutosAPI.Tests/Endpoints/) — testes HTTP dos endpoints
-- [Pedidos/](../ProdutosAPI.Tests/Integration/Pedidos/) — testes de slices
+- [Endpoints/](../tests/ProdutosAPI.Tests/Endpoints/) — testes HTTP dos endpoints
+- [Pedidos/](../tests/ProdutosAPI.Tests/Integration/Pedidos/) — testes de slices
 
-### Pedidos.Tests/
-- [Unit/Domain/](../Pedidos.Tests/Unit/Domain/) — agregado `Pedido`
-- [Integration/](../Pedidos.Tests/Integration/) — apoio para testes HTTP
+### tests/Pedidos.Tests/
+- [Unit/Domain/](../tests/Pedidos.Tests/Unit/Domain/) — agregado `Pedido`
+- [Integration/](../tests/Pedidos.Tests/Integration/) — apoio para testes HTTP
 
-### Pix.MockServer.Tests/
-- [PixMockServerTests.cs](../src/Pix/Pix.MockServer.Tests/PixMockServerTests.cs) — 7 cenários de aceite (auth, idempotência, liquidação, devolução)
+### tests/Pix.MockServer.Tests/
+- [PixMockServerTests.cs](../tests/Pix.MockServer.Tests/PixMockServerTests.cs) — 7 cenários de aceite (auth, idempotência, liquidação, devolução)
 
 ---
 
@@ -452,13 +454,13 @@ Swagger: http://localhost:5000/swagger
 ```bash
 dotnet test
 ```
-Resultado esperado: 129 testes passando
+Resultado esperado: 166 testes passando
 
 ### Executar Trilha PIX
 ```bash
 dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
 dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 ```
 
 ### Clonar e Começar
@@ -481,7 +483,7 @@ dotnet run
 | Validadores | [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs) | Rules |
 | Domínio Rico | [src/Pedidos/Domain/Pedido.cs](../src/Pedidos/Domain/Pedido.cs) | Aggregate |
 | Vertical Slice | [src/Pedidos/CreatePedido/](../src/Pedidos/CreatePedido/) | Exemplo completo |
-| Testes | [ProdutosAPI.Tests/](../ProdutosAPI.Tests/) | Exemplos |
+| Testes | [tests/ProdutosAPI.Tests/](../tests/ProdutosAPI.Tests/) | Exemplos |
 | Middleware | [src/Shared/Middleware/](../src/Shared/Middleware/) | Global processing |
 | EF Core | [src/Shared/Data/AppDbContext.cs](../src/Shared/Data/AppDbContext.cs) | Configuration |
 

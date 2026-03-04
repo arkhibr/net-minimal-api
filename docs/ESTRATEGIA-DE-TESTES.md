@@ -8,6 +8,8 @@ A solução está organizada em **3 projetos de teste** cobrindo as 3 trilhas do
 - **Pedidos.Tests**: Vertical Slice + Domínio Rico (Pedidos).
 - **Pix.MockServer.Tests**: integração HTTP da trilha PIX (mock server).
 
+> Organização adotada: **`src/` para código de produção e `tests/` para projetos de teste**, alinhada com a prática recomendada pela Microsoft para soluções .NET.
+
 ### Contagem real de testes (executada em 4 de março de 2026)
 
 Comando de referência:
@@ -81,7 +83,8 @@ Resultado consolidado:
 ### Integration HTTP
 - Validar contrato real de API (status code, payload, headers).
 - Cobrir fluxos críticos fim a fim (`POST` + `GET` + transições de estado).
-- Na trilha PIX: validar segurança mock (`Bearer`, `X-MTLS-Client-Cert`) e idempotência (`Idempotency-Key`).
+- Na trilha PIX: validar segurança com `Bearer` + mTLS real e idempotência (`Idempotency-Key`).
+- Em `Testing`, validar fallback controlado por header para manter testes de integração sem handshake TLS real.
 
 ---
 
@@ -97,7 +100,7 @@ Resultado consolidado:
 
 ### PIX Mock
 - Emissão de token OAuth2 mock.
-- Falha de segurança por ausência de token/header mTLS simulado (`401`/`403`).
+- Falha de segurança por ausência de token e/ou certificado de cliente (`401`/`403`).
 - Idempotência com replay seguro e conflito `409` para payload divergente.
 - Fluxo financeiro: criar cobrança, simular liquidação, criar devolução, consultar devolução.
 
@@ -114,26 +117,26 @@ dotnet test ProdutosAPI.slnx -v minimal
 ### Executar por projeto
 
 ```bash
-dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj -v minimal
-dotnet test Pedidos.Tests/Pedidos.Tests.csproj -v minimal
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj -v minimal
+dotnet test tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj -v minimal
+dotnet test tests/Pedidos.Tests/Pedidos.Tests.csproj -v minimal
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj -v minimal
 ```
 
 ### Executar por tipo (filtro)
 
 ```bash
 # ProdutosAPI.Tests
-dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Unit.Domain"
-dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Services"
-dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Endpoints"
-dotnet test ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Validators"
+dotnet test tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Unit.Domain"
+dotnet test tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Services"
+dotnet test tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Endpoints"
+dotnet test tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj --filter "FullyQualifiedName~ProdutosAPI.Tests.Validators"
 
 # Pedidos.Tests
-dotnet test Pedidos.Tests/Pedidos.Tests.csproj --filter "FullyQualifiedName~Pedidos.Tests.Domain"
-dotnet test Pedidos.Tests/Pedidos.Tests.csproj --filter "FullyQualifiedName~Pedidos.Tests.Endpoints"
+dotnet test tests/Pedidos.Tests/Pedidos.Tests.csproj --filter "FullyQualifiedName~Pedidos.Tests.Domain"
+dotnet test tests/Pedidos.Tests/Pedidos.Tests.csproj --filter "FullyQualifiedName~Pedidos.Tests.Endpoints"
 
 # PIX
-dotnet test src/Pix/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj --filter "FullyQualifiedName~Pix.MockServer.Tests"
+dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj --filter "FullyQualifiedName~Pix.MockServer.Tests"
 ```
 
 ---

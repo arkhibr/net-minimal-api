@@ -90,7 +90,11 @@
 └─ src/Pix/
    ├─ Pix.MockServer/              # Servidor mock de processamento PIX
    ├─ Pix.ClientDemo/              # Cliente HTTP tipado + resiliência
-   └─ Pix.MockServer.Tests/        # Testes de integração da trilha PIX
+```
+
+### Testes (layout recomendado)
+```
+└─ tests/Pix.MockServer.Tests/     # Testes de integração da trilha PIX
 ```
 
 ### Compartilhado
@@ -106,10 +110,10 @@ Ambas as abordagens compartilham `AppDbContext`, o pipeline de middleware e a me
 
 ---
 
-## 🧪 TESTES (`ProdutosAPI.Tests/`)
+## 🧪 TESTES (`tests/ProdutosAPI.Tests/`)
 =====================================
 
-- ✅ **129 testes automatizados** (versão 3.1.0)
+- ✅ **166 testes automatizados** (versão 3.1.0)
 - 🧱 **3 categorias**:
   1. Domain Unit Tests (agregados, regras de negócio) – 40+ testes
   2. Service Unit Tests (serviços individuais) – 35 testes
@@ -118,7 +122,7 @@ Ambas as abordagens compartilham `AppDbContext`, o pipeline de middleware e a me
 
 Localização:
 ```
-ProdutosAPI.Tests/
+tests/ProdutosAPI.Tests/
 ├── Services/
 ├── Endpoints/
 ├── Validators/
@@ -249,7 +253,7 @@ dotnet run
 
 ---
 
-## 🧪 TESTES (`ProdutosAPI.Tests/`)
+## 🧪 TESTES (`tests/ProdutosAPI.Tests/`)
 =====================================
 
 - `Services/ProdutoServiceTests.cs`     [Testes de serviço (InMemory DB)]
@@ -296,7 +300,7 @@ dotnet run
 ✓ **Arquitetura**            → Clean Architecture, separation of concerns  
 ✓ **DTOs**                   → Separação entre modelos internos e externos  
 ✓ **Injeção de Dependência** → Services registrados em Program.cs  
-✓ **Testes Automatizados**   → 129 testes (Produtos, Pedidos e trilha PIX)  
+✓ **Testes Automatizados**   → 166 testes (Produtos, Pedidos e trilha PIX)  
 
 ---
 
@@ -365,7 +369,7 @@ net-minimal-api/
 │   ├── Shared/Data/Migrations/
 │   └── Shared/Middleware/ExceptionHandlingMiddleware.cs
 │
-└── 📁 ProdutosAPI.Tests/          [Testes]
+└── 📁 tests/ProdutosAPI.Tests/          [Testes]
     ├── Services/ProdutoServiceTests.cs
     ├── Endpoints/ProdutoEndpointsTests.cs
     ├── Validators/ProdutoValidatorTests.cs

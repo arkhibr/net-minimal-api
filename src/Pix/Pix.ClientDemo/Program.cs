@@ -28,6 +28,7 @@ builder.Services.AddHttpClient("PixServerRaw", (sp, client) =>
     client.BaseAddress = new Uri(options.BaseUrl);
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 })
+.ConfigurePrimaryHttpMessageHandler(MutualTlsHttpHandlerFactory.Create)
 .AddStandardResilienceHandler();
 
 builder.Services.AddHttpClient<PixProcessingClient>((sp, client) =>
@@ -36,6 +37,7 @@ builder.Services.AddHttpClient<PixProcessingClient>((sp, client) =>
     client.BaseAddress = new Uri(options.BaseUrl);
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 })
+.ConfigurePrimaryHttpMessageHandler(MutualTlsHttpHandlerFactory.Create)
 .AddHttpMessageHandler<CorrelationIdHandler>()
 .AddHttpMessageHandler<IdempotencyKeyHandler>()
 .AddHttpMessageHandler<RequestLoggingHandler>()
