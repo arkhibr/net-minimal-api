@@ -1,0 +1,11 @@
+{
+  "txid": "f8effe3269a648c089f6d980f9c1509b",
+  "endToEndId": "E2E12345678901234567",
+  "valor": 25.75,
+  "natureza": "ORIGINAL",
+  "motivo": "Ajuste operacional",
+  "metadata": {
+    "origem": "client-demo",
+    "tentativa": 1
+  }
+}

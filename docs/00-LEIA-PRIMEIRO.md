@@ -46,6 +46,9 @@
 10. 💸 **PIX-DEMO.md** (integração externa)
    └─ Servidor mock PIX auto-contido + cliente com HttpClientFactory
 
+11. 🧾 **JSON-COMPLEXO-E-BOAS-PRATICAS.md** (contratos JSON)
+   └─ Guia de payloads complexos + exemplos em `docs/examples/pix-json/`
+
 ---
 
 ## ⚙️ CONFIGURAÇÃO DO PROJETO

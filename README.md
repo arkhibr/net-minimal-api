@@ -158,6 +158,8 @@ net-minimal-api/
 │   ├── INICIO-RAPIDO.md                  # Quick start
 │   ├── INDEX.md                          # Índice completo
 │   ├── CHECKLIST.md                      # Verificação de práticas
+│   ├── JSON-COMPLEXO-E-BOAS-PRATICAS.md  # Guia de contratos JSON
+│   ├── examples/pix-json/                # Payloads JSON de exemplo (request/response/problem)
 │   └── ENTREGA-FINAL.md                  # Resumo executivo
 │
 ├── logs/                                   # Logs estruturados (runtime)
@@ -421,6 +423,8 @@ Este repositório agora inclui uma trilha didática para integração PIX com pa
 - `src/Pix/Pix.MockServer/` - servidor auto-contido com OAuth2 mock, mTLS real, idempotência e estado em memória.
 - `src/Pix/Pix.ClientDemo/` - cliente console com `HttpClientFactory`, handlers de correlação/idempotência e resiliência.
 - `tests/Pix.MockServer.Tests/` - testes de integração dos cenários principais.
+- `docs/JSON-COMPLEXO-E-BOAS-PRATICAS.md` - guia dedicado de modelagem e evolução de contratos JSON.
+- `docs/examples/pix-json/` - exemplos prontos de request/response (incluindo `problem+json`).
 
 Execução rápida:
 
@@ -441,6 +445,17 @@ dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 Observação sobre segurança:
 - Em execução normal (`Development`), o mock usa **mTLS real** no handshake TLS.
 - Em `Testing` (WebApplicationFactory), há fallback de validação por header apenas para viabilizar testes sem socket TLS real.
+
+Referências diretas de JSON:
+- Guia: [docs/JSON-COMPLEXO-E-BOAS-PRATICAS.md](./docs/JSON-COMPLEXO-E-BOAS-PRATICAS.md)
+- [docs/examples/pix-json/oauth-token-request.json](./docs/examples/pix-json/oauth-token-request.json)
+- [docs/examples/pix-json/oauth-token-response.json](./docs/examples/pix-json/oauth-token-response.json)
+- [docs/examples/pix-json/cobranca-create-request.json](./docs/examples/pix-json/cobranca-create-request.json)
+- [docs/examples/pix-json/cobranca-create-response.json](./docs/examples/pix-json/cobranca-create-response.json)
+- [docs/examples/pix-json/devolucao-create-request.json](./docs/examples/pix-json/devolucao-create-request.json)
+- [docs/examples/pix-json/devolucao-create-response.json](./docs/examples/pix-json/devolucao-create-response.json)
+- [docs/examples/pix-json/problem-validation-response.json](./docs/examples/pix-json/problem-validation-response.json)
+- [docs/examples/pix-json/problem-idempotency-conflict-response.json](./docs/examples/pix-json/problem-idempotency-conflict-response.json)
 
 ---
 

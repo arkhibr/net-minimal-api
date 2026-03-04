@@ -165,7 +165,7 @@ src/Shared/
 
 ---
 
-## 📚 Documentação (7 guias)
+## 📚 Documentação (8 guias)
 
 ### 1. [ARQUITETURA.md](ARQUITETURA.md) ⭐⭐⭐
 **Guia de Estrutura Comparativa — VISUAL**
@@ -224,6 +224,14 @@ src/Shared/
 - ✅ Fluxo: autenticar, cobrar, liquidar e devolver
 - **Leia para estudar integrações externas**
 
+### 8. [JSON-COMPLEXO-E-BOAS-PRATICAS.md](JSON-COMPLEXO-E-BOAS-PRATICAS.md) 🧾
+**Guia de Contratos JSON — REFERÊNCIA**
+- ✅ Princípios para payloads aninhados
+- ✅ Convenções de validação e serialização
+- ✅ Erros padronizados com `problem+json`
+- ✅ Ponteiros para exemplos em `docs/examples/pix-json/`
+- **Use ao criar/alterar contratos de integração**
+
 ---
 
 ## ⚡ Roteiros de Aprendizado
@@ -281,6 +289,7 @@ src/Shared/
    - [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) — completo
    - [VERTICAL-SLICE-DOMINIO-RICO.md](VERTICAL-SLICE-DOMINIO-RICO.md) — completo
    - [PIX-DEMO.md](PIX-DEMO.md) — completo
+   - [JSON-COMPLEXO-E-BOAS-PRATICAS.md](JSON-COMPLEXO-E-BOAS-PRATICAS.md) — completo
 
 3. **Código Completo**
    - Leia toda `src/` de ambas as trilhas

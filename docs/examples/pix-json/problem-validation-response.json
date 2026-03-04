@@ -1,0 +1,16 @@
+{
+  "type": "https://httpstatuses.com/400",
+  "title": "Erro de validação",
+  "status": 400,
+  "detail": "Um ou mais campos do payload são inválidos.",
+  "traceId": "00-3f6b6dc4e8f746e1a1fca34f0f6b7e2c-6e5ec2d6f8d4429f-01",
+  "correlationId": "c1f4f6b2-4fcf-4b08-8f86-2d7852f49c8d",
+  "errors": {
+    "devedor.cpfCnpj": [
+      "CPF/CNPJ inválido."
+    ],
+    "valor.original": [
+      "Valor original deve ser maior que zero."
+    ]
+  }
+}

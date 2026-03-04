@@ -1,0 +1,55 @@
+{
+  "calendario": {
+    "expiracao": 3600
+  },
+  "devedor": {
+    "nome": "Cliente de Teste",
+    "cpfCnpj": "12345678901",
+    "endereco": {
+      "logradouro": "Rua das Flores",
+      "numero": "100",
+      "cidade": "Sao Paulo",
+      "uf": "SP",
+      "cep": "01001000"
+    }
+  },
+  "recebedor": {
+    "nome": "Empresa Demo",
+    "ispb": "12345678",
+    "agencia": "0001",
+    "conta": "123456",
+    "tipoConta": "CACC"
+  },
+  "valor": {
+    "original": 150.75,
+    "abatimento": 0,
+    "desconto": 5,
+    "juros": 0,
+    "multa": 0
+  },
+  "chavePix": "chave-pix-demo-123",
+  "solicitacaoPagador": "Pagamento referente ao pedido #12345",
+  "split": [
+    {
+      "favorecido": "Parceiro A",
+      "documento": "98765432100",
+      "valor": 30,
+      "percentual": 20
+    },
+    {
+      "favorecido": "Parceiro B",
+      "documento": "11222333000181",
+      "valor": 15,
+      "percentual": 10
+    }
+  ],
+  "infoAdicionais": [
+    { "nome": "pedido", "valor": "12345" },
+    { "nome": "canal", "valor": "mobile" }
+  ],
+  "metadata": {
+    "origemSistema": "erp",
+    "prioridade": "alta",
+    "tags": ["pix", "educacional"]
+  }
+}

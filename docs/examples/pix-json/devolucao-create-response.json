@@ -1,0 +1,14 @@
+{
+  "devolucaoId": "ec5234ee135e4d279658e1ba5fe2a04e",
+  "status": "DEVOLVIDA",
+  "solicitadaEm": "2026-03-04T16:12:00.0000000+00:00",
+  "liquidadaEm": "2026-03-04T16:12:02.0000000+00:00",
+  "motivo": "Ajuste operacional",
+  "rastreabilidade": {
+    "txid": "f8effe3269a648c089f6d980f9c1509b",
+    "endToEndId": "E2E12345678901234567",
+    "ultimaAtualizacao": "2026-03-04T16:12:02.0000000+00:00",
+    "origem": "SIMULADOR"
+  },
+  "correlationId": "9f8c47d1be8543b0b8b3b7b2d4dc1b7b"
+}

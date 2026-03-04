@@ -1,0 +1,9 @@
+{
+  "type": "https://httpstatuses.com/409",
+  "title": "Conflito de idempotência",
+  "status": 409,
+  "detail": "A chave de idempotência já foi usada com payload diferente.",
+  "traceId": "00-8b42f9c7f2a444f4bba49f53bdb64b31-a52a1a72d6ef4d2f-01",
+  "correlationId": "f6fc4976-a36c-4c53-a4bb-f61f4cf2d9db",
+  "idempotencyKey": "b0f0cd4e-1847-4042-b795-1de71bf1a58d"
+}

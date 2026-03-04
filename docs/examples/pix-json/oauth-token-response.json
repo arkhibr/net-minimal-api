@@ -1,0 +1,6 @@
+{
+  "access_token": "pixmock.pix-demo-client.pix.cobranca pix.devolucao.<token>",
+  "token_type": "Bearer",
+  "expires_in": 1800,
+  "scope": "pix.cobranca pix.devolucao"
+}

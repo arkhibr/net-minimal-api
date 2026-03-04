@@ -1,0 +1,5 @@
+{
+  "client_id": "pix-demo-client",
+  "client_secret": "pix-demo-secret",
+  "grant_type": "client_credentials"
+}

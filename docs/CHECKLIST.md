@@ -1,6 +1,6 @@
 # ✅ Checklist de Verificação do Projeto
 
-## 📚 Documentação (11 arquivos)
+## 📚 Documentação (12 arquivos)
 
 - [x] **MELHORES-PRATICAS-API.md** - Guia conceitual completo (10 seções)
 - [x] **MELHORES-PRATICAS-MINIMAL-API.md** - Implementação prática com links para código
@@ -13,6 +13,7 @@
 - [x] **ARQUITETURA.md** - Diagramas (camadas + slices)
 - [x] **ENTREGA-FINAL.md** - Resumo executivo atualizado
 - [x] **PIX-DEMO.md** - Trilha completa de integração PIX (mock + cliente)
+- [x] **JSON-COMPLEXO-E-BOAS-PRATICAS.md** - Guia de modelagem/validação de contratos JSON
 
 ## 🏗️ Estrutura do Projeto
 

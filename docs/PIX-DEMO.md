@@ -86,6 +86,19 @@ Pix.MockServer
 }
 ```
 
+Exemplos completos versionados no repositório:
+- [oauth-token-request.json](examples/pix-json/oauth-token-request.json)
+- [oauth-token-response.json](examples/pix-json/oauth-token-response.json)
+- [cobranca-create-request.json](examples/pix-json/cobranca-create-request.json)
+- [cobranca-create-response.json](examples/pix-json/cobranca-create-response.json)
+- [devolucao-create-request.json](examples/pix-json/devolucao-create-request.json)
+- [devolucao-create-response.json](examples/pix-json/devolucao-create-response.json)
+- [problem-validation-response.json](examples/pix-json/problem-validation-response.json)
+- [problem-idempotency-conflict-response.json](examples/pix-json/problem-idempotency-conflict-response.json)
+
+Guia complementar:
+- [JSON-COMPLEXO-E-BOAS-PRATICAS.md](JSON-COMPLEXO-E-BOAS-PRATICAS.md)
+
 ## Anti-padrões comuns vs boa prática
 - Anti-padrão: objeto JSON monolítico sem subestruturas semânticas.
 - Boa prática: quebrar em blocos (`devedor`, `recebedor`, `valor`, `split`, `metadata`) e validar cada bloco.

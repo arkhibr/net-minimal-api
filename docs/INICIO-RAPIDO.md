@@ -288,6 +288,7 @@ Após entender este projeto:
 | `src/Pix/Pix.MockServer/Program.cs` | Endpoints OAuth2/PIX mock |
 | `src/Pix/Pix.ClientDemo/Program.cs` | Cenário fim-a-fim de cliente HTTP |
 | `docs/PIX-DEMO.md` | Guia de integração PIX |
+| `docs/JSON-COMPLEXO-E-BOAS-PRATICAS.md` | Boas práticas e exemplos de JSON complexo |
 | `appsettings.json` | Configurações de ambiente |
 
 ---
