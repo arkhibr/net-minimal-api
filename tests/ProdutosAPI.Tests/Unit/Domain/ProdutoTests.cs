@@ -15,7 +15,7 @@ public class ProdutoTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Nome.Should().Be("Notebook");
-        result.Value.Preco.Should().Be(1000m);
+        result.Value.Preco.Value.Should().Be(1000m);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class ProdutoTests
         var result = produto.AtualizarPreco(200m);
 
         result.IsSuccess.Should().BeTrue();
-        produto.Preco.Should().Be(200m);
+        produto.Preco.Value.Should().Be(200m);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class ProdutoTests
         var result = produto.ReporEstoque(5);
 
         result.IsSuccess.Should().BeTrue();
-        produto.Estoque.Should().Be(15);
+        produto.Estoque.Value.Should().Be(15);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class ProdutoTests
     {
         var produto = ProdutoBuilder.Padrao().ComEstoque(10).Build();
         produto.AjustarEstoque(50);
-        produto.Estoque.Should().Be(50);
+        produto.Estoque.Value.Should().Be(50);
     }
 
     [Fact]

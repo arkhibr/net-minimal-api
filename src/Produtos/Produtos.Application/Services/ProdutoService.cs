@@ -90,7 +90,8 @@ public class ProdutoService : IProdutoService
         if (request.Estoque.HasValue)
             produto.AjustarEstoque(request.Estoque.Value);
 
-        produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
+        var atualizarDadosResult = produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
+        if (!atualizarDadosResult.IsSuccess) throw new InvalidOperationException(atualizarDadosResult.Error);
         await _repository.AtualizarAsync(produto);
 
         _logger.LogInformation("Produto {ProductId} atualizado com sucesso", id);
@@ -108,13 +109,14 @@ public class ProdutoService : IProdutoService
             return null;
         }
 
-        if (request.Preco != produto.Preco)
+        if (request.Preco != produto.Preco.Value)
         {
             var r = produto.AtualizarPreco(request.Preco);
             if (!r.IsSuccess) throw new InvalidOperationException(r.Error);
         }
         produto.AjustarEstoque(request.Estoque);
-        produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
+        var atualizarDadosResult = produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
+        if (!atualizarDadosResult.IsSuccess) throw new InvalidOperationException(atualizarDadosResult.Error);
         await _repository.AtualizarAsync(produto);
 
         _logger.LogInformation("Produto {ProductId} atualizado completamente", id);

@@ -19,7 +19,7 @@ public class PedidoItem
     {
         ProdutoId = produto.Id,
         NomeProduto = produto.Nome,
-        PrecoUnitario = produto.Preco,
+        PrecoUnitario = produto.Preco.Value,
         Quantidade = quantidade
     };
 

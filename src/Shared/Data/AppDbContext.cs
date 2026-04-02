@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Pedidos.Domain;
 using ProdutosAPI.Produtos.Application.Interfaces;
 using ProdutosAPI.Produtos.Domain;
+using ProdutosAPI.Produtos.Domain.ValueObjects;
 
 namespace ProdutosAPI.Shared.Data;
 
@@ -51,15 +52,30 @@ public class AppDbContext : DbContext, IProdutoContext
 
             entity.Property(p => p.Descricao)
                 .IsRequired()
+                .HasConversion(
+                    descricao => descricao.Value,
+                    value => DescricaoProduto.Reconstituir(value))
                 .HasMaxLength(500);
 
             entity.Property(p => p.Preco)
                 .HasPrecision(10, 2)
+                .HasConversion(
+                    preco => preco.Value,
+                    value => PrecoProduto.Reconstituir(value))
                 .IsRequired();
 
             entity.Property(p => p.Categoria)
                 .IsRequired()
+                .HasConversion(
+                    categoria => categoria.Value,
+                    value => CategoriaProduto.Reconstituir(value))
                 .HasMaxLength(50);
+
+            entity.Property(p => p.Estoque)
+                .HasConversion(
+                    estoque => estoque.Value,
+                    value => EstoqueProduto.Reconstituir(value))
+                .IsRequired();
 
             entity.Property(p => p.ContatoEmail)
                 .IsRequired()

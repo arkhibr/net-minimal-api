@@ -129,10 +129,10 @@ SELECT CAST(last_insert_rowid() AS INTEGER);";
                 new CommandDefinition(insertSql, new
                 {
                     produto.Nome,
-                    produto.Descricao,
-                    produto.Preco,
-                    produto.Categoria,
-                    produto.Estoque,
+                    Descricao = produto.Descricao.Value,
+                    Preco = produto.Preco.Value,
+                    Categoria = produto.Categoria.Value,
+                    Estoque = produto.Estoque.Value,
                     produto.Ativo,
                     produto.ContatoEmail,
                     produto.DataCriacao,
@@ -164,10 +164,10 @@ WHERE Id = @Id AND Ativo = 1;";
                 {
                     produto.Id,
                     produto.Nome,
-                    produto.Descricao,
-                    produto.Preco,
-                    produto.Categoria,
-                    produto.Estoque,
+                    Descricao = produto.Descricao.Value,
+                    Preco = produto.Preco.Value,
+                    Categoria = produto.Categoria.Value,
+                    Estoque = produto.Estoque.Value,
                     produto.ContatoEmail,
                     produto.DataAtualizacao
                 }));

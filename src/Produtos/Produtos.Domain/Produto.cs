@@ -1,20 +1,21 @@
 using ProdutosAPI.Produtos.Domain.Common;
+using ProdutosAPI.Produtos.Domain.ValueObjects;
 
 namespace ProdutosAPI.Produtos.Domain;
 
 public class Produto
 {
-    public static readonly decimal PrecoMinimo = 0.01m;
-    public static readonly int EstoqueMaximo = 99_999;
+    public static readonly decimal PrecoMinimo = PrecoProduto.Minimo;
+    public static readonly int EstoqueMaximo = EstoqueProduto.Maximo;
 
     private Produto() { }
 
     public int Id { get; private set; }
     public string Nome { get; private set; } = "";
-    public string Descricao { get; private set; } = "";
-    public decimal Preco { get; private set; }
-    public string Categoria { get; private set; } = "";
-    public int Estoque { get; private set; }
+    public DescricaoProduto Descricao { get; private set; } = null!;
+    public PrecoProduto Preco { get; private set; } = null!;
+    public CategoriaProduto Categoria { get; private set; } = null!;
+    public EstoqueProduto Estoque { get; private set; } = null!;
     public bool Ativo { get; private set; } = true;
     public string ContatoEmail { get; private set; } = "";
     public DateTime DataCriacao { get; private set; }
@@ -26,21 +27,33 @@ public class Produto
     {
         if (string.IsNullOrWhiteSpace(nome) || nome.Length < 3)
             return Result<Produto>.Fail("Nome deve ter ao menos 3 caracteres.");
-        if (preco < PrecoMinimo)
-            return Result<Produto>.Fail("Preço deve ser maior que zero.");
-        if (estoque < 0)
-            return Result<Produto>.Fail("Estoque não pode ser negativo.");
         if (string.IsNullOrWhiteSpace(email))
             return Result<Produto>.Fail("Email de contato é obrigatório.");
+
+        var descricaoResult = DescricaoProduto.Criar(descricao);
+        if (!descricaoResult.IsSuccess)
+            return Result<Produto>.Fail(descricaoResult.Error!);
+
+        var precoResult = PrecoProduto.Criar(preco);
+        if (!precoResult.IsSuccess)
+            return Result<Produto>.Fail(precoResult.Error!);
+
+        var categoriaResult = CategoriaProduto.Criar(categoria);
+        if (!categoriaResult.IsSuccess)
+            return Result<Produto>.Fail(categoriaResult.Error!);
+
+        var estoqueResult = EstoqueProduto.Criar(estoque);
+        if (!estoqueResult.IsSuccess)
+            return Result<Produto>.Fail(estoqueResult.Error!);
 
         var agora = DateTime.UtcNow;
         return Result<Produto>.Ok(new Produto
         {
             Nome = nome,
-            Descricao = descricao,
-            Preco = preco,
-            Categoria = categoria,
-            Estoque = estoque,
+            Descricao = descricaoResult.Value!,
+            Preco = precoResult.Value!,
+            Categoria = categoriaResult.Value!,
+            Estoque = estoqueResult.Value!,
             ContatoEmail = email,
             Ativo = true,
             DataCriacao = agora,
@@ -67,10 +80,10 @@ public class Produto
         {
             Id = id,
             Nome = nome,
-            Descricao = descricao,
-            Preco = preco,
-            Categoria = categoria,
-            Estoque = estoque,
+            Descricao = DescricaoProduto.Reconstituir(descricao),
+            Preco = PrecoProduto.Reconstituir(preco),
+            Categoria = CategoriaProduto.Reconstituir(categoria),
+            Estoque = EstoqueProduto.Reconstituir(estoque),
             Ativo = ativo,
             ContatoEmail = contatoEmail,
             DataCriacao = dataCriacao,
@@ -80,11 +93,15 @@ public class Produto
 
     public Result AtualizarPreco(decimal novoPreco)
     {
-        if (novoPreco < PrecoMinimo)
-            return Result.Fail("Preço deve ser maior que zero.");
-        if (novoPreco == Preco)
+        var precoResult = PrecoProduto.Criar(novoPreco);
+        if (!precoResult.IsSuccess)
+            return Result.Fail(precoResult.Error!);
+
+        var novoPrecoVo = precoResult.Value!;
+        if (novoPrecoVo.Value == Preco.Value)
             return Result.Fail("Novo preço é igual ao preço atual.");
-        Preco = novoPreco;
+
+        Preco = novoPrecoVo;
         DataAtualizacao = DateTime.UtcNow;
         return Result.Ok();
     }
@@ -98,9 +115,28 @@ public class Produto
             if (nome.Length < 3) return Result.Fail("Nome deve ter ao menos 3 caracteres.");
             Nome = nome;
         }
-        if (descricao is not null) Descricao = descricao;
-        if (categoria is not null) Categoria = categoria;
-        if (email is not null) ContatoEmail = email;
+
+        if (descricao is not null)
+        {
+            var descricaoResult = DescricaoProduto.Criar(descricao);
+            if (!descricaoResult.IsSuccess) return Result.Fail(descricaoResult.Error!);
+            Descricao = descricaoResult.Value!;
+        }
+
+        if (categoria is not null)
+        {
+            var categoriaResult = CategoriaProduto.Criar(categoria);
+            if (!categoriaResult.IsSuccess) return Result.Fail(categoriaResult.Error!);
+            Categoria = categoriaResult.Value!;
+        }
+
+        if (email is not null)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return Result.Fail("Email de contato é obrigatório.");
+            ContatoEmail = email;
+        }
+
         DataAtualizacao = DateTime.UtcNow;
         return Result.Ok();
     }
@@ -109,9 +145,12 @@ public class Produto
     {
         if (quantidade <= 0)
             return Result.Fail("Quantidade de reposição deve ser positiva.");
-        if (Estoque + quantidade > EstoqueMaximo)
+
+        var novoEstoque = Estoque.Value + quantidade;
+        if (novoEstoque > EstoqueMaximo)
             return Result.Fail($"Estoque não pode exceder {EstoqueMaximo} unidades.");
-        Estoque += quantidade;
+
+        Estoque = EstoqueProduto.Reconstituir(novoEstoque);
         DataAtualizacao = DateTime.UtcNow;
         return Result.Ok();
     }
@@ -125,14 +164,15 @@ public class Produto
         return Result.Ok();
     }
 
-    public bool TemEstoqueDisponivel(int qtd) => Ativo && Estoque >= qtd;
+    public bool TemEstoqueDisponivel(int qtd) => Ativo && Estoque.Value >= qtd;
 
     // public (não mais internal): chamado por Application e Infrastructure
     public void AjustarEstoque(int quantidade)
     {
-        if (quantidade < 0) throw new InvalidOperationException("Estoque não pode ser negativo.");
+        var estoqueResult = EstoqueProduto.Criar(quantidade);
+        if (!estoqueResult.IsSuccess) throw new InvalidOperationException(estoqueResult.Error);
         if (quantidade > EstoqueMaximo) throw new InvalidOperationException($"Estoque não pode exceder {EstoqueMaximo} unidades.");
-        Estoque = quantidade;
+        Estoque = estoqueResult.Value!;
         DataAtualizacao = DateTime.UtcNow;
     }
 
