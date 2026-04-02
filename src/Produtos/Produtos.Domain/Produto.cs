@@ -48,6 +48,36 @@ public class Produto
         });
     }
 
+    public static Produto Reconstituir(
+        int id,
+        string nome,
+        string descricao,
+        decimal preco,
+        string categoria,
+        int estoque,
+        bool ativo,
+        string contatoEmail,
+        DateTime dataCriacao,
+        DateTime dataAtualizacao)
+    {
+        if (id <= 0)
+            throw new ArgumentOutOfRangeException(nameof(id), "Id precisa ser maior que zero.");
+
+        return new Produto
+        {
+            Id = id,
+            Nome = nome,
+            Descricao = descricao,
+            Preco = preco,
+            Categoria = categoria,
+            Estoque = estoque,
+            Ativo = ativo,
+            ContatoEmail = contatoEmail,
+            DataCriacao = dataCriacao,
+            DataAtualizacao = dataAtualizacao
+        };
+    }
+
     public Result AtualizarPreco(decimal novoPreco)
     {
         if (novoPreco < PrecoMinimo)

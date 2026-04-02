@@ -19,7 +19,7 @@ public static class ProdutosServiceExtensions
         services.AddScoped<IProdutoService, ProdutoService>();
 
         // Repository (Infrastructure)
-        services.AddScoped<IProdutoRepository, EfProdutoRepository>();
+        services.AddScoped<IProdutoRepository, DapperProdutoRepository>();
 
         // Validators
         services.AddValidatorsFromAssemblyContaining<CriarProdutoValidator>();

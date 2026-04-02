@@ -44,9 +44,10 @@ builder.Host.UseSerilog();
 
 if (builder.Environment.IsEnvironment("Testing"))
 {
-    var testDbName = "TestDb_" + Guid.NewGuid();
+    var testDbName = $"TestDb_{Guid.NewGuid():N}.db";
+    var testDbPath = Path.Combine(Path.GetTempPath(), testDbName);
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseInMemoryDatabase(testDbName));
+        options.UseSqlite($"Data Source={testDbPath}"));
 }
 else
 {
