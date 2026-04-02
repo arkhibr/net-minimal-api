@@ -85,7 +85,7 @@ builder.Services.AddScoped<CancelPedidoHandler>();
 // CONFIGURAÇÃO DE MAPEAMENTO
 // ==========================================
 
-builder.Services.AddAutoMapper(typeof(ProdutoMappingProfile));
+builder.Services.AddAutoMapper(_ => { }, typeof(ProdutoMappingProfile).Assembly);
 
 // ==========================================
 // CONFIGURAÇÃO DE CORS
