@@ -1,15 +1,14 @@
-using Microsoft.EntityFrameworkCore;
-using ProdutosAPI.Shared.Data;
 using ProdutosAPI.Shared.Common;
 using ProdutosAPI.Pedidos.Common;
 using ProdutosAPI.Pedidos.Domain;
+using ProdutosAPI.Pedidos.Repositories;
 
 namespace ProdutosAPI.Pedidos.CreatePedido;
 
 public record CreatePedidoCommand(List<CreatePedidoItemDto> Itens);
 public record CreatePedidoItemDto(int ProdutoId, int Quantidade);
 
-public class CreatePedidoHandler(AppDbContext db)
+public class CreatePedidoHandler(IPedidoCommandRepository repository)
 {
     public async Task<Result<PedidoResponse>> HandleAsync(
         CreatePedidoCommand cmd, CancellationToken ct = default)
@@ -18,7 +17,7 @@ public class CreatePedidoHandler(AppDbContext db)
 
         foreach (var itemDto in cmd.Itens)
         {
-            var produto = await db.Produtos.FindAsync([itemDto.ProdutoId], ct);
+            var produto = await repository.ObterProdutoParaItemAsync(itemDto.ProdutoId, ct);
             if (produto is null)
                 return Result<PedidoResponse>.Fail($"Produto {itemDto.ProdutoId} não encontrado.");
 
@@ -27,8 +26,8 @@ public class CreatePedidoHandler(AppDbContext db)
                 return Result<PedidoResponse>.Fail(resultado.Error!);
         }
 
-        db.Pedidos.Add(pedido);
-        await db.SaveChangesAsync(ct);
+        await repository.AdicionarAsync(pedido, ct);
+        await repository.SaveChangesAsync(ct);
 
         return Result<PedidoResponse>.Ok(PedidoResponse.From(pedido));
     }

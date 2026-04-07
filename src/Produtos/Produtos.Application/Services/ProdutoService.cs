@@ -8,13 +8,19 @@ namespace ProdutosAPI.Produtos.Application.Services;
 
 public class ProdutoService : IProdutoService
 {
-    private readonly IProdutoRepository _repository;
+    private readonly IProdutoQueryRepository _queryRepo;
+    private readonly IProdutoCommandRepository _commandRepo;
     private readonly IMapper _mapper;
     private readonly ILogger<ProdutoService> _logger;
 
-    public ProdutoService(IProdutoRepository repository, IMapper mapper, ILogger<ProdutoService> logger)
+    public ProdutoService(
+        IProdutoQueryRepository queryRepo,
+        IProdutoCommandRepository commandRepo,
+        IMapper mapper,
+        ILogger<ProdutoService> logger)
     {
-        _repository = repository;
+        _queryRepo = queryRepo;
+        _commandRepo = commandRepo;
         _mapper = mapper;
         _logger = logger;
     }
@@ -27,12 +33,12 @@ public class ProdutoService : IProdutoService
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-        var (produtos, total) = await _repository.ListarAsync(page, pageSize, categoria, search);
+        var (produtos, total) = await _queryRepo.ListarAsync(page, pageSize, categoria, search);
         var totalPages = (int)Math.Ceiling(total / (double)pageSize);
 
         return new PaginatedResponse<ProdutoResponse>
         {
-            Data = _mapper.Map<List<ProdutoResponse>>(produtos),
+            Data = produtos.ToList(),
             Pagination = new PaginationInfo
             {
                 Page = page,
@@ -46,13 +52,13 @@ public class ProdutoService : IProdutoService
     public async Task<ProdutoResponse?> ObterProdutoAsync(int id)
     {
         _logger.LogInformation("Obtendo produto com ID: {ProductId}", id);
-        var produto = await _repository.ObterPorIdAsync(id);
+        var produto = await _queryRepo.ObterPorIdAsync(id);
         if (produto is null)
         {
             _logger.LogWarning("Produto com ID {ProductId} não encontrado", id);
             return null;
         }
-        return _mapper.Map<ProdutoResponse>(produto);
+        return produto;
     }
 
     public async Task<ProdutoResponse> CriarProdutoAsync(CriarProdutoRequest request)
@@ -66,7 +72,7 @@ public class ProdutoService : IProdutoService
         if (!resultado.IsSuccess)
             throw new InvalidOperationException(resultado.Error);
 
-        var produto = await _repository.AdicionarAsync(resultado.Value!);
+        var produto = await _commandRepo.AdicionarAsync(resultado.Value!);
         _logger.LogInformation("Produto criado com sucesso. ID: {ProductId}", produto.Id);
         return _mapper.Map<ProdutoResponse>(produto);
     }
@@ -75,7 +81,7 @@ public class ProdutoService : IProdutoService
     {
         _logger.LogInformation("Atualizando produto com ID: {ProductId}", id);
 
-        var produto = await _repository.ObterPorIdAsync(id);
+        var produto = await _commandRepo.ObterPorIdAsync(id);
         if (produto is null)
         {
             _logger.LogWarning("Produto com ID {ProductId} não encontrado", id);
@@ -92,7 +98,7 @@ public class ProdutoService : IProdutoService
 
         var atualizarDadosResult = produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
         if (!atualizarDadosResult.IsSuccess) throw new InvalidOperationException(atualizarDadosResult.Error);
-        await _repository.AtualizarAsync(produto);
+        await _commandRepo.SaveChangesAsync();
 
         _logger.LogInformation("Produto {ProductId} atualizado com sucesso", id);
         return _mapper.Map<ProdutoResponse>(produto);
@@ -102,7 +108,7 @@ public class ProdutoService : IProdutoService
     {
         _logger.LogInformation("Atualizando completamente produto com ID: {ProductId}", id);
 
-        var produto = await _repository.ObterPorIdAsync(id);
+        var produto = await _commandRepo.ObterPorIdAsync(id);
         if (produto is null)
         {
             _logger.LogWarning("Produto com ID {ProductId} não encontrado", id);
@@ -117,7 +123,7 @@ public class ProdutoService : IProdutoService
         produto.AjustarEstoque(request.Estoque);
         var atualizarDadosResult = produto.AtualizarDados(request.Nome, request.Descricao, request.Categoria, request.ContatoEmail);
         if (!atualizarDadosResult.IsSuccess) throw new InvalidOperationException(atualizarDadosResult.Error);
-        await _repository.AtualizarAsync(produto);
+        await _commandRepo.SaveChangesAsync();
 
         _logger.LogInformation("Produto {ProductId} atualizado completamente", id);
         return _mapper.Map<ProdutoResponse>(produto);
@@ -126,7 +132,7 @@ public class ProdutoService : IProdutoService
     public async Task<bool> DeletarProdutoAsync(int id)
     {
         _logger.LogInformation("Deletando produto com ID: {ProductId}", id);
-        var deletado = await _repository.DeletarAsync(id);
+        var deletado = await _commandRepo.DeletarAsync(id);
         if (!deletado)
             _logger.LogWarning("Produto {ProductId} não encontrado para deleção", id);
         return deletado;
