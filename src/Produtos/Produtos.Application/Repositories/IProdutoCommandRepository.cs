@@ -2,12 +2,12 @@ using ProdutosAPI.Produtos.Domain;
 
 namespace ProdutosAPI.Produtos.Application.Repositories;
 
-public interface IProdutoRepository
+public interface IProdutoCommandRepository
 {
-    Task<(IReadOnlyList<Produto> Items, int Total)> ListarAsync(
-        int page, int pageSize, string? categoria = null, string? search = null);
+    /// <summary>Carrega entidade rastreada pelo EF para posterior mutação.</summary>
     Task<Produto?> ObterPorIdAsync(int id);
     Task<Produto> AdicionarAsync(Produto produto);
-    Task AtualizarAsync(Produto produto);
+    /// <summary>Soft delete: marca Ativo = false.</summary>
     Task<bool> DeletarAsync(int id);
+    Task SaveChangesAsync();
 }

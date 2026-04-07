@@ -12,19 +12,22 @@ namespace ProdutosAPI.Tests.Services
 {
     public class ProdutoServiceTests
     {
-        private readonly Mock<IProdutoRepository> _mockRepository;
+        private readonly Mock<IProdutoQueryRepository> _mockQueryRepository;
+        private readonly Mock<IProdutoCommandRepository> _mockCommandRepository;
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<ILogger<ProdutoService>> _mockLogger;
         private readonly ProdutoService _service;
 
         public ProdutoServiceTests()
         {
-            _mockRepository = new Mock<IProdutoRepository>();
+            _mockQueryRepository = new Mock<IProdutoQueryRepository>();
+            _mockCommandRepository = new Mock<IProdutoCommandRepository>();
             _mockMapper = new Mock<IMapper>();
             _mockLogger = new Mock<ILogger<ProdutoService>>();
 
             _service = new ProdutoService(
-                _mockRepository.Object,
+                _mockQueryRepository.Object,
+                _mockCommandRepository.Object,
                 _mockMapper.Object,
                 _mockLogger.Object
             );
@@ -36,16 +39,11 @@ namespace ProdutosAPI.Tests.Services
         public async Task ListarProdutosAsync_WithValidPagination_ReturnsPaginatedProducts()
         {
             // Arrange
-            var produtos = CreateMockProdutos(10);
             var responses = CreateMockProdutoResponses(10);
 
-            _mockRepository
+            _mockQueryRepository
                 .Setup(r => r.ListarAsync(1, 10, null, null))
-                .ReturnsAsync((produtos.AsReadOnly(), 10));
-
-            _mockMapper
-                .Setup(m => m.Map<List<ProdutoResponse>>(It.IsAny<IReadOnlyList<Produto>>()))
-                .Returns(responses);
+                .ReturnsAsync(((IReadOnlyList<ProdutoResponse>)responses, 10));
 
             // Act
             var result = await _service.ListarProdutosAsync(1, 10);
@@ -63,13 +61,9 @@ namespace ProdutosAPI.Tests.Services
         public async Task ListarProdutosAsync_WithInvalidPageNumber_NormalizesToPage1(int pageNumber)
         {
             // Arrange
-            _mockRepository
+            _mockQueryRepository
                 .Setup(r => r.ListarAsync(1, 10, null, null))
-                .ReturnsAsync((new List<Produto>().AsReadOnly(), 0));
-
-            _mockMapper
-                .Setup(m => m.Map<List<ProdutoResponse>>(It.IsAny<IReadOnlyList<Produto>>()))
-                .Returns(new List<ProdutoResponse>());
+                .ReturnsAsync(((IReadOnlyList<ProdutoResponse>)new List<ProdutoResponse>(), 0));
 
             // Act
             var result = await _service.ListarProdutosAsync(pageNumber, 10);
@@ -83,13 +77,9 @@ namespace ProdutosAPI.Tests.Services
         public async Task ListarProdutosAsync_WithEmptyDatabase_ReturnsEmptyList()
         {
             // Arrange
-            _mockRepository
+            _mockQueryRepository
                 .Setup(r => r.ListarAsync(1, 10, null, null))
-                .ReturnsAsync((new List<Produto>().AsReadOnly(), 0));
-
-            _mockMapper
-                .Setup(m => m.Map<List<ProdutoResponse>>(It.IsAny<IReadOnlyList<Produto>>()))
-                .Returns(new List<ProdutoResponse>());
+                .ReturnsAsync(((IReadOnlyList<ProdutoResponse>)new List<ProdutoResponse>(), 0));
 
             // Act
             var result = await _service.ListarProdutosAsync(1, 10);
@@ -107,11 +97,9 @@ namespace ProdutosAPI.Tests.Services
         public async Task ObterProdutoAsync_WithValidId_ReturnsProduto()
         {
             // Arrange
-            var produto = Produto.Criar("Notebook Dell", "Intel i7, 16GB RAM", 5500.00m, "Eletrônicos", 10, "dell@example.com").Value!;
             var response = new ProdutoResponse { Id = 1, Nome = "Notebook Dell", Preco = 5500.00m, Estoque = 10 };
 
-            _mockRepository.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(produto);
-            _mockMapper.Setup(m => m.Map<ProdutoResponse>(produto)).Returns(response);
+            _mockQueryRepository.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(response);
 
             // Act
             var result = await _service.ObterProdutoAsync(1);
@@ -126,7 +114,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task ObterProdutoAsync_WithInvalidId_ReturnsNull()
         {
             // Arrange
-            _mockRepository.Setup(r => r.ObterPorIdAsync(999)).ReturnsAsync((Produto?)null);
+            _mockQueryRepository.Setup(r => r.ObterPorIdAsync(999)).ReturnsAsync((ProdutoResponse?)null);
 
             // Act
             var result = await _service.ObterProdutoAsync(999);
@@ -139,7 +127,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task ObterProdutoAsync_WithInactiveProduct_ReturnsNull()
         {
             // Arrange — repository already filters inactive; returns null
-            _mockRepository.Setup(r => r.ObterPorIdAsync(It.IsAny<int>())).ReturnsAsync((Produto?)null);
+            _mockQueryRepository.Setup(r => r.ObterPorIdAsync(It.IsAny<int>())).ReturnsAsync((ProdutoResponse?)null);
 
             // Act
             var result = await _service.ObterProdutoAsync(1);
@@ -169,7 +157,7 @@ namespace ProdutosAPI.Tests.Services
             var produto = Produto.Criar(request.Nome, request.Descricao, request.Preco, request.Categoria, request.Estoque, request.ContatoEmail).Value!;
             var response = new ProdutoResponse { Id = 1, Nome = request.Nome, Preco = request.Preco, Estoque = request.Estoque };
 
-            _mockRepository.Setup(r => r.AdicionarAsync(It.IsAny<Produto>())).ReturnsAsync(produto);
+            _mockCommandRepository.Setup(r => r.AdicionarAsync(It.IsAny<Produto>())).ReturnsAsync(produto);
             _mockMapper.Setup(m => m.Map<ProdutoResponse>(It.IsAny<Produto>())).Returns(response);
 
             // Act
@@ -192,8 +180,8 @@ namespace ProdutosAPI.Tests.Services
             var request = new AtualizarProdutoRequest { Nome = "Notebook Atualizado" };
             var response = new ProdutoResponse { Nome = "Notebook Atualizado", Preco = 5000m };
 
-            _mockRepository.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(produto);
-            _mockRepository.Setup(r => r.AtualizarAsync(produto)).Returns(Task.CompletedTask);
+            _mockCommandRepository.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(produto);
+            _mockCommandRepository.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
             _mockMapper.Setup(m => m.Map<ProdutoResponse>(produto)).Returns(response);
 
             // Act
@@ -208,7 +196,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task AtualizarProdutoAsync_WithInvalidId_ReturnsNull()
         {
             // Arrange
-            _mockRepository.Setup(r => r.ObterPorIdAsync(999)).ReturnsAsync((Produto?)null);
+            _mockCommandRepository.Setup(r => r.ObterPorIdAsync(999)).ReturnsAsync((Produto?)null);
 
             // Act
             var result = await _service.AtualizarProdutoAsync(999, new AtualizarProdutoRequest { Nome = "Test" });
@@ -237,8 +225,8 @@ namespace ProdutosAPI.Tests.Services
             };
             var response = new ProdutoResponse { Nome = request.Nome, Preco = request.Preco, Estoque = request.Estoque };
 
-            _mockRepository.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(produto);
-            _mockRepository.Setup(r => r.AtualizarAsync(produto)).Returns(Task.CompletedTask);
+            _mockCommandRepository.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(produto);
+            _mockCommandRepository.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
             _mockMapper.Setup(m => m.Map<ProdutoResponse>(produto)).Returns(response);
 
             // Act
@@ -258,7 +246,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task DeletarProdutoAsync_WithValidId_PerformsSoftDelete()
         {
             // Arrange
-            _mockRepository.Setup(r => r.DeletarAsync(1)).ReturnsAsync(true);
+            _mockCommandRepository.Setup(r => r.DeletarAsync(1)).ReturnsAsync(true);
 
             // Act
             var result = await _service.DeletarProdutoAsync(1);
@@ -271,7 +259,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task DeletarProdutoAsync_WithInvalidId_ReturnsFalse()
         {
             // Arrange
-            _mockRepository.Setup(r => r.DeletarAsync(999)).ReturnsAsync(false);
+            _mockCommandRepository.Setup(r => r.DeletarAsync(999)).ReturnsAsync(false);
 
             // Act
             var result = await _service.DeletarProdutoAsync(999);
@@ -284,7 +272,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task DeletarProdutoAsync_WithAlreadyDeletedProduct_ReturnsFalse()
         {
             // Arrange — repository returns false for inactive products
-            _mockRepository.Setup(r => r.DeletarAsync(It.IsAny<int>())).ReturnsAsync(false);
+            _mockCommandRepository.Setup(r => r.DeletarAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             // Act
             var result = await _service.DeletarProdutoAsync(1);
