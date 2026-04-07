@@ -6,6 +6,8 @@ using ProdutosAPI.Pedidos.GetPedido;
 using ProdutosAPI.Pedidos.ListPedidos;
 using ProdutosAPI.Pedidos.AddItemPedido;
 using ProdutosAPI.Pedidos.CancelPedido;
+using ProdutosAPI.Pedidos.Repositories;
+using ProdutosAPI.Pedidos.Infrastructure;
 using ProdutosAPI.Produtos.API.Endpoints;
 using ProdutosAPI.Produtos.API.Extensions;
 using ProdutosAPI.Produtos.Application.Interfaces;
@@ -73,6 +75,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Registrar slices de Pedidos via scan automático
 builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
+
+// Repositórios de Pedidos (CQRS: Dapper para leitura, EF Core para escrita)
+builder.Services.AddScoped<IPedidoQueryRepository, PedidoQueryRepository>();
+builder.Services.AddScoped<IPedidoCommandRepository, PedidoCommandRepository>();
 
 // Handlers dos slices de Pedidos
 builder.Services.AddScoped<CreatePedidoHandler>();
