@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using ProdutosAPI.Shared.Data;
 using ProdutosAPI.Shared.Common;
 using ProdutosAPI.Pedidos.Common;
+using ProdutosAPI.Pedidos.Repositories;
 
 namespace ProdutosAPI.Pedidos.CancelPedido;
 
@@ -9,14 +8,12 @@ public record CancelPedidoRequest(string Motivo);
 
 public record CancelPedidoCommand(int PedidoId, string Motivo);
 
-public class CancelPedidoHandler(AppDbContext db)
+public class CancelPedidoHandler(IPedidoCommandRepository repository)
 {
     public async Task<Result<PedidoResponse>> HandleAsync(
         CancelPedidoCommand cmd, CancellationToken ct = default)
     {
-        var pedido = await db.Pedidos
-            .Include(p => p.Itens)
-            .FirstOrDefaultAsync(p => p.Id == cmd.PedidoId, ct);
+        var pedido = await repository.ObterPorIdAsync(cmd.PedidoId, ct);
 
         if (pedido is null)
             return Result<PedidoResponse>.Fail("Pedido não encontrado.");
@@ -25,7 +22,7 @@ public class CancelPedidoHandler(AppDbContext db)
         if (!resultado.IsSuccess)
             return Result<PedidoResponse>.Fail(resultado.Error!);
 
-        await db.SaveChangesAsync(ct);
+        await repository.SaveChangesAsync(ct);
         return Result<PedidoResponse>.Ok(PedidoResponse.From(pedido));
     }
 }
