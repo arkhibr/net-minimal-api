@@ -26,7 +26,11 @@ public static class AuthEndpoints
 
     private static IResult Login(LoginRequest req, IConfiguration configuration)
     {
-        if (req.Email != "admin@example.com" || req.Senha != "senha123")
+        // Em produção: buscar usuário no banco e comparar hash da senha (ex: BCrypt)
+        var adminEmail = configuration["Auth:AdminEmail"];
+        var adminPassword = configuration["Auth:AdminPassword"];
+
+        if (req.Email != adminEmail || req.Senha != adminPassword)
         {
             return Results.Unauthorized();
         }
