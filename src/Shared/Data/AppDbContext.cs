@@ -15,15 +15,18 @@ public class AppDbContext : DbContext, ICatalogoContext
     // DbSets
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<Categoria> Categorias => Set<Categoria>();
+    public DbSet<Variante> Variantes => Set<Variante>();
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
 
     // ICatalogoContext: explicit implementation — DbSet<T> não satisfaz IQueryable<T> implicitamente
     IQueryable<Produto> ICatalogoContext.Produtos => Set<Produto>();
     IQueryable<Categoria> ICatalogoContext.Categorias => Set<Categoria>();
+    IQueryable<Variante> ICatalogoContext.Variantes => Set<Variante>();
 
     public void AddProduto(Produto produto) => this.Add(produto);
     public void AddCategoria(Categoria categoria) => this.Add(categoria);
+    public void AddVariante(Variante variante) => this.Add(variante);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,6 +113,38 @@ public class AppDbContext : DbContext, ICatalogoContext
                 .HasForeignKey(c => c.CategoriaPaiId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
+        });
+
+        modelBuilder.Entity<Variante>(entity =>
+        {
+            entity.HasKey(v => v.Id);
+            entity.Property(v => v.ProdutoId).IsRequired().UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            entity.Property(v => v.Sku)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasConversion(sku => sku.Valor, valor => SKU.Reconstituir(valor))
+                .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            entity.HasIndex(v => new { v.ProdutoId, v.Sku })
+                .IsUnique()
+                .HasDatabaseName("idx_variante_produto_sku");
+
+            entity.Property(v => v.Descricao).IsRequired().HasMaxLength(200)
+                .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            entity.Property(v => v.PrecoAdicional)
+                .HasPrecision(10, 2)
+                .HasConversion(p => p.Value, v => PrecoProduto.Reconstituir(v))
+                .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            entity.Property(v => v.Estoque)
+                .HasConversion(e => e.Value, v => EstoqueProduto.Reconstituir(v))
+                .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            entity.Property(v => v.Ativa).HasDefaultValue(true).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(v => v.DataCriacao).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(v => v.DataAtualizacao).UsePropertyAccessMode(PropertyAccessMode.Property);
         });
 
         modelBuilder.Entity<Pedido>(entity =>

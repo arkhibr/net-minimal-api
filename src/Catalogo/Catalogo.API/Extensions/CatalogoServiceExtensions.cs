@@ -21,6 +21,11 @@ public static class CatalogoServiceExtensions
         services.AddScoped<ICategoriaQueryRepository, DapperCategoriaQueryRepository>();
         services.AddScoped<ICategoriaCommandRepository, EfCategoriaCommandRepository>();
 
+        // Variante
+        services.AddScoped<IVarianteService, VarianteService>();
+        services.AddScoped<IVarianteQueryRepository, DapperVarianteQueryRepository>();
+        services.AddScoped<IVarianteCommandRepository, EfVarianteCommandRepository>();
+
         services.AddValidatorsFromAssemblyContaining<CriarProdutoValidator>();
         return services;
     }
