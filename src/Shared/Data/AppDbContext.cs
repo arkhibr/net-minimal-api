@@ -16,6 +16,8 @@ public class AppDbContext : DbContext, ICatalogoContext
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Variante> Variantes => Set<Variante>();
+    public DbSet<Atributo> Atributos => Set<Atributo>();
+    public DbSet<Midia> Midias => Set<Midia>();
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
 
@@ -23,10 +25,15 @@ public class AppDbContext : DbContext, ICatalogoContext
     IQueryable<Produto> ICatalogoContext.Produtos => Set<Produto>();
     IQueryable<Categoria> ICatalogoContext.Categorias => Set<Categoria>();
     IQueryable<Variante> ICatalogoContext.Variantes => Set<Variante>();
+    IQueryable<Atributo> ICatalogoContext.Atributos => Set<Atributo>();
+    IQueryable<Midia> ICatalogoContext.Midias => Set<Midia>();
 
     public void AddProduto(Produto produto) => this.Add(produto);
     public void AddCategoria(Categoria categoria) => this.Add(categoria);
     public void AddVariante(Variante variante) => this.Add(variante);
+    public void AddAtributo(Atributo atributo) => this.Add(atributo);
+    public void AddMidia(Midia midia) => this.Add(midia);
+    public new void Remove<T>(T entity) where T : class => base.Remove(entity!);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -113,6 +120,25 @@ public class AppDbContext : DbContext, ICatalogoContext
                 .HasForeignKey(c => c.CategoriaPaiId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
+        });
+
+        modelBuilder.Entity<Atributo>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.ProdutoId).IsRequired().UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(a => a.Chave).IsRequired().HasMaxLength(50).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(a => a.Valor).IsRequired().HasMaxLength(200).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(a => a.DataCriacao).UsePropertyAccessMode(PropertyAccessMode.Property);
+        });
+
+        modelBuilder.Entity<Midia>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.ProdutoId).IsRequired().UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(m => m.Url).IsRequired().HasMaxLength(500).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(m => m.Tipo).HasConversion<string>().UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(m => m.Ordem).HasDefaultValue(0).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(m => m.DataCriacao).UsePropertyAccessMode(PropertyAccessMode.Property);
         });
 
         modelBuilder.Entity<Variante>(entity =>
