@@ -1,7 +1,10 @@
-# PIX Demo: Mock Server + Cliente HTTP
+# Pix — Mock Server e Cliente HTTP
 
-## Objetivo pedagógico
-Este módulo demonstra como estruturar chamadas de API com `HttpClientFactory` e como modelar payloads JSON complexos de forma organizada, com validação, idempotência, correlação e tratamento padronizado de erro.
+Este módulo demonstra como estruturar chamadas de API externas em .NET com `HttpClientFactory`, modelar payloads JSON complexos e aplicar boas práticas de idempotência, correlação e tratamento de erro padronizado.
+
+## Objetivo
+
+Demonstrar como estruturar chamadas de API com `HttpClientFactory` e como modelar payloads JSON complexos de forma organizada, com validação, idempotência, correlação e tratamento padronizado de erro.
 
 ## Arquitetura da demo
 
@@ -97,7 +100,7 @@ Exemplos completos versionados no repositório:
 - [problem-idempotency-conflict-response.json](examples/pix-json/problem-idempotency-conflict-response.json)
 
 Guia complementar:
-- [JSON-COMPLEXO-E-BOAS-PRATICAS.md](JSON-COMPLEXO-E-BOAS-PRATICAS.md)
+- [guias/JSON-COMPLEXO-E-BOAS-PRATICAS.md](guias/JSON-COMPLEXO-E-BOAS-PRATICAS.md)
 
 ## Anti-padrões comuns vs boa prática
 - Anti-padrão: objeto JSON monolítico sem subestruturas semânticas.
@@ -129,8 +132,4 @@ dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
 dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 ```
 
-## Observações
-- Persistência é em memória (objetivo didático).
-- Segurança usa mTLS real + Bearer token.
-- Em ambiente `Testing`, existe fallback de validação por header apenas para testes automatizados (`WebApplicationFactory`).
-- Não há webhook nesta primeira versão.
+Persistência é em memória (objetivo didático). Segurança usa mTLS real + Bearer token. Em ambiente `Testing`, existe fallback de validação por header apenas para testes automatizados (`WebApplicationFactory`). Não há webhook nesta primeira versão.

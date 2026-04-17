@@ -1,10 +1,8 @@
-# Vertical Slice Architecture & Domínio Rico
+# Pedidos — Vertical Slice e Domínio Rico
 
-Este guia conceitual explica a **segunda abordagem arquitetural** adotada no projeto para o caso de uso de **Pedidos**, enquanto os produtos continuam usando a arquitetura em camadas.
+> Complemento didático: para integração externa com APIs e JSON complexo, veja [04-PIX.md](04-PIX.md), que cobre `HttpClientFactory`, idempotência e servidor mock auto-contido.
 
-> Complemento didático: para integração externa com APIs e JSON complexo, veja a trilha [PIX-DEMO.md](PIX-DEMO.md), que cobre `HttpClientFactory`, idempotência e servidor mock auto-contido.
-
-Se você ainda não entendeu a primeira abordagem (Clean Architecture em camadas), comece por [MELHORES-PRATICAS-MINIMAL-API.md](MELHORES-PRATICAS-MINIMAL-API.md) e explore `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs`.
+Para entender a arquitetura do Catálogo (CA híbrida em camadas), explore `src/Catalogo/Catalogo.API/Endpoints/`.
 
 ---
 
@@ -12,7 +10,7 @@ Se você ainda não entendeu a primeira abordagem (Clean Architecture em camadas
 
 Arquiteturas tradicionais em camadas (Endpoints → Services → Data) funcionam bem até um ponto. Uma mudança no domínio exige edições em múltiplos lugares:
 
-> **Exemplo:** Adicionar um novo campo `Desconto` aos Produtos exigia tocar em:
+> **Exemplo:** Adicionar um novo campo `Desconto` ao Catálogo exigiria tocar em:
 > 1. `Produto.cs` — adicionar propriedade
 > 2. `CriarProdutoValidator.cs` — adicionar regra
 > 3. `AtualizarProdutoValidator.cs` — idem
@@ -53,7 +51,8 @@ Cada slice é **independente**: alterar o comportamento de criação de pedido n
 
 ### Anatomia de um Slice (exemplo: CreatePedido)
 
-#### 1. **Command** (DTO de entrada)
+#### 2.1 Command (DTO de entrada)
+
 ```csharp
 public sealed record CreatePedidoCommand(
     string ClienteNome,
@@ -66,7 +65,8 @@ public sealed record AddItemCommand(
 );
 ```
 
-#### 2. **Validator** (FluentValidation)
+#### 2.2 Validator (FluentValidation)
+
 ```csharp
 public sealed class CreatePedidoValidator : AbstractValidator<CreatePedidoCommand>
 {
@@ -87,7 +87,8 @@ public sealed class CreatePedidoValidator : AbstractValidator<CreatePedidoComman
 }
 ```
 
-#### 3. **Handler** (Orquestração com domínio)
+#### 2.3 Handler (Orquestração com domínio)
+
 ```csharp
 public sealed class CreatePedidoHandler(
     AppDbContext context,
@@ -120,7 +121,8 @@ public sealed class CreatePedidoHandler(
 }
 ```
 
-#### 4. **Endpoint** (Rota HTTP)
+#### 2.4 Endpoint (Rota HTTP)
+
 ```csharp
 public sealed class CreatePedidoEndpoint : IEndpoint
 {
@@ -146,11 +148,13 @@ public sealed class CreatePedidoEndpoint : IEndpoint
 }
 ```
 
-### IEndpoint e Descoberta Automática
+---
+
+## 3. IEndpoint e Auto-Discovery
 
 **O desafio:** Em Vertical Slice, cada slice tem seu próprio endpoint. Registrá-los manualmente seria tedioso.
 
-**A solução:** Interface comum `IEndpoint` + descoberta via reflexão
+**A solução:** Interface comum `IEndpoint` + descoberta via reflexão.
 
 ```csharp
 // src/Shared/Common/IEndpoint.cs
@@ -165,13 +169,15 @@ No `Program.cs`:
 builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
 ```
 
-Isso varre todos os tipos implementando `IEndpoint` e chama `.Map()` automaticamente. Basta criar `NovoSliceEndpoint : IEndpoint` e ela será descoberta!
+Isso varre todos os tipos implementando `IEndpoint` e chama `.Map()` automaticamente. Basta criar `NovoSliceEndpoint : IEndpoint` e ela será descoberta — sem cadastro manual.
 
 ---
 
-## 3. Modelo Anêmico vs Domínio Rico
+## 4. Modelo Anêmico vs Domínio Rico
 
-### Produto (Anêmico) — Clean Architecture
+### Produto Hipotético (Anêmico)
+
+O exemplo abaixo mostra como seria um `Produto` puramente anêmico — sem regras encapsuladas:
 
 ```csharp
 public class Produto
@@ -206,11 +212,11 @@ public sealed class Pedido
     public int Id { get; set; }
     public string ClienteNome { get; set; }
     public PedidoStatus Status { get; set; }
-    
+
     // Propriedade calculada!
     public decimal Total => _itens.Sum(i => i.Total);
 
-    // **Regras encapsuladas em métodos:**
+    // Regras encapsuladas em métodos:
 
     public static Result<Pedido> Create(string clienteNome)
     {
@@ -220,8 +226,8 @@ public sealed class Pedido
         if (clienteNome.Length > 100)
             return Result<Pedido>.Fail("Nome muito longo");
 
-        return Result<Pedido>.Ok(new Pedido 
-        { 
+        return Result<Pedido>.Ok(new Pedido
+        {
             ClienteNome = clienteNome,
             Status = PedidoStatus.Aberto,
             DataCriacao = DateTime.Now
@@ -272,7 +278,7 @@ public sealed class Pedido
 
 ---
 
-## 4. Result Pattern
+## 5. Result Pattern
 
 Para distinguir entre sucesso e erro **sem lançar exceções**, Vertical Slice usa o **Result pattern**:
 
@@ -304,29 +310,29 @@ public abstract record Result<T>(bool IsSuccess, T? Value, string? Error)
 
 ---
 
-## 5. Quando Usar Cada Padrão?
+## 6. Quando Usar Cada Padrão
 
 ### Use Clean Architecture (Camadas) quando:
-- ✅ Domínio é simples (poucos agregados, poucas regras)
-- ✅ Muitos endpoints genéricos (CRUD tradicional)
-- ✅ Equipe pequena / projeto pequeno
-- ✅ Mudanças são raras e isoladas
+- Domínio é simples (poucos agregados, poucas regras)
+- Muitos endpoints genéricos (CRUD tradicional)
+- Equipe pequena / projeto pequeno
+- Mudanças são raras e isoladas
 
-**Exemplo:** Produtos — 6 endpoints simples de CRUD
+**Exemplo:** Catálogo — `Atributo` e `Mídia` (CRUD simples, sem invariantes de negócio)
 
 ### Use Vertical Slice (Feature Folders) quando:
-- ✅ Domínio é complexo (muitos agregados, invariantes)
-- ✅ Cada feature tem lógica específica
-- ✅ Equipe média/grande
-- ✅ Escalabilidade horizontal (features independentes)
+- Domínio é complexo (muitos agregados, invariantes)
+- Cada feature tem lógica específica
+- Equipe média/grande
+- Escalabilidade horizontal (features independentes)
 
 **Exemplo:** Pedidos — lógica de negócio embarcada no agregado
 
 ---
 
-## 6. Testes em Ambas as Arquiteturas
+## 7. Testes em Ambas as Arquiteturas
 
-### Testando Clean Architecture (Produto)
+### Testando Clean Architecture (Catálogo)
 
 ```csharp
 [Fact]
@@ -371,46 +377,6 @@ public void Pedido_AddItem_QuandoStatusNaoAberto_DeveRetornarFalha()
 
 ---
 
-## 7. Fluxo Completo: Criar Pedido
-
-### Clean Architecture (Produtos)
-
-```
-GET /api/v1/produtos/{id}
-  ↓
-ProdutoEndpoints mapeia rota
-  ↓
-Chama ProdutoService.ObterProdutoAsync()
-  ↓
-Service query context
-  ↓
-Mapeia resultado para ProdutoResponse
-  ↓
-Returns 200 + DTO
-```
-
-### Vertical Slice (Pedidos)
-
-```
-POST /api/v1/pedidos (requer JWT)
-  ↓
-CreatePedidoEndpoint descobre rota via IEndpoint
-  ↓
-CreatePedidoValidator valida entrada
-  ↓
-CreatePedidoHandler orquestra:
-    ├─ Pedido.Create(clienteNome) → Result<Pedido>
-    ├─ Para cada item, pedido.AddItem(...) → Result
-    ├─ Se falha, retorna erro
-    └─ context.SaveChangesAsync()
-  ↓
-Endpoint checka result.IsSuccess
-  ↓
-Returns 201 + DTO ou 400 + erro
-```
-
----
-
 ## 8. Checklist: Montando um Novo Slice
 
 Quando for adicionar um novo slice de Pedidos:
@@ -428,46 +394,30 @@ Quando for adicionar um novo slice de Pedidos:
 
 ## 9. Referências no Código
 
-### Clean Architecture (Produtos)
-- Endpoints: [src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs](../src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs)
-- Service: [src/Produtos/Produtos.Application/Services/ProdutoService.cs](../src/Produtos/Produtos.Application/Services/ProdutoService.cs)
-- Validators: [src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs](../src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs)
-- Testes: [tests/ProdutosAPI.Tests/Services/ProdutoServiceTests.cs](../tests/ProdutosAPI.Tests/Services/ProdutoServiceTests.cs)
+### Catálogo (CA Híbrida)
+- Endpoints: [src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs](../src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs)
+- Service: [src/Catalogo/Catalogo.Application/Services/ProdutoService.cs](../src/Catalogo/Catalogo.Application/Services/ProdutoService.cs)
+- Testes: [tests/ProdutosAPI.Tests/Integration/](../tests/ProdutosAPI.Tests/Integration/)
 
 ### Vertical Slice (Pedidos)
 - Domain: [src/Pedidos/Domain/](../src/Pedidos/Domain/)
 - CreatePedido: [src/Pedidos/CreatePedido/](../src/Pedidos/CreatePedido/)
 - Result Pattern: [src/Shared/Common/Result.cs](../src/Shared/Common/Result.cs)
-- Testes: [tests/ProdutosAPI.Tests/Integration/Pedidos/](../tests/ProdutosAPI.Tests/Integration/Pedidos/)
+- Testes: [tests/ProdutosAPI.Tests/Integration/](../tests/ProdutosAPI.Tests/Integration/)
 
 ---
 
-## 10. Resumo Comparativo Final
+## 10. Comparativo Final
 
-| Dimensão | Clean (Produtos) | Vertical Slice (Pedidos) |
-|----------|-----------------|--------------------------|
+| Dimensão | Catálogo (Produto) | Vertical Slice (Pedidos) |
+|----------|--------------------|--------------------------|
 | **Organização** | Por camada | Por feature |
-| **Diretório** | `src/Produtos/Produtos.*` | `src/Pedidos/` |
+| **Diretório** | `src/Catalogo/Catalogo.*` | `src/Pedidos/` |
 | **Independência** | Fraca (mudanças globais) | Forte (slice isolada) |
-| **Modelo** | Rico | Rico |
+| **Modelo** | Anêmico / híbrido | Rico |
 | **Validação** | Em Validator + Service | No agregado + Validator |
 | **Erro** | Exception | Result pattern |
 | **Coesão** | Baixa (espalhada) | Alta (tudo junto) |
 | **Teste** | Testa serviço isolado | Testa agregado direto |
 | **Escalabilidade** | Até ~50 endpoints | 100+ features |
 | **Quando usar** | Domínio simples | Domínio complexo |
-
----
-
-## 🎓 Próximas Leituras
-
-1. **DDD (Domain-Driven Design)** — Aprofunde em agregados e bounded contexts
-2. **CQRS** — Separe reads e writes
-3. **Event Sourcing** — Rastreie histórico de mudanças
-4. **Mediator Pattern** — Distribua handlers (MediatR)
-
----
-
-**Este projeto é um playground real para aprender ambos os padrões lado a lado. Explore, modifique, e veja as diferenças na prática!**
-
-🎉 **Feliz aprendizado!**
