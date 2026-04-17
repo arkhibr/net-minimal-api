@@ -9,6 +9,7 @@ using ProdutosAPI.Pedidos.CancelPedido;
 using ProdutosAPI.Pedidos.Repositories;
 using ProdutosAPI.Pedidos.Infrastructure;
 using ProdutosAPI.Catalogo.API.Endpoints.Auth;
+using ProdutosAPI.Catalogo.API.Endpoints.Categorias;
 using ProdutosAPI.Catalogo.API.Endpoints.Produtos;
 using ProdutosAPI.Catalogo.API.Extensions;
 using ProdutosAPI.Catalogo.Application.Interfaces;
@@ -244,6 +245,7 @@ app.MapAuthEndpoints();
 var v1 = app.MapGroup("/api/v1");
 var catalogo = v1.MapGroup("/catalogo");
 catalogo.MapProdutoEndpoints();
+catalogo.MapCategoriaEndpoints();
 
 // Slices de Pedidos (IEndpoint)
 app.MapRegisteredEndpoints();

@@ -11,9 +11,16 @@ public static class CatalogoServiceExtensions
 {
     public static IServiceCollection AddCatalogo(this IServiceCollection services)
     {
+        // Produto
         services.AddScoped<IProdutoService, ProdutoService>();
         services.AddScoped<IProdutoQueryRepository, DapperProdutoQueryRepository>();
         services.AddScoped<IProdutoCommandRepository, EfProdutoCommandRepository>();
+
+        // Categoria
+        services.AddScoped<ICategoriaService, CategoriaService>();
+        services.AddScoped<ICategoriaQueryRepository, DapperCategoriaQueryRepository>();
+        services.AddScoped<ICategoriaCommandRepository, EfCategoriaCommandRepository>();
+
         services.AddValidatorsFromAssemblyContaining<CriarProdutoValidator>();
         return services;
     }

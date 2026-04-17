@@ -14,13 +14,16 @@ public class AppDbContext : DbContext, ICatalogoContext
 
     // DbSets
     public DbSet<Produto> Produtos => Set<Produto>();
+    public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
 
     // ICatalogoContext: explicit implementation — DbSet<T> não satisfaz IQueryable<T> implicitamente
     IQueryable<Produto> ICatalogoContext.Produtos => Set<Produto>();
+    IQueryable<Categoria> ICatalogoContext.Categorias => Set<Categoria>();
 
     public void AddProduto(Produto produto) => this.Add(produto);
+    public void AddCategoria(Categoria categoria) => this.Add(categoria);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +91,25 @@ public class AppDbContext : DbContext, ICatalogoContext
             entity.Property(p => p.ContatoEmail).UsePropertyAccessMode(PropertyAccessMode.Property);
             entity.Property(p => p.DataCriacao).UsePropertyAccessMode(PropertyAccessMode.Property);
             entity.Property(p => p.DataAtualizacao).UsePropertyAccessMode(PropertyAccessMode.Property);
+        });
+
+        modelBuilder.Entity<Categoria>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Nome).IsRequired().HasMaxLength(100).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(c => c.Slug).IsRequired().HasMaxLength(120).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(c => c.CategoriaPaiId).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(c => c.Ativa).HasDefaultValue(true).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(c => c.DataCriacao).UsePropertyAccessMode(PropertyAccessMode.Property);
+            entity.Property(c => c.DataAtualizacao).UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            entity.HasIndex(c => c.Slug).IsUnique().HasDatabaseName("idx_categoria_slug");
+
+            entity.HasOne<Categoria>()
+                .WithMany()
+                .HasForeignKey(c => c.CategoriaPaiId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<Pedido>(entity =>
