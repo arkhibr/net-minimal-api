@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ProdutosAPI.Catalogo.API.Extensions;
 using ProdutosAPI.Shared.Data;
 using ProdutosAPI.Catalogo.Infrastructure.Data;
 
@@ -12,9 +13,14 @@ public class ApiFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Set environment to "Testing" so Program.cs uses InMemory DB and skips Migrate()
         builder.UseEnvironment("Testing");
+        // Program.cs pula AddCatalogoRateLimiting() em Testing; cada factory registra seus próprios limites
+        builder.ConfigureServices(AddRateLimiting);
     }
+
+    // Limites altos para não interferir em testes funcionais existentes
+    protected virtual void AddRateLimiting(IServiceCollection services) =>
+        services.AddCatalogoRateLimitingWithLimits(leituraLimit: 10000, escritaLimit: 10000, criacaoProdutoLimit: 10000);
 
     protected override IHost CreateHost(IHostBuilder builder)
     {

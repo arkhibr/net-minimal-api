@@ -13,24 +13,29 @@ public static class MidiaEndpoints
         var group = catalogoGroup.MapGroup("/midias").WithTags("Catálogo - Mídias");
 
         group.MapGet("/", Listar).WithName("ListarMidias")
-            .Produces<List<MidiaResponse>>(StatusCodes.Status200OK).AllowAnonymous();
+            .Produces<List<MidiaResponse>>(StatusCodes.Status200OK)
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapPost("/", Criar).WithName("CriarMidia")
             .Accepts<CriarMidiaRequest>("application/json")
             .Produces<MidiaResponse>(StatusCodes.Status201Created)
             .Produces<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapPatch("/{id:int}/ordem", AtualizarOrdem).WithName("AtualizarOrdemMidia")
             .Accepts<AtualizarOrdemMidiaRequest>("application/json")
             .Produces<MidiaResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapDelete("/{id:int}", Remover).WithName("RemoverMidia")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
     }
 
     private static async Task<IResult> Listar(IMidiaService service, int produtoId) =>

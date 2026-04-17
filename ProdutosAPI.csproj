@@ -21,6 +21,7 @@
     <Compile Remove="src/Catalogo/Catalogo.Application/**" />
     <Compile Remove="src/Catalogo/Catalogo.Infrastructure/**" />
     <Compile Remove="src/Catalogo/Catalogo.API/**" />
+    <Compile Remove="src/Catalogo/Catalogo.ClientDemo/**" />
     <Compile Remove="src/Pix/**" />
   </ItemGroup>
 

@@ -13,24 +13,29 @@ public static class AtributoEndpoints
         var group = catalogoGroup.MapGroup("/atributos").WithTags("Catálogo - Atributos");
 
         group.MapGet("/", Listar).WithName("ListarAtributos")
-            .Produces<List<AtributoResponse>>(StatusCodes.Status200OK).AllowAnonymous();
+            .Produces<List<AtributoResponse>>(StatusCodes.Status200OK)
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapPost("/", Criar).WithName("CriarAtributo")
             .Accepts<CriarAtributoRequest>("application/json")
             .Produces<AtributoResponse>(StatusCodes.Status201Created)
             .Produces<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapPut("/{id:int}", Atualizar).WithName("AtualizarAtributo")
             .Accepts<AtualizarAtributoRequest>("application/json")
             .Produces<AtributoResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapDelete("/{id:int}", Remover).WithName("RemoverAtributo")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
     }
 
     private static async Task<IResult> Listar(IAtributoService service, int produtoId) =>

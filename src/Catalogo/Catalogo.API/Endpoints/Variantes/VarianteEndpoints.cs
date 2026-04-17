@@ -16,35 +16,41 @@ public static class VarianteEndpoints
 
         group.MapGet("/", ListarVariantes).WithName("ListarVariantes")
             .Produces<List<VarianteResponse>>(StatusCodes.Status200OK)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapGet("/{id:int}", ObterVariante).WithName("ObterVariante")
             .Produces<VarianteResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapPost("/", CriarVariante).WithName("CriarVariante")
             .Accepts<CriarVarianteRequest>("application/json")
             .Produces<VarianteResponse>(StatusCodes.Status201Created)
             .Produces<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapPut("/{id:int}", AtualizarPreco).WithName("AtualizarPrecoVariante")
             .Accepts<AtualizarPrecoVarianteRequest>("application/json")
             .Produces<VarianteResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapPatch("/{id:int}/estoque", AtualizarEstoque).WithName("AtualizarEstoqueVariante")
             .Accepts<AtualizarEstoqueVarianteRequest>("application/json")
             .Produces<VarianteResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapDelete("/{id:int}", DesativarVariante).WithName("DesativarVariante")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
     }
 
     private static async Task<IResult> ListarVariantes(IVarianteService service, int produtoId)

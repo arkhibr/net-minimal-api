@@ -17,35 +17,41 @@ public static class ProdutoEndpoints
 
         group.MapGet("/", ListarProdutos).WithName("ListarProdutos")
             .Produces<PaginatedResponse<ProdutoResponse>>(StatusCodes.Status200OK)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapGet("/{id:int}", ObterProduto).WithName("ObterProduto")
             .Produces<ProdutoResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapPost("/", CriarProduto).WithName("CriarProduto")
             .Accepts<CriarProdutoRequest>("application/json")
             .Produces<ProdutoResponse>(StatusCodes.Status201Created)
             .Produces<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("criacao-produto");
 
         group.MapPut("/{id:int}", AtualizarCompletoProduto).WithName("AtualizarCompletoProduto")
             .Accepts<CriarProdutoRequest>("application/json")
             .Produces<ProdutoResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapPatch("/{id:int}", AtualizarParcialProduto).WithName("AtualizarParcialProduto")
             .Accepts<AtualizarProdutoRequest>("application/json")
             .Produces<ProdutoResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapDelete("/{id:int}", DeletarProduto).WithName("DeletarProduto")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
     }
 
     private static async Task<IResult> ListarProdutos(

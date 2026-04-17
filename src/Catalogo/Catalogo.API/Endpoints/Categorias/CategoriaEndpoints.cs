@@ -16,30 +16,35 @@ public static class CategoriaEndpoints
 
         group.MapGet("/", ListarCategorias).WithName("ListarCategorias")
             .Produces<List<CategoriaResponse>>(StatusCodes.Status200OK)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapGet("/{id:int}", ObterCategoria).WithName("ObterCategoria")
             .Produces<CategoriaResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("leitura");
 
         group.MapPost("/", CriarCategoria).WithName("CriarCategoria")
             .Accepts<CriarCategoriaRequest>("application/json")
             .Produces<CategoriaResponse>(StatusCodes.Status201Created)
             .Produces<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapPut("/{id:int}", RenomearCategoria).WithName("RenomearCategoria")
             .Accepts<RenomearCategoriaRequest>("application/json")
             .Produces<CategoriaResponse>(StatusCodes.Status200OK)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
 
         group.MapDelete("/{id:int}", DesativarCategoria).WithName("DesativarCategoria")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .RequireRateLimiting("escrita");
     }
 
     private static async Task<IResult> ListarCategorias(ICategoriaService service)

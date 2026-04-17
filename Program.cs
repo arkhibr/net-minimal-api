@@ -75,6 +75,12 @@ builder.Services.AddScoped<ICatalogoContext>(sp => sp.GetRequiredService<AppDbCo
 // Registrar todos os serviços do bounded context Catálogo
 builder.Services.AddCatalogo();
 
+// Rate limiting — não registrar em Testing (ApiFactory/RateLimitingApiFactory registram com limites próprios)
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddCatalogoRateLimiting();
+}
+
 // Registrar validators dos slices de Pedidos (no assembly principal)
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
@@ -234,6 +240,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
