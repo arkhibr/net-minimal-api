@@ -7,6 +7,12 @@ public static class DbSeeder
 {
     public static void Seed(ICatalogoContext context)
     {
+        SeedProdutos(context);
+        SeedCategorias(context);
+    }
+
+    private static void SeedProdutos(ICatalogoContext context)
+    {
         if (context.Produtos.Any()) return;
 
         var produtos = new[]
@@ -22,6 +28,24 @@ public static class DbSeeder
         };
 
         foreach (var p in produtos) context.AddProduto(p);
+        context.SaveChangesAsync().GetAwaiter().GetResult();
+    }
+
+    private static void SeedCategorias(ICatalogoContext context)
+    {
+        if (context.Categorias.Any()) return;
+
+        // IDs 1-5 reservados: testes de Categoria criam a partir de ID 6
+        var raiz = new[]
+        {
+            Categoria.Criar("Eletrônicos").Value!,
+            Categoria.Criar("Livros").Value!,
+            Categoria.Criar("Roupas").Value!,
+            Categoria.Criar("Alimentos").Value!,
+            Categoria.Criar("Outros").Value!
+        };
+
+        foreach (var c in raiz) context.AddCategoria(c);
         context.SaveChangesAsync().GetAwaiter().GetResult();
     }
 }
