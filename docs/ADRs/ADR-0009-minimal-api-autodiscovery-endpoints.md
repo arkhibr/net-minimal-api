@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-01-20
+deciders: [Marco Mendes]
+---
+
 # Minimal API com Auto-Discovery de Endpoints via Reflexão
 
 ## Contexto e Declaração do Problema

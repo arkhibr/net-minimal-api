@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-02-15
+deciders: [Marco Mendes]
+---
+
 # CQRS: EF Core para Escrita e Dapper para Leitura
 
 ## Contexto e Problema

@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-03-05
+deciders: [Marco Mendes]
+---
+
 # FluentValidation para Validação de Entrada
 
 ## Contexto e Declaração do Problema

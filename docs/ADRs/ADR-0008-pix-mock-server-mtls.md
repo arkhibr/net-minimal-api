@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-04-10
+deciders: [Marco Mendes]
+---
+
 # PIX Mock Server Customizado com mTLS
 
 ## Contexto e Declaração do Problema

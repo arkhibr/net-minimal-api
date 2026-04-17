@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-03-01
+deciders: [Marco Mendes]
+---
+
 # Value Objects como Sealed Records
 
 ## Contexto e Problema

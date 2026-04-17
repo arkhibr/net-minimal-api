@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-04-01
+deciders: [Marco Mendes]
+---
+
 # Soft Delete para Deleção Lógica de Produtos
 
 ## Contexto e Problema

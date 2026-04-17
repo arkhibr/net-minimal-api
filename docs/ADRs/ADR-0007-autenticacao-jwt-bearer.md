@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-03-10
+deciders: [Marco Mendes]
+---
+
 # Autenticação JWT Bearer com Credenciais em Configuração
 
 ## Contexto e Declaração do Problema

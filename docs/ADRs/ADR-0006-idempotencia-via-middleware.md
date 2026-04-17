@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-03-20
+deciders: [Marco Mendes]
+---
+
 # Idempotência via Middleware com Idempotency-Key
 
 ## Contexto e Problema

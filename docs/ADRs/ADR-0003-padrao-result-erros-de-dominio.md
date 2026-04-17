@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-02-01
+deciders: [Marco Mendes]
+---
+
 # Padrão Result&lt;T&gt; para Erros de Domínio
 
 ## Contexto e Problema

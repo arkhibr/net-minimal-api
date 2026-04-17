@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2024-01-15
+deciders: [Marco Mendes]
+---
+
 # Coexistência de Clean Architecture e Vertical Slice Architecture
 
 ## Contexto e Problema
