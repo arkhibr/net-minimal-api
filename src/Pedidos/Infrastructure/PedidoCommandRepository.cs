@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Pedidos.Domain;
 using ProdutosAPI.Pedidos.Repositories;
-using ProdutosAPI.Produtos.Domain;
+using ProdutosAPI.Catalogo.Domain;
 using ProdutosAPI.Shared.Data;
 
 namespace ProdutosAPI.Pedidos.Infrastructure;

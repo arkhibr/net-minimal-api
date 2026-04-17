@@ -1,9 +1,9 @@
 <Solution>
   <Project Path="ProdutosAPI.csproj" />
-  <Project Path="src/Produtos/Produtos.Domain/Produtos.Domain.csproj" />
-  <Project Path="src/Produtos/Produtos.Application/Produtos.Application.csproj" />
-  <Project Path="src/Produtos/Produtos.Infrastructure/Produtos.Infrastructure.csproj" />
-  <Project Path="src/Produtos/Produtos.API/Produtos.API.csproj" />
+  <Project Path="src/Catalogo/Catalogo.Domain/Catalogo.Domain.csproj" />
+  <Project Path="src/Catalogo/Catalogo.Application/Catalogo.Application.csproj" />
+  <Project Path="src/Catalogo/Catalogo.Infrastructure/Catalogo.Infrastructure.csproj" />
+  <Project Path="src/Catalogo/Catalogo.API/Catalogo.API.csproj" />
   <Project Path="src/Pix/Pix.MockServer/Pix.MockServer.csproj" />
   <Project Path="src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj" />
   <Project Path="tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj" />

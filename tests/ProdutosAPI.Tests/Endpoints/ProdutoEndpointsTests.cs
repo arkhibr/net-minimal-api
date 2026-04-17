@@ -2,7 +2,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
-using ProdutosAPI.Produtos.Application.DTOs;
+using ProdutosAPI.Catalogo.Application.DTOs.Produto;
+using ProdutosAPI.Catalogo.Application.DTOs.Common;
 using ProdutosAPI.Tests.Integration;
 using Xunit;
 
@@ -42,14 +43,14 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         ContatoEmail = "vendas@teste.com"
     };
 
-    #region GET /api/v1/produtos
+    #region GET /api/v1/catalogo/produtos
 
     [Fact]
     public async Task GET_Produtos_SemFiltros_Retorna200ComListaPaginada()
     {
         var client = CriarCliente();
 
-        var response = await client.GetAsync("/api/v1/produtos");
+        var response = await client.GetAsync("/api/v1/catalogo/produtos");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ProdutoResponse>>();
@@ -64,7 +65,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
     {
         var client = CriarCliente();
 
-        var response = await client.GetAsync("/api/v1/produtos?categoria=Livros");
+        var response = await client.GetAsync("/api/v1/catalogo/produtos?categoria=Livros");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ProdutoResponse>>();
@@ -78,14 +79,14 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         // endpoint marcado como AllowAnonymous
         var client = CriarCliente();
 
-        var response = await client.GetAsync("/api/v1/produtos");
+        var response = await client.GetAsync("/api/v1/catalogo/produtos");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     #endregion
 
-    #region GET /api/v1/produtos/{id}
+    #region GET /api/v1/catalogo/produtos/{id}
 
     [Fact]
     public async Task GET_Produto_ComIdExistente_Retorna200ComDados()
@@ -93,7 +94,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         var client = CriarCliente();
 
         // ID 1 é inserido pelo DbSeeder
-        var response = await client.GetAsync("/api/v1/produtos/1");
+        var response = await client.GetAsync("/api/v1/catalogo/produtos/1");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
@@ -108,7 +109,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
     {
         var client = CriarCliente();
 
-        var response = await client.GetAsync("/api/v1/produtos/99999");
+        var response = await client.GetAsync("/api/v1/catalogo/produtos/99999");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -118,21 +119,21 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
     {
         var client = CriarCliente();
 
-        var response = await client.GetAsync("/api/v1/produtos/1");
+        var response = await client.GetAsync("/api/v1/catalogo/produtos/1");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     #endregion
 
-    #region POST /api/v1/produtos
+    #region POST /api/v1/catalogo/produtos
 
     [Fact]
     public async Task POST_Produto_SemAutenticacao_Retorna401()
     {
         var client = CriarCliente();
 
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", RequestValido());
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", RequestValido());
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -142,7 +143,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
     {
         var client = await CriarClienteAutenticadoAsync();
 
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", RequestValido("Mouse Gamer Pro"));
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", RequestValido("Mouse Gamer Pro"));
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
@@ -151,7 +152,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         produto.Preco.Should().Be(299.90m);
         produto.Ativo.Should().BeTrue();
         response.Headers.Location.Should().NotBeNull();
-        response.Headers.Location!.ToString().Should().Contain($"/api/v1/produtos/{produto.Id}");
+        response.Headers.Location!.ToString().Should().Contain($"/api/v1/catalogo/produtos/{produto.Id}");
     }
 
     [Fact]
@@ -168,7 +169,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             ContatoEmail = "teste@teste.com"
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -187,7 +188,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             ContatoEmail = "teste@teste.com"
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -206,7 +207,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             ContatoEmail = "teste@teste.com"
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -225,21 +226,21 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             ContatoEmail = "nao-e-um-email"
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
     #endregion
 
-    #region PUT /api/v1/produtos/{id}
+    #region PUT /api/v1/catalogo/produtos/{id}
 
     [Fact]
     public async Task PUT_Produto_SemAutenticacao_Retorna401()
     {
         var client = CriarCliente();
 
-        var response = await client.PutAsJsonAsync("/api/v1/produtos/1", RequestValido());
+        var response = await client.PutAsJsonAsync("/api/v1/catalogo/produtos/1", RequestValido());
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -262,7 +263,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             ContatoEmail = "atualizado@teste.com"
         };
 
-        var response = await client.PutAsJsonAsync($"/api/v1/produtos/{criado.Id}", requestAtualizado);
+        var response = await client.PutAsJsonAsync($"/api/v1/catalogo/produtos/{criado.Id}", requestAtualizado);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
@@ -277,7 +278,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
     {
         var client = await CriarClienteAutenticadoAsync();
 
-        var response = await client.PutAsJsonAsync("/api/v1/produtos/99999", RequestValido());
+        var response = await client.PutAsJsonAsync("/api/v1/catalogo/produtos/99999", RequestValido());
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -298,14 +299,14 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             ContatoEmail = "teste@teste.com"
         };
 
-        var response = await client.PutAsJsonAsync($"/api/v1/produtos/{criado.Id}", requestInvalido);
+        var response = await client.PutAsJsonAsync($"/api/v1/catalogo/produtos/{criado.Id}", requestInvalido);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
     #endregion
 
-    #region PATCH /api/v1/produtos/{id}
+    #region PATCH /api/v1/catalogo/produtos/{id}
 
     [Fact]
     public async Task PATCH_Produto_SemAutenticacao_Retorna401()
@@ -313,7 +314,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         var client = CriarCliente();
         var request = new AtualizarProdutoRequest { Nome = "Novo Nome" };
 
-        var response = await client.PatchAsJsonAsync("/api/v1/produtos/1", request);
+        var response = await client.PatchAsJsonAsync("/api/v1/catalogo/produtos/1", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -326,7 +327,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
 
         var request = new AtualizarProdutoRequest { Nome = "Nome Atualizado Parcialmente" };
 
-        var response = await client.PatchAsJsonAsync($"/api/v1/produtos/{criado.Id}", request);
+        var response = await client.PatchAsJsonAsync($"/api/v1/catalogo/produtos/{criado.Id}", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var produto = await response.Content.ReadFromJsonAsync<ProdutoResponse>();
@@ -341,21 +342,21 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         var client = await CriarClienteAutenticadoAsync();
         var request = new AtualizarProdutoRequest { Nome = "Qualquer" };
 
-        var response = await client.PatchAsJsonAsync("/api/v1/produtos/99999", request);
+        var response = await client.PatchAsJsonAsync("/api/v1/catalogo/produtos/99999", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     #endregion
 
-    #region DELETE /api/v1/produtos/{id}
+    #region DELETE /api/v1/catalogo/produtos/{id}
 
     [Fact]
     public async Task DELETE_Produto_SemAutenticacao_Retorna401()
     {
         var client = CriarCliente();
 
-        var response = await client.DeleteAsync("/api/v1/produtos/1");
+        var response = await client.DeleteAsync("/api/v1/catalogo/produtos/1");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -366,7 +367,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         var client = await CriarClienteAutenticadoAsync();
         var criado = await CriarProdutoAsync(client, "Produto para Deletar");
 
-        var response = await client.DeleteAsync($"/api/v1/produtos/{criado.Id}");
+        var response = await client.DeleteAsync($"/api/v1/catalogo/produtos/{criado.Id}");
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
@@ -377,10 +378,10 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
         var client = await CriarClienteAutenticadoAsync();
         var criado = await CriarProdutoAsync(client, "Produto Soft Delete");
 
-        await client.DeleteAsync($"/api/v1/produtos/{criado.Id}");
+        await client.DeleteAsync($"/api/v1/catalogo/produtos/{criado.Id}");
 
         // Soft delete: produto deve retornar 404 após deletado
-        var getResponse = await client.GetAsync($"/api/v1/produtos/{criado.Id}");
+        var getResponse = await client.GetAsync($"/api/v1/catalogo/produtos/{criado.Id}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -389,7 +390,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
     {
         var client = await CriarClienteAutenticadoAsync();
 
-        var response = await client.DeleteAsync("/api/v1/produtos/99999");
+        var response = await client.DeleteAsync("/api/v1/catalogo/produtos/99999");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -408,7 +409,7 @@ public class ProdutoEndpointsTests : IClassFixture<ApiFactory>
             Estoque = 10,
             ContatoEmail = "helper@teste.com"
         };
-        var response = await client.PostAsJsonAsync("/api/v1/produtos", request);
+        var response = await client.PostAsJsonAsync("/api/v1/catalogo/produtos", request);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ProdutoResponse>())!;
     }

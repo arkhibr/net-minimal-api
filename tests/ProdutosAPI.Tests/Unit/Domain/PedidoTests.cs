@@ -2,7 +2,7 @@ using Xunit;
 using FluentAssertions;
 using ProdutosAPI.Pedidos.Domain;
 using ProdutosAPI.Tests.Builders;
-using ProdutosAPI.Produtos.Domain;
+using ProdutosAPI.Catalogo.Domain;
 
 namespace ProdutosAPI.Tests.Unit.Domain;
 

@@ -8,11 +8,12 @@ using ProdutosAPI.Pedidos.AddItemPedido;
 using ProdutosAPI.Pedidos.CancelPedido;
 using ProdutosAPI.Pedidos.Repositories;
 using ProdutosAPI.Pedidos.Infrastructure;
-using ProdutosAPI.Produtos.API.Endpoints;
-using ProdutosAPI.Produtos.API.Extensions;
-using ProdutosAPI.Produtos.Application.Interfaces;
-using ProdutosAPI.Produtos.Application.Mappings;
-using ProdutosAPI.Produtos.Infrastructure.Data;
+using ProdutosAPI.Catalogo.API.Endpoints.Auth;
+using ProdutosAPI.Catalogo.API.Endpoints.Produtos;
+using ProdutosAPI.Catalogo.API.Extensions;
+using ProdutosAPI.Catalogo.Application.Interfaces;
+using ProdutosAPI.Catalogo.Application.Mappings;
+using ProdutosAPI.Catalogo.Infrastructure.Data;
 using ProdutosAPI.Shared.Common;
 using ProdutosAPI.Shared.Middleware;
 using Serilog;
@@ -64,11 +65,11 @@ else
 // CONFIGURAÇÃO DE DEPENDENCY INJECTION
 // ==========================================
 
-// Conectar AppDbContext → IProdutoContext para injeção de dependência do repositório
-builder.Services.AddScoped<IProdutoContext>(sp => sp.GetRequiredService<AppDbContext>());
+// Conectar AppDbContext → ICatalogoContext para injeção de dependência do repositório
+builder.Services.AddScoped<ICatalogoContext>(sp => sp.GetRequiredService<AppDbContext>());
 
-// Registrar todos os serviços do feature Produtos
-builder.Services.AddProdutos();
+// Registrar todos os serviços do bounded context Catálogo
+builder.Services.AddCatalogo();
 
 // Registrar validators dos slices de Pedidos (no assembly principal)
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -91,7 +92,7 @@ builder.Services.AddScoped<CancelPedidoHandler>();
 // CONFIGURAÇÃO DE MAPEAMENTO
 // ==========================================
 
-builder.Services.AddAutoMapper(_ => { }, typeof(ProdutoMappingProfile).Assembly);
+builder.Services.AddAutoMapper(_ => { }, typeof(ProdutosAPI.Catalogo.Application.Mappings.ProdutoMappingProfile).Assembly);
 
 // ==========================================
 // CONFIGURAÇÃO DE CORS
@@ -204,7 +205,7 @@ if (!app.Environment.IsEnvironment("Testing"))
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
-    DbSeeder.Seed(dbContext);
+    ProdutosAPI.Catalogo.Infrastructure.Data.DbSeeder.Seed(dbContext);
 }
 
 // ==========================================
@@ -239,7 +240,10 @@ app.UseMiddleware<IdempotencyMiddleware>();
 // ==========================================
 
 app.MapAuthEndpoints();
-app.MapProdutoEndpoints();
+
+var v1 = app.MapGroup("/api/v1");
+var catalogo = v1.MapGroup("/catalogo");
+catalogo.MapProdutoEndpoints();
 
 // Slices de Pedidos (IEndpoint)
 app.MapRegisteredEndpoints();

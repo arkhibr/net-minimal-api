@@ -1,7 +1,7 @@
 using Xunit;
 using FluentAssertions;
-using ProdutosAPI.Produtos.Application.DTOs;
-using ProdutosAPI.Produtos.Application.Validators;
+using ProdutosAPI.Catalogo.Application.DTOs.Produto;
+using ProdutosAPI.Catalogo.Application.Validators;
 
 namespace ProdutosAPI.Tests.Validators
 {

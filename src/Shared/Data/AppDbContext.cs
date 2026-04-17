@@ -1,17 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Pedidos.Domain;
-using ProdutosAPI.Produtos.Application.Interfaces;
-using ProdutosAPI.Produtos.Domain;
-using ProdutosAPI.Produtos.Domain.ValueObjects;
+using ProdutosAPI.Catalogo.Application.Interfaces;
+using ProdutosAPI.Catalogo.Domain;
+using ProdutosAPI.Catalogo.Domain.ValueObjects;
 
 namespace ProdutosAPI.Shared.Data;
 
-/// <summary>
-/// Contexto do Entity Framework
-/// Referência: Melhores-Praticas-API.md - Seção "Segurança - SQL Injection"
-/// Usando ORM para proteção contre SQL Injection
-/// </summary>
-public class AppDbContext : DbContext, IProdutoContext
+public class AppDbContext : DbContext, ICatalogoContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -22,9 +17,8 @@ public class AppDbContext : DbContext, IProdutoContext
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
 
-    // IProdutoContext: explicit implementation — DbSet<T> não satisfaz IQueryable<T> implicitamente
-    IQueryable<Produto> IProdutoContext.Produtos => Set<Produto>();
-    // IProdutoContext: SaveChangesAsync já satisfeito por DbContext
+    // ICatalogoContext: explicit implementation — DbSet<T> não satisfaz IQueryable<T> implicitamente
+    IQueryable<Produto> ICatalogoContext.Produtos => Set<Produto>();
 
     public void AddProduto(Produto produto) => this.Add(produto);
 

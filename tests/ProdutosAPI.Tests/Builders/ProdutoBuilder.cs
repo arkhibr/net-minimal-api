@@ -1,4 +1,4 @@
-using ProdutosAPI.Produtos.Domain;
+using ProdutosAPI.Catalogo.Domain;
 
 namespace ProdutosAPI.Tests.Builders;
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ProdutosAPI.Shared.Data;
-using ProdutosAPI.Produtos.Infrastructure.Data;
+using ProdutosAPI.Catalogo.Infrastructure.Data;
 
 namespace ProdutosAPI.Tests.Integration;
 

@@ -1,7 +1,7 @@
 using Xunit;
 using FluentAssertions;
-using ProdutosAPI.Produtos.Domain;
-using ProdutosAPI.Produtos.Domain.Common;
+using ProdutosAPI.Catalogo.Domain;
+using ProdutosAPI.Catalogo.Domain.Common;
 using ProdutosAPI.Tests.Builders;
 
 namespace ProdutosAPI.Tests.Unit.Domain;
@@ -11,7 +11,7 @@ public class ProdutoTests
     [Fact]
     public void Criar_ComDadosValidos_RetornaProduto()
     {
-        var result = Produto.Criar("Notebook", "Desc", 1000m, "Eletrônicos", 5, "a@b.com");
+        var result = Produto.Criar("Notebook", "Descricao completa do produto", 1000m, "Eletrônicos", 5, "a@b.com");
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Nome.Should().Be("Notebook");

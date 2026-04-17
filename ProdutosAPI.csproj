@@ -16,16 +16,17 @@
     <Compile Remove="tests/Pedidos.Tests/**" />
     <Compile Remove="tests/Pix.MockServer.Tests/**" />
     <!-- Exclude new sub-projects (compiled separately, referenced via ProjectReference) -->
-    <Compile Remove="src/Produtos/Produtos.Domain/**" />
-    <Compile Remove="src/Produtos/Produtos.Application/**" />
-    <Compile Remove="src/Produtos/Produtos.Infrastructure/**" />
-    <Compile Remove="src/Produtos/Produtos.API/**" />
+    <Compile Remove="src/Produtos/**" />
+    <Compile Remove="src/Catalogo/Catalogo.Domain/**" />
+    <Compile Remove="src/Catalogo/Catalogo.Application/**" />
+    <Compile Remove="src/Catalogo/Catalogo.Infrastructure/**" />
+    <Compile Remove="src/Catalogo/Catalogo.API/**" />
     <Compile Remove="src/Pix/**" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="src/Produtos/Produtos.API/Produtos.API.csproj" />
-    <ProjectReference Include="src/Produtos/Produtos.Infrastructure/Produtos.Infrastructure.csproj" />
+    <ProjectReference Include="src/Catalogo/Catalogo.API/Catalogo.API.csproj" />
+    <ProjectReference Include="src/Catalogo/Catalogo.Infrastructure/Catalogo.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

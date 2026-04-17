@@ -1,10 +1,10 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using ProdutosAPI.Produtos.Domain;
-using ProdutosAPI.Produtos.Application.DTOs;
-using ProdutosAPI.Produtos.Application.Services;
-using ProdutosAPI.Produtos.Application.Repositories;
+using ProdutosAPI.Catalogo.Domain;
+using ProdutosAPI.Catalogo.Application.DTOs.Produto;
+using ProdutosAPI.Catalogo.Application.Services;
+using ProdutosAPI.Catalogo.Application.Repositories;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 
@@ -176,7 +176,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task AtualizarProdutoAsync_WithPartialUpdate_UpdatesProduct()
         {
             // Arrange
-            var produto = Produto.Criar("Notebook Original", "descricao", 5000m, "Eletrônicos", 5, "test@example.com").Value!;
+            var produto = Produto.Criar("Notebook Original", "Descricao do notebook original", 5000m, "Eletrônicos", 5, "test@example.com").Value!;
             var request = new AtualizarProdutoRequest { Nome = "Notebook Atualizado" };
             var response = new ProdutoResponse { Nome = "Notebook Atualizado", Preco = 5000m };
 
@@ -213,7 +213,7 @@ namespace ProdutosAPI.Tests.Services
         public async Task AtualizarCompletoProdutoAsync_WithValidRequest_ReplacesAllFields()
         {
             // Arrange
-            var produto = Produto.Criar("Mouse Antigo", "Wireless", 150m, "Eletrônicos", 50, "old@example.com").Value!;
+            var produto = Produto.Criar("Mouse Antigo", "Wireless USB preciso", 150m, "Eletrônicos", 50, "old@example.com").Value!;
             var request = new CriarProdutoRequest
             {
                 Nome = "Mouse Atualizado",
