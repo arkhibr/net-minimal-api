@@ -125,3 +125,158 @@ Componentes em `src/Shared/` utilizados por todos os bounded contexts:
 ## Decisões Arquiteturais
 
 As decisões arquiteturais estão registradas em 15 ADRs no formato MADR 3.x em `docs/ADRs/`. ADR-0011 a ADR-0015 documentam as decisões das Fases 1 a 3 (migração do Catálogo para Clean Architecture, novos recursos, rate limiting e estrutura de documentação).
+
+---
+
+## Estrutura de Diretórios
+
+```
+net-minimal-api/
+├── src/
+│   ├── Catalogo/                           # Bounded Context 1 — Clean Architecture híbrida
+│   │   ├── Catalogo.Domain/                # Entidades, value objects, interfaces de repositório
+│   │   ├── Catalogo.Application/           # Serviços, DTOs, validators, interfaces
+│   │   ├── Catalogo.Infrastructure/        # Repositórios EF Core, DbSeeder
+│   │   ├── Catalogo.API/                   # Endpoints Minimal API, extensões, rate limiting
+│   │   └── Catalogo.ClientDemo/            # Console app com pipeline de resiliência
+│   │
+│   ├── Pedidos/                            # Bounded Context 2 — Vertical Slice + Domínio Rico
+│   │   ├── Domain/                         # Aggregate Pedido, PedidoItem, StatusPedido
+│   │   ├── Features/
+│   │   │   ├── CreatePedido/               # Command, Validator, Handler, Endpoint
+│   │   │   ├── GetPedido/
+│   │   │   ├── ListPedidos/
+│   │   │   ├── AddItemPedido/
+│   │   │   └── CancelPedido/
+│   │   └── Common/                         # DTOs e tipos compartilhados entre slices
+│   │
+│   ├── Pix/                                # Bounded Context 3 — Integração Externa
+│   │   ├── Pix.MockServer/                 # Minimal API simulando BCB Pix
+│   │   │   ├── Contracts/                  # Requests e responses complexos
+│   │   │   ├── Application/                # Regras de negócio e validações
+│   │   │   ├── Infrastructure/InMemory/    # Repositórios thread-safe
+│   │   │   └── Security/                   # Bearer + mTLS real
+│   │   └── Pix.ClientDemo/                 # Console app — HttpClient tipado + resiliência
+│   │       ├── Client/Handlers/            # CorrelationId, IdempotencyKey, Logging
+│   │       └── Scenarios/                  # Fluxo fim-a-fim didático
+│   │
+│   └── Shared/                             # Compartilhado por todos os bounded contexts
+│       ├── Common/                         # IEndpoint, Result<T>, EndpointExtensions
+│       ├── Data/                           # AppDbContext + Migrations + DbSeeder
+│       └── Middleware/                     # ExceptionHandling, IdempotencyMiddleware
+│
+└── tests/
+    ├── ProdutosAPI.Tests/                  # Testes do Catálogo e Pedidos (150 testes)
+    │   ├── Unit/Domain/                    # Testes unitários de entidades e agregados
+    │   ├── Integration/Catalogo/           # Testes HTTP dos endpoints do Catálogo
+    │   ├── Integration/Pedidos/            # Testes HTTP dos endpoints de Pedidos
+    │   ├── Endpoints/                      # Testes de contrato HTTP
+    │   ├── Services/                       # Testes de serviços de aplicação
+    │   └── Validators/                     # Testes FluentValidation
+    └── Pix.MockServer.Tests/               # Testes de integração HTTP da trilha PIX (7 testes)
+```
+
+---
+
+## Fluxos de Requisição
+
+### Catálogo — Clean Architecture Híbrida
+
+```
+POST /api/v1/catalogo/produtos
+    │
+    ├─ RateLimiter  ← política "criacao-produto" (TokenBucket, 5/min)
+    │                  retorna 429 + Retry-After se excedido
+    │
+    ├─ IdempotencyMiddleware  ← verifica header Idempotency-Key
+    │                           devolve resposta cacheada se chave já vista
+    │
+    ├─ RequireAuthorization()  ← valida JWT Bearer
+    │                             retorna 401 se ausente, 403 se sem permissão
+    │
+    ├─ CriarProduto (handler local em ProdutoEndpoints.cs)
+    │   ├─ IValidator<CriarProdutoRequest>.ValidateAsync()  ← FluentValidation
+    │   │   └─ retorna 422 Unprocessable Entity se inválido
+    │   │
+    │   └─ IProdutoService.CriarProdutoAsync(request)
+    │       ├─ Produto.Criar(...)  ← domínio rico, retorna Result<Produto>
+    │       │   └─ retorna 422 se invariante violada (ex.: preço ≤ 0)
+    │       ├─ IProdutoCommandRepository.AdicionarAsync(produto)
+    │       └─ AppDbContext.SaveChangesAsync()
+    │
+    └─ 201 Created + ProdutoResponse
+```
+
+### Pedidos — Vertical Slice + Domínio Rico
+
+```
+POST /api/v1/pedidos
+    │
+    ├─ RequireAuthorization()  ← JWT obrigatório
+    │
+    ├─ CreatePedidoEndpoint.Handle(command, handler)   ← IEndpoint, auto-descoberto
+    │   │
+    │   └─ CreatePedidoHandler.HandleAsync(command)
+    │       ├─ IValidator<CreatePedidoCommand>.ValidateAsync()
+    │       │   └─ retorna 400 se inválido
+    │       │
+    │       ├─ Pedido.Create(clienteNome)  ← retorna Result<Pedido>
+    │       │   └─ retorna 400 se nome inválido
+    │       │
+    │       ├─ foreach item: pedido.AddItem(produto, quantidade)
+    │       │   └─ retorna 400 se estoque insuficiente ou pedido não está Aberto
+    │       │
+    │       ├─ AppDbContext.Pedidos.Add(pedido)
+    │       └─ AppDbContext.SaveChangesAsync()
+    │
+    └─ 201 Created + { id }
+```
+
+### PIX — Mock Server + Cliente HTTP
+
+```
+Pix.ClientDemo                          Pix.MockServer
+     │                                       │
+     ├─ POST /oauth/token ──────────────────►│
+     │   (client_id + client_secret)         │ valida credenciais
+     │◄─ 200 { access_token } ──────────────┤
+     │                                       │
+     ├─ POST /pix/v1/cobrancas ────────────►│
+     │   Authorization: Bearer {token}       │ valida Bearer
+     │   Idempotency-Key: {uuid}            │ verifica chave
+     │   X-Correlation-Id: {uuid}           │ logar para rastreio
+     │◄─ 201 { txid, status: "ATIVA" } ────┤
+     │                                       │
+     ├─ POST /pix/v1/cobrancas/{txid}       │
+     │        /simular-liquidacao ─────────►│ atualiza status para CONCLUIDA
+     │◄─ 200 OK ────────────────────────────┤
+     │                                       │
+     ├─ GET /pix/v1/cobrancas/{txid} ──────►│
+     │◄─ 200 { status: "CONCLUIDA" } ───────┤
+```
+
+---
+
+## Comparativo: Clean Architecture vs Vertical Slice
+
+| Dimensão | Catálogo (Clean Architecture) | Pedidos (Vertical Slice) |
+|----------|-------------------------------|--------------------------|
+| **Organização do código** | Por camada técnica (Domain, Application, Infrastructure, API) | Por caso de uso (CreatePedido, GetPedido, etc.) |
+| **Localização de um novo endpoint** | 4 sub-projetos diferentes | Uma pasta isolada |
+| **Coesão** | Baixa — lógica de um recurso dispersa entre camadas | Alta — tudo para um caso de uso na mesma pasta |
+| **Acoplamento entre features** | Alto via serviços compartilhados | Baixo — slices independentes |
+| **Modelo de domínio** | Híbrido (rico em Produto/Categoria/Variante, anêmico em Atributo/Mídia) | Rico (aggregate Pedido com invariantes encapsuladas) |
+| **Tratamento de erro** | Exceção + middleware global | Result pattern — sem exceptions para erros de negócio |
+| **Quando adicionar campo** | Toca Domain, Application (DTO + Validator + Service), Infrastructure, API | Toca Domain + slice específica |
+| **Teste unitário** | Testa serviço via mock de repositório | Testa aggregate direto sem dependência de infraestrutura |
+| **Escalabilidade** | Boa até ~50 endpoints por recurso | Excelente — cada feature cresce isolada |
+| **Overhead inicial** | Alto (4 projetos, interfaces, repositórios) | Baixo (uma pasta por feature) |
+| **Indicado para** | Times grandes, domínio rico mas previsível, CRUD com regras | Domínio complexo com muitas invariantes, features independentes |
+
+### Qual escolher no mundo real?
+
+Não são mutuamente exclusivos. Este projeto demonstra os dois coexistindo no mesmo `AppDbContext`:
+
+- Use **Clean Architecture** para recursos com muitas variações de query (paginação, filtros), onde repositórios abstratos e DTOs separados pagam seu custo.
+- Use **Vertical Slice** para operações com lógica de negócio densa, onde cada caso de uso tem regras distintas e evolui de forma independente.
+- Para CRUD puro sem lógica de negócio (ex.: `Atributo`, `Mídia` no Catálogo), ambas chegam ao mesmo resultado — escolha pelo que o time já conhece.

@@ -133,3 +133,116 @@ dotnet test tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj
 ```
 
 Persistência é em memória (objetivo didático). Segurança usa mTLS real + Bearer token. Em ambiente `Testing`, existe fallback de validação por header apenas para testes automatizados (`WebApplicationFactory`). Não há webhook nesta primeira versão.
+
+---
+
+## Pipeline de HttpClient — registro completo
+
+```csharp
+// src/Pix/Pix.ClientDemo/Program.cs
+builder.Services.AddTransient<CorrelationIdHandler>();   // injeta X-Correlation-Id em toda requisição
+builder.Services.AddTransient<IdempotencyKeyHandler>();  // injeta Idempotency-Key em POST/PUT/PATCH
+builder.Services.AddTransient<RequestLoggingHandler>();  // loga request/response para debug
+
+builder.Services.AddHttpClient<PixProcessingClient>((sp, client) =>
+{
+    var options = sp.GetRequiredService<IOptions<PixClientOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+})
+.ConfigurePrimaryHttpMessageHandler(MutualTlsHttpHandlerFactory.Create) // mTLS — certificado de cliente
+.AddHttpMessageHandler<CorrelationIdHandler>()   // handlers em cadeia (ordem importa)
+.AddHttpMessageHandler<IdempotencyKeyHandler>()
+.AddHttpMessageHandler<RequestLoggingHandler>()
+.AddStandardResilienceHandler();                 // Retry + Circuit Breaker + Timeout (Polly v8)
+```
+
+A cadeia de handlers executa de fora para dentro na requisição e de dentro para fora na resposta:
+
+```
+Requisição:
+  CorrelationIdHandler → IdempotencyKeyHandler → RequestLoggingHandler → mTLS handler → servidor
+
+Resposta:
+  servidor → mTLS handler → RequestLoggingHandler → IdempotencyKeyHandler → CorrelationIdHandler
+```
+
+### `AddStandardResilienceHandler` — o que inclui
+
+O pacote `Microsoft.Extensions.Http.Resilience` configura automaticamente uma pipeline Polly com:
+
+| Camada | Comportamento padrão |
+|--------|---------------------|
+| Timeout por tentativa | 10s por tentativa individual |
+| Retry | 3 tentativas, backoff exponencial com jitter |
+| Circuit Breaker | Abre após 50% de falhas em 30s; mantém aberto por 30s |
+| Timeout total | 30s para toda a operação (incluindo retentativas) |
+
+Para personalizar, troque por `AddResilienceHandler("nome", pipeline => ...)`.
+
+---
+
+## Fluxo OAuth2 — obtenção e uso de token
+
+```csharp
+// src/Pix/Pix.ClientDemo/Client/AuthTokenProvider.cs (simplificado)
+public async Task<string> ObterTokenAsync()
+{
+    var request = new HttpRequestMessage(HttpMethod.Post, "/oauth/token");
+    request.Content = new FormUrlEncodedContent(new[]
+    {
+        new KeyValuePair<string, string>("grant_type", "client_credentials"),
+        new KeyValuePair<string, string>("client_id", _options.ClientId),
+        new KeyValuePair<string, string>("client_secret", _options.ClientSecret),
+    });
+
+    var response = await _httpClient.SendAsync(request);
+    response.EnsureSuccessStatusCode();
+
+    var json = await response.Content.ReadFromJsonAsync<TokenResponse>();
+    return json!.AccessToken;
+}
+```
+
+### Idempotência na prática
+
+O `IdempotencyKeyHandler` injeta um UUID v4 por requisição em todos os métodos não-idempotentes:
+
+```csharp
+// src/Pix/Pix.ClientDemo/Client/Handlers/IdempotencyKeyHandler.cs (simplificado)
+protected override async Task<HttpResponseMessage> SendAsync(
+    HttpRequestMessage request, CancellationToken cancellationToken)
+{
+    if (request.Method != HttpMethod.Get && request.Method != HttpMethod.Delete)
+        request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+
+    return await base.SendAsync(request, cancellationToken);
+}
+```
+
+O servidor mock armazena a resposta associada à chave. Um segundo POST com a mesma chave e payload idêntico retorna a resposta original (`200`). Um segundo POST com a mesma chave mas payload diferente retorna `409 Conflict`.
+
+---
+
+## Teste de integração — exemplo de cenário
+
+```csharp
+// tests/Pix.MockServer.Tests/PixMockServerTests.cs
+[Fact]
+public async Task Cobranca_MesmaChave_PayloadDivergente_Retorna409()
+{
+    var client = _factory.CreateClient();
+    var key = Guid.NewGuid().ToString();
+
+    // Primeira requisição — cria cobrança
+    var res1 = await client.PostAsJsonAsync("/pix/v1/cobrancas",
+        CobrancaValida(), CabecalhoComKey(key));
+    res1.StatusCode.Should().Be(HttpStatusCode.Created);
+
+    // Segunda requisição — mesma chave, valor diferente
+    var res2 = await client.PostAsJsonAsync("/pix/v1/cobrancas",
+        CobrancaComValorDiferente(), CabecalhoComKey(key));
+    res2.StatusCode.Should().Be(HttpStatusCode.Conflict); // 409
+}
+```

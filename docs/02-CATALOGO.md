@@ -156,3 +156,180 @@ O `DbSeeder` em `Catalogo.Infrastructure` popula os dados iniciais ao subir a ap
 Categorias iniciais: **Eletrônicos** (1), **Vestuário** (2), **Alimentos** (3), **Casa & Jardim** (4), **Esportes** (5).
 
 Testes que criam novos produtos começam a partir do ID 9.
+
+---
+
+## 8. Exemplos de Código
+
+### Registro de endpoint com rate limiting e auth
+
+```csharp
+// src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs
+var group = catalogoGroup.MapGroup("/produtos")
+    .WithTags("Catálogo - Produtos");
+
+group.MapGet("/", ListarProdutos)
+    .AllowAnonymous()
+    .RequireRateLimiting("leitura");          // FixedWindow, 60/min
+
+group.MapPost("/", CriarProduto)
+    .RequireAuthorization()
+    .RequireRateLimiting("criacao-produto");   // TokenBucket, 5/min
+
+group.MapPut("/{id:int}", AtualizarCompletoProduto)
+    .RequireAuthorization()
+    .RequireRateLimiting("escrita");           // SlidingWindow, 20/min
+```
+
+### Handler de endpoint — padrão de validação + serviço
+
+```csharp
+private static async Task<IResult> CriarProduto(
+    CriarProdutoRequest request,
+    IProdutoService service,
+    IValidator<CriarProdutoRequest> validator)
+{
+    var validation = await validator.ValidateAsync(request);
+    if (!validation.IsValid)
+        return Results.UnprocessableEntity(new ErrorResponse
+        {
+            Status = 422,
+            Title = "Validação falhou",
+            Detail = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)),
+            Type = "https://api.example.com/errors/validation"
+        });
+
+    var produto = await service.CriarProdutoAsync(request);
+    return Results.Created($"/api/v1/catalogo/produtos/{produto.Id}", produto);
+}
+```
+
+### Service — orquestração com logging
+
+```csharp
+// src/Catalogo/Catalogo.Application/Services/ProdutoService.cs
+public async Task<PaginatedResponse<ProdutoResponse>> ListarProdutosAsync(
+    int page, int pageSize, string? categoria = null, string? search = null)
+{
+    _logger.LogInformation("Listando produtos - Page: {Page}, PageSize: {PageSize}", page, pageSize);
+    if (page < 1) page = 1;
+    if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+    var (produtos, total) = await _queryRepo.ListarAsync(page, pageSize, categoria, search);
+    return new PaginatedResponse<ProdutoResponse>
+    {
+        Data = produtos.ToList(),
+        Pagination = new PaginationInfo
+        {
+            Page = page, PageSize = pageSize,
+            TotalItems = total,
+            TotalPages = (int)Math.Ceiling(total / (double)pageSize)
+        }
+    };
+}
+```
+
+### Repositório abstraído — segregação Query/Command
+
+```csharp
+// src/Catalogo/Catalogo.Application/Repositories/IProdutoQueryRepository.cs
+public interface IProdutoQueryRepository
+{
+    Task<ProdutoResponse?> ObterPorIdAsync(int id);
+    Task<(IReadOnlyList<ProdutoResponse> Items, int Total)> ListarAsync(
+        int page, int pageSize, string? categoria = null, string? search = null);
+}
+
+// src/Catalogo/Catalogo.Application/Repositories/IProdutoCommandRepository.cs
+public interface IProdutoCommandRepository
+{
+    Task<int> AdicionarAsync(Produto produto);
+    Task AtualizarAsync(Produto produto);
+    Task<Produto?> ObterEntidadeAsync(int id);   // retorna entidade (não DTO)
+}
+```
+
+> A segregação Query/Command segue o princípio de CQRS leve: queries retornam DTOs diretamente (sem passar pelo domínio), commands operam sobre entidades. Isso evita mapeamentos desnecessários em leitura.
+
+### Configuração das três políticas de rate limiting
+
+```csharp
+// src/Catalogo/Catalogo.API/Extensions/RateLimitingExtensions.cs
+services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, ct) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString();
+
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            """{"erro":"Too Many Requests","mensagem":"Limite de requisições excedido."}""", ct);
+    };
+
+    // Política 1: leitura — janela fixa, 60 req/min
+    options.AddFixedWindowLimiter("leitura", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 60;
+        opt.QueueLimit = 0;
+    });
+
+    // Política 2: escrita — janela deslizante, 20 req/min em 6 segmentos
+    options.AddSlidingWindowLimiter("escrita", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.SegmentsPerWindow = 6;
+        opt.PermitLimit = 20;
+        opt.QueueLimit = 0;
+    });
+
+    // Política 3: criação de produto — token bucket, 5 req/min
+    options.AddTokenBucketLimiter("criacao-produto", opt =>
+    {
+        opt.TokenLimit = 5;
+        opt.TokensPerPeriod = 5;
+        opt.ReplenishmentPeriod = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+});
+```
+
+### Exemplos cURL
+
+```bash
+# Listar produtos (anônimo, paginado)
+curl "http://localhost:5001/api/v1/catalogo/produtos?page=1&pageSize=10"
+
+# Obter produto por ID (anônimo)
+curl "http://localhost:5001/api/v1/catalogo/produtos/1"
+
+# Criar produto (requer JWT)
+TOKEN=$(curl -s -X POST http://localhost:5001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","senha":"senha123"}' | jq -r .token)
+
+curl -X POST "http://localhost:5001/api/v1/catalogo/produtos" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Teclado Mecânico",
+    "descricao": "Teclado mecânico switch blue, retroiluminado",
+    "preco": 349.90,
+    "estoque": 50,
+    "categoria": "Eletrônicos"
+  }'
+
+# Soft delete (retorna 204; produto fica inativo e passa a retornar 404)
+curl -X DELETE "http://localhost:5001/api/v1/catalogo/produtos/1" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Forçar limite de rate limiting para observar comportamento
+for i in {1..6}; do
+  curl -s -o /dev/null -w "Status: %{http_code}\n" \
+    "http://localhost:5001/api/v1/catalogo/produtos"
+done
+# Primeiras 60 requisições retornam 200; a partir daí, 429 + header Retry-After
+```

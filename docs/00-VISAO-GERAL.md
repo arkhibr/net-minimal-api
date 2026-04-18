@@ -121,3 +121,119 @@ Estudo completo incluindo integração externa, estratégia de testes e decisõe
 | Polly / Http.Resilience | v8 | Retry, circuit breaker |
 | JWT Bearer | — | Autenticação em Pedidos |
 | xUnit | — | Framework de testes |
+| FluentAssertions | 6 | Assertivas legíveis em testes |
+| AutoMapper | 13 | Mapeamento DTO ↔ entidade |
+| Serilog | 4 | Logging estruturado |
+| Swagger / OpenAPI | — | Documentação interativa |
+
+---
+
+## Roteiros de Aprendizado
+
+### Roteiro 1 — Iniciante (2–3 horas)
+
+Foco: entender a estrutura básica, testar a API e ver as boas práticas.
+
+```
+1. Executar a API (5 min)
+   dotnet run --project src/Catalogo/Catalogo.API
+
+2. Abrir Swagger e explorar endpoints
+   http://localhost:5001/swagger
+
+3. Ler o guia teórico
+   docs/guias/MELHORES-PRATICAS-API.md
+
+4. Explorar a Clean Architecture do Catálogo
+   docs/02-CATALOGO.md
+   → src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs
+   → src/Catalogo/Catalogo.Application/Services/ProdutoService.cs
+   → src/Catalogo/Catalogo.Domain/Produto.cs
+
+5. Testar via curl (exemplos em docs/02-CATALOGO.md → seção "Exemplos cURL")
+
+6. Rodar os testes
+   dotnet test tests/ProdutosAPI.Tests/
+```
+
+### Roteiro 2 — Intermediário (2–3 horas adicionais)
+
+Foco: padrões arquiteturais, domínio rico e Vertical Slice.
+
+```
+1. Ler o comparativo arquitetural
+   docs/01-ARQUITETURA.md (seção "Comparativo")
+
+2. Estudar Vertical Slice com Pedidos
+   docs/03-PEDIDOS.md (completo — tem snippets de código)
+   → src/Pedidos/Domain/Pedido.cs          (aggregate rico)
+   → src/Pedidos/Features/CreatePedido/    (slice completa)
+   → src/Shared/Common/Result.cs           (Result pattern)
+   → src/Shared/Common/IEndpoint.cs        (auto-discovery)
+
+3. Comparar os dois modelos lado a lado
+   → Produto.Criar() vs. Pedido.Create()
+   → ProdutoService vs. CreatePedidoHandler
+   → ProdutoEndpoints vs. CreatePedidoEndpoint
+
+4. Explorar testes
+   docs/05-TESTES.md
+   → tests/ProdutosAPI.Tests/Unit/Domain/ProdutoTests.cs
+   → tests/ProdutosAPI.Tests/Unit/Domain/PedidoTests.cs
+
+5. Ler o guia de implementação em .NET
+   docs/guias/MELHORES-PRATICAS-MINIMAL-API.md
+```
+
+### Roteiro 3 — Arquiteto (3–4 horas adicionais)
+
+Foco: decisões arquiteturais registradas, integração externa, resiliência e testes avançados.
+
+```
+1. Ler os 15 ADRs (MADR 3.x)
+   docs/ADRs/ — decisões registradas com contexto, alternativas e consequências
+   Destaques: ADR-0003 (Result pattern), ADR-0009 (IEndpoint), ADR-0013 (rate limiting)
+
+2. Estudar integração PIX
+   docs/04-PIX.md (completo — snippets de HttpClient, OAuth2, idempotência)
+   → src/Pix/Pix.MockServer/Program.cs     (mock server)
+   → src/Pix/Pix.ClientDemo/Program.cs     (pipeline de handlers)
+
+3. Executar e observar a trilha PIX
+   Terminal 1: dotnet run --project src/Pix/Pix.MockServer/Pix.MockServer.csproj
+   Terminal 2: dotnet run --project src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj
+   Testes:     dotnet test tests/Pix.MockServer.Tests/
+
+4. Estudar rate limiting avançado
+   docs/02-CATALOGO.md → seção "Rate Limiting" e "Exemplos de Código"
+   docs/05-TESTES.md → seção "Teste de rate limiting"
+   → src/Catalogo/Catalogo.API/Extensions/RateLimitingExtensions.cs
+
+5. Explorar o ClientDemo de resiliência
+   → src/Catalogo/Catalogo.ClientDemo/     (retry + circuit breaker)
+   → Polly v8 / Microsoft.Extensions.Http.Resilience
+
+6. Leitura complementar
+   docs/guias/JSON-COMPLEXO-E-BOAS-PRATICAS.md
+   docs/guias/MELHORIAS-DOTNET-10.md
+```
+
+---
+
+## Início Rápido (5 minutos)
+
+```bash
+# Pré-requisito: .NET 10 SDK (https://dotnet.microsoft.com/download/dotnet/10.0)
+
+# Restaurar e executar
+dotnet restore
+dotnet run --project src/Catalogo/Catalogo.API
+
+# Swagger UI
+open http://localhost:5001/swagger
+
+# Rodar todos os testes (150 testes no total)
+dotnet test ProdutosAPI.slnx -v minimal
+```
+
+Credenciais para obter JWT nos testes e no Swagger: `admin@example.com` / `senha123`.
