@@ -43,20 +43,18 @@ A grande regra do REST é: **Use Substantivos no plural e evite verbos na URL**.
 **Como fazemos ações se não usamos verbos na URL?**
 Nós delegamos o "Verbo" para o próprio protocolo HTTP. É o Verbo da requisição que dirá o que queremos fazer naquela pasta `/produtos`.
 
-Veja como este projeto define todos os endpoints de produtos em `src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs`:
+Veja como este projeto define todos os endpoints de produtos em `src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs`:
 
 ```csharp
-const string BaseRoute = "/api/v1/produtos";
+var group = catalogoGroup.MapGroup("/produtos")   // prefixo do grupo: /api/v1/catalogo
+    .WithTags("Catálogo - Produtos");
 
-var group = app.MapGroup(BaseRoute)
-    .WithTags("Produtos");
-
-group.MapGet("/",      ListarProdutos);           // GET    /api/v1/produtos
-group.MapGet("/{id}", ObterProduto);              // GET    /api/v1/produtos/42
-group.MapPost("/",    CriarProduto);              // POST   /api/v1/produtos
-group.MapPut("/{id}", AtualizarCompletoProduto);  // PUT    /api/v1/produtos/42
-group.MapPatch("/{id}", AtualizarParcialProduto); // PATCH  /api/v1/produtos/42
-group.MapDelete("/{id}", DeletarProduto);         // DELETE /api/v1/produtos/42
+group.MapGet("/",      ListarProdutos);           // GET    /api/v1/catalogo/produtos
+group.MapGet("/{id}", ObterProduto);              // GET    /api/v1/catalogo/produtos/42
+group.MapPost("/",    CriarProduto);              // POST   /api/v1/catalogo/produtos
+group.MapPut("/{id}", AtualizarCompletoProduto);  // PUT    /api/v1/catalogo/produtos/42
+group.MapPatch("/{id}", AtualizarParcialProduto); // PATCH  /api/v1/catalogo/produtos/42
+group.MapDelete("/{id}", DeletarProduto);         // DELETE /api/v1/catalogo/produtos/42
 ```
 
 Um único substantivo no plural (`/produtos`) + o verbo HTTP = operação completa e semântica.
@@ -66,7 +64,7 @@ Um único substantivo no plural (`/produtos`) + o verbo HTTP = operação comple
 Nunca devolva o banco de dados inteiro. Sempre exija `page` e `pageSize`. Neste projeto, o handler de listagem recebe esses parâmetros como query string:
 
 ```csharp
-// src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs
+// src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs
 private static async Task<IResult> ListarProdutos(
     IProdutoService produtoService,
     int page = 1,
@@ -82,7 +80,7 @@ private static async Task<IResult> ListarProdutos(
 A resposta segue um envelope padronizado com metadados de navegação:
 
 ```csharp
-// src/Produtos/Produtos.Application/DTOs/ProdutoDTO.cs
+// src/Catalogo/Catalogo.Application/DTOs/Produto/ProdutoDTO.cs
 public class PaginatedResponse<T>
 {
     public List<T> Data { get; set; } = new();
@@ -98,7 +96,7 @@ public class PaginationInfo
 }
 ```
 
-Exemplo de chamada: `GET /api/v1/produtos?page=2&pageSize=20&categoria=Eletrônicos`
+Exemplo de chamada: `GET /api/v1/catalogo/produtos?page=2&pageSize=20&categoria=Eletrônicos`
 
 ---
 
@@ -115,39 +113,43 @@ O método como o Cliente (aplicativo) chama o Servidor (API) muda de acordo com 
 Veja como cada verbo é declarado com seus status codes esperados no projeto:
 
 ```csharp
-// src/Produtos/Produtos.API/Endpoints/ProdutoEndpoints.cs
+// src/Catalogo/Catalogo.API/Endpoints/Produtos/ProdutoEndpoints.cs
 group.MapGet("/", ListarProdutos)
     .Produces<PaginatedResponse<ProdutoResponse>>(200)
-    .Produces<ErrorResponse>(400)
-    .AllowAnonymous();
+    .AllowAnonymous()
+    .RequireRateLimiting("leitura");           // FixedWindow, 60 req/min
 
 group.MapGet("/{id}", ObterProduto)
     .Produces<ProdutoResponse>(200)
     .Produces<ErrorResponse>(404)
-    .AllowAnonymous();
+    .AllowAnonymous()
+    .RequireRateLimiting("leitura");
 
 group.MapPost("/", CriarProduto)
     .Produces<ProdutoResponse>(201)
-    .Produces<ErrorResponse>(400)
     .Produces<ErrorResponse>(422)
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("criacao-produto");   // TokenBucket, 5 req/min
 
 group.MapPut("/{id}", AtualizarCompletoProduto)
     .Produces<ProdutoResponse>(200)
     .Produces<ErrorResponse>(404)
     .Produces<ErrorResponse>(422)
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("escrita");           // SlidingWindow, 20 req/min
 
 group.MapPatch("/{id}", AtualizarParcialProduto)
     .Produces<ProdutoResponse>(200)
     .Produces<ErrorResponse>(404)
     .Produces<ErrorResponse>(422)
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("escrita");
 
 group.MapDelete("/{id}", DeletarProduto)
     .Produces(204)
     .Produces<ErrorResponse>(404)
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .RequireRateLimiting("escrita");
 ```
 
 ### O que raios é Idempotência?
@@ -221,7 +223,7 @@ Content-Type: application/json
 
 Se a rede falhar e você reenviar com a **mesma chave**, receberá a mesma resposta sem criar um pedido duplicado. Se enviar a **mesma chave com payload diferente**, receberá `409 Conflict`.
 
-A trilha `docs/PIX-DEMO.md` demonstra esse fluxo ponta a ponta em operações financeiras simuladas.
+A trilha `docs/04-PIX.md` demonstra esse fluxo ponta a ponta em operações financeiras simuladas.
 
 ---
 
@@ -240,7 +242,7 @@ Imagine o JWT como uma **pulseira VIP** numa balada (sua API).
 
 ### Implementação no projeto
 
-**Geração do token** (`src/Produtos/Produtos.API/Endpoints/AuthEndpoints.cs`):
+**Geração do token** (`src/Catalogo/Catalogo.API/Endpoints/Auth/AuthEndpoints.cs`):
 
 ```csharp
 private static IResult Login(LoginRequest req, IConfiguration configuration)
@@ -296,8 +298,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 **Protegendo endpoints** — escrita exige JWT, leitura é anônima:
 
 ```csharp
-group.MapGet("/", ListarProdutos).AllowAnonymous();       // público
-group.MapPost("/", CriarProduto).RequireAuthorization();  // exige JWT
+group.MapGet("/", ListarProdutos)
+    .AllowAnonymous()
+    .RequireRateLimiting("leitura");       // público, mas com rate limit
+
+group.MapPost("/", CriarProduto)
+    .RequireAuthorization()                // exige JWT
+    .RequireRateLimiting("criacao-produto"); // limite mais restritivo
 ```
 
 ---
@@ -382,16 +389,16 @@ Seu Mobile App leva tempo pra atualizar e ser aprovado pela loja do Google/Apple
 Para isso usamos *Versioning*. Este projeto utiliza versionamento por caminho de URL — a estratégia mais comum:
 
 ```csharp
-// Todos os grupos de endpoints usam /api/v1/ como prefixo
-const string BaseRoute = "/api/v1/produtos";
-var group = app.MapGroup(BaseRoute);
+// Todos os grupos de endpoints do Catálogo usam /api/v1/catalogo/ como prefixo
+var catalogoGroup = app.MapGroup("/api/v1/catalogo").WithOpenApi();
+var group = catalogoGroup.MapGroup("/produtos");
 ```
 
-Quando uma quebra de contrato for necessária, cria-se `/api/v2/produtos` mantendo `/api/v1/produtos` ativo. Ambas coexistem até que todos os clientes migrem.
+Quando uma quebra de contrato for necessária, cria-se `/api/v2/catalogo/produtos` mantendo `/api/v1/catalogo/produtos` ativo. Ambas coexistem até que todos os clientes migrem.
 
 ```
-GET /api/v1/produtos   → comportamento antigo (mantido)
-GET /api/v2/produtos   → novo contrato
+GET /api/v1/catalogo/produtos   → comportamento antigo (mantido)
+GET /api/v2/catalogo/produtos   → novo contrato
 ```
 
 O Swagger documenta ambas as versões no mesmo portal, facilitando a comunicação com times de front-end e mobile.
@@ -439,7 +446,7 @@ app.UseCors("AllowAll");
 
 ### Validação com FluentValidation
 
-A API **não confia cegamente no front-end**. Toda entrada é validada antes de chegar ao banco. O validador de criação de produto em `src/Produtos/Produtos.Application/Validators/ProdutoValidator.cs` garante regras de negócio:
+A API **não confia cegamente no front-end**. Toda entrada é validada antes de chegar ao banco. O validador de criação de produto em `src/Catalogo/Catalogo.Application/Validators/ProdutoValidator.cs` garante regras de negócio:
 
 ```csharp
 public class CriarProdutoValidator : AbstractValidator<CriarProdutoRequest>
@@ -492,3 +499,111 @@ public class AtualizarProdutoValidator : AbstractValidator<AtualizarProdutoReque
 ```
 
 Quando a validação falha, o `ExceptionHandlingMiddleware` captura a `ValidationException` do FluentValidation e retorna `422 Unprocessable Entity` com detalhes por campo — sem expor stack trace.
+
+---
+
+## 8. Rate Limiting
+
+APIs públicas precisam se proteger de abuso. Sem limites, um único cliente pode saturar o servidor com requisições legítimas ou maliciosas. O .NET 8+ inclui suporte nativo a rate limiting via `Microsoft.AspNetCore.RateLimiting`.
+
+### Por que três políticas diferentes?
+
+Diferentes operações têm diferentes custos e frequências esperadas. Uma listagem tem impacto baixo e pode ser chamada com frequência; criar um produto tem custo alto (validação, persistência, indexação futura) e ocorre raramente.
+
+| Política | Algoritmo | Limite | Aplicação |
+|----------|-----------|--------|-----------|
+| `leitura` | Fixed Window | 60 req/min | Todos os `GET` |
+| `escrita` | Sliding Window | 20 req/min | `POST`, `PUT`, `PATCH`, `DELETE` (exceto criação de produto) |
+| `criacao-produto` | Token Bucket | 5 req/min | `POST /catalogo/produtos` |
+
+### Fixed Window vs Sliding Window vs Token Bucket
+
+**Fixed Window**: conta requisições em janelas fixas de tempo. Simples, mas permite rajadas no final/início de janelas. Adequado para leituras onde rajadas curtas são aceitáveis.
+
+**Sliding Window**: distribui as janelas em segmentos menores, suavizando rajadas. Uma janela de 60s com 6 segmentos verifica os últimos 10s proporcionalmente. Melhor para escrita.
+
+**Token Bucket**: o cliente acumula tokens a uma taxa constante e gasta um por requisição. Permite pequenas rajadas (até `TokenLimit`) mas sustenta apenas a taxa de reposição no longo prazo. Ideal para operações custosas com variabilidade natural.
+
+### Implementação das três políticas
+
+```csharp
+// src/Catalogo/Catalogo.API/Extensions/RateLimitingExtensions.cs
+services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Resposta ao cliente quando limite é atingido
+    options.OnRejected = async (context, ct) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString();
+
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            """{"erro":"Too Many Requests","mensagem":"Limite excedido. Tente novamente em breve."}""", ct);
+    };
+
+    // Política 1: leitura — janela fixa de 1 min, 60 requisições
+    options.AddFixedWindowLimiter("leitura", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 60;
+        opt.QueueLimit = 0;              // sem fila — rejeita imediatamente
+    });
+
+    // Política 2: escrita — janela deslizante de 1 min, 6 segmentos, 20 requisições
+    options.AddSlidingWindowLimiter("escrita", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.SegmentsPerWindow = 6;       // segmentos de 10s cada
+        opt.PermitLimit = 20;
+        opt.QueueLimit = 0;
+    });
+
+    // Política 3: criação de produto — token bucket, 5 tokens/min
+    options.AddTokenBucketLimiter("criacao-produto", opt =>
+    {
+        opt.TokenLimit = 5;              // máximo de tokens acumulados
+        opt.TokensPerPeriod = 5;         // tokens repostos por período
+        opt.ReplenishmentPeriod = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+});
+```
+
+### Aplicando políticas por endpoint
+
+```csharp
+group.MapGet("/", ListarProdutos)
+    .AllowAnonymous()
+    .RequireRateLimiting("leitura");           // baixo custo, alta frequência
+
+group.MapPost("/", CriarProduto)
+    .RequireAuthorization()
+    .RequireRateLimiting("criacao-produto");   // custo alto, frequência baixa
+
+group.MapPut("/{id}", Atualizar)
+    .RequireAuthorization()
+    .RequireRateLimiting("escrita");           // custo médio
+```
+
+### Resposta ao cliente quando limite é excedido
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+Content-Type: application/json
+
+{"erro":"Too Many Requests","mensagem":"Limite excedido. Tente novamente em breve."}
+```
+
+O header `Retry-After` informa quantos segundos o cliente deve esperar antes de tentar novamente — permite que clientes bem-comportados implementem backoff automático.
+
+### Ambiente de testes
+
+Em `Environment = "Testing"`, as políticas de produção não são registradas. Cada factory de teste registra suas próprias políticas:
+- `ApiFactory`: limites de `10000` para não interferir nos testes funcionais
+- `RateLimitingApiFactory`: limites baixos (3/3/2) para testar o comportamento de rejeição
+
+Isso evita `InvalidOperationException` por chave de política duplicada no `WebApplicationFactory`.
