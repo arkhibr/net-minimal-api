@@ -1,6 +1,6 @@
 # ProdutosAPI — .NET 10 Minimal API
 
-> Projeto educacional em .NET 10 Minimal API demonstrando três bounded contexts com padrões arquiteturais distintos coexistindo no mesmo repositório.
+> Projeto educacional em .NET 10 Minimal API que mostra três formas diferentes de organizar o mesmo tipo de API — cada módulo usa uma arquitetura distinta, no mesmo repositório, para facilitar a comparação direta.
 >
 > ---
 >
