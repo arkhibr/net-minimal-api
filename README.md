@@ -1,106 +1,125 @@
 # ProdutosAPI — .NET 10 Minimal API
 
-> Projeto educacional em .NET 10 Minimal API que mostra três formas diferentes de organizar o mesmo tipo de API — cada módulo usa uma arquitetura distinta, no mesmo repositório, para facilitar a comparação direta.
->
-> ---
->
-> ## O que é este projeto?
->
-> **ProdutosAPI** é um laboratório de arquitetura de software construído sobre .NET 10 Minimal API. O objetivo não é apresentar *a* arquitetura correta, mas mostrar como diferentes abordagens resolvem o mesmo problema — uma API REST com persistência, validação, autenticação e testes — com diferentes graus de estrutura e separação de responsabilidades.
->
-> Três bounded contexts coexistem intencionalmente no mesmo repositório, cada um adotando um padrão distinto, permitindo **comparação direta e estudo lado a lado**.
->
-> ---
->
-> ## Os três bounded contexts
->
-> ### 🗂 Catálogo — Clean Architecture híbrida
-> Organizado em sub-projetos (`Domain / Application / Infrastructure / API`), o contexto de Catálogo demonstra entidades com domínio rico, value objects, repositórios abstraídos por interfaces e rate limiting por política de rota. Contém 5 recursos: Produto, Categoria, Variante, Atributo e Mídia.
->
-> ### 📦 Pedidos — Vertical Slice + Domínio Rico
-> Organizado por caso de uso (cada operação é uma pasta isolada), o contexto de Pedidos demonstra um agregado rico com regras de negócio encapsuladas, o padrão `Result<T>` em substituição a exceções e auto-descoberta de endpoints via reflection. Autenticação JWT obrigatória.
->
-> ### 💳 Pix — Mock Server + HTTP Client com resiliência
-> Simula a integração com a API Pix do Banco Central. Inclui um servidor mock que implementa mTLS e OAuth2, além de um cliente HTTP tipado com pipelines de resiliência (retry, circuit breaker via Polly / `Microsoft.Extensions.Http.Resilience`). Ideal para estudar integração com APIs externas de forma realista e segura.
->
-> ---
->
-> ## Por que estudar este projeto?
->
-> - Você verá **Clean Architecture** e **Vertical Slice Architecture** aplicadas a problemas reais e comparáveis entre si.
-> - - Você entenderá como **domínio rico** e **Result pattern** eliminam o uso de exceções para controle de fluxo.
->   - - Você aprenderá como integrar com APIs externas usando **mTLS, OAuth2 e resiliência** sem depender de ambientes externos.
->     - - Todas as decisões arquiteturais estão documentadas em **15 ADRs** no formato MADR 3.x, com contexto, alternativas consideradas e consequências.
->       - - O projeto conta com **150 testes automatizados** cobrindo unidade, integração e comportamentos de rate limiting.
->        
->         - ---
->
-> ## Início rápido
->
-> **Pré-requisito:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
->
-> ```bash
-> git clone https://github.com/arkhibr/net-minimal-api.git
-> cd net-minimal-api
->
-> # Executar o contexto de Catálogo
-> dotnet run --project src/Catalogo/Catalogo.API
->
-> # Swagger UI disponível em:
-> # http://localhost:5001/swagger
->
-> # Rodar todos os testes (150 no total)
-> dotnet test ProdutosAPI.slnx -v minimal
-> ```
->
-> Credenciais para JWT no Swagger: `admin@example.com` / `senha123`
->
-> ---
->
-> ## Bounded Contexts
->
-> | Contexto | Padrão | Rotas base | Destaques |
-> |---|---|---|---|
-> | Catálogo | Clean Architecture híbrida | `/api/v1/catalogo/*` | 5 recursos, rate limiting, soft delete |
-> | Pedidos | Vertical Slice + Domínio Rico | `/api/v1/pedidos/*` | Agregado rico, Result pattern, JWT obrigatório |
-> | Pix | Mock Server + HTTP Client | `/pix/v1/*` | mTLS, OAuth2, idempotência, resiliência |
->
-> ---
->
-> ## Tecnologias
->
-> .NET 10 · EF Core 10 · SQLite · FluentValidation · Polly / Http.Resilience · JWT Bearer · xUnit · FluentAssertions · AutoMapper · Serilog · Swagger / OpenAPI
->
-> ---
->
-> ## Documentação
->
-> | Arquivo | Conteúdo |
-> |---|---|
-> | `docs/00-VISAO-GERAL.md` | Visão geral e roteiros de aprendizado por nível |
-> | `docs/01-ARQUITETURA.md` | Diagramas e decisões arquiteturais |
-> | `docs/02-CATALOGO.md` | Clean Architecture híbrida, recursos e rate limiting |
-> | `docs/03-PEDIDOS.md` | Vertical Slice, domínio rico, Result pattern |
-> | `docs/04-PIX.md` | Mock Server, mTLS, OAuth2, cliente HTTP resiliente |
-> | `docs/05-TESTES.md` | Estratégia de testes, factories e helpers |
-> | `docs/ADRs/` | 15 ADRs no formato MADR 3.x |
->
-> ---
->
-> ## Estrutura de diretórios
->
-> ```
-> net-minimal-api/
-> ├── src/
-> │   ├── Catalogo/          # Clean Architecture híbrida
-> │   ├── Pedidos/           # Vertical Slice + Domínio Rico
-> │   ├── Pix/               # Mock Server + HTTP Client
-> │   └── Shared/            # Componentes compartilhados
-> └── tests/
->     ├── ProdutosAPI.Tests/ # 143 testes
->     └── Pix.MockServer.Tests/ # 7 testes
-> ```
->
-> ---
->
-> > **Nenhum padrão é prescrito como "o correto"** — a coexistência intencional é o ponto central do aprendizado.
+Projeto educacional em .NET 10 que implementa uma API REST completa demonstrando, lado a lado, princípios e padrões arquiteturais distintos aplicados ao mesmo stack tecnológico. Cada módulo resolve o mesmo tipo de problema de uma forma diferente, tornando a comparação direta o ponto central do aprendizado.
+
+---
+
+## Princípios e padrões implementados
+
+### Clean Architecture (módulo Catálogo)
+
+O Catálogo é organizado em quatro camadas com responsabilidades bem definidas e separadas em sub-projetos independentes:
+
+- **Domain** — entidades, value objects e interfaces de repositório. Nenhuma dependência de infraestrutura.
+- - **Application** — serviços de aplicação que orquestram casos de uso, DTOs e validadores com FluentValidation.
+  - - **Infrastructure** — repositórios concretos com EF Core, implementando as interfaces definidas no Domain.
+    - - **API** — endpoints Minimal API, sem lógica de negócio.
+     
+      - A regra de dependência é sempre de fora para dentro: a camada de API depende de Application, que depende de Domain. Domain não depende de nenhuma outra camada.
+     
+      - ### Vertical Slice Architecture (módulo Pedidos)
+     
+      - O módulo de Pedidos abandona a organização por camada técnica e adota a organização por caso de uso. Cada operação (criar pedido, adicionar item, cancelar) é uma pasta autocontida com seu próprio command, validador, handler e endpoint. Alterar o comportamento de uma operação não exige tocar em nenhuma outra pasta.
+     
+      - ### Domínio Rico vs. Modelo Anêmico
+     
+      - Os dois estilos coexistem intencionalmente no projeto para comparação direta:
+     
+      - **Modelo anêmico** (Atributo e Mídia no Catálogo): entidades são contêineres de dados com apenas propriedades `get/set`. Toda lógica vive nos serviços de aplicação. Adequado para CRUD sem regras de negócio.
+     
+      - **Domínio rico** (Produto, Categoria, Variante no Catálogo e aggregate Pedido): entidades encapsulam suas próprias invariantes em métodos de domínio. `Pedido.AddItem()` verifica se o pedido está aberto e se há estoque suficiente antes de adicionar o item. `Categoria` gera seu próprio slug e valida hierarquia. Regras de negócio vivem no lugar onde o estado é mantido.
+     
+      - ### Value Objects
+     
+      - `SKU` em Variante e `PrecoProduto` e `EstoqueProduto` são value objects — tipos imutáveis sem identidade própria que encapsulam invariantes (`SKU` valida regex `^[A-Z0-9\-]+$`, `Preco` impede valor negativo). Eliminam validações espalhadas e tornam o tipo inválido impossível de representar.
+     
+      - ### Result Pattern (sem exceções para erros de negócio)
+     
+      - O módulo de Pedidos usa `Result<T>` em vez de exceções para erros esperados. Métodos de domínio retornam `Result<Pedido>.Fail("Pedido não está aberto")` em vez de lançar `InvalidOperationException`. O handler sempre verifica `IsSuccess` antes de acessar `.Value`. O fluxo de controle fica linear e legível, sem blocos `try/catch` para erros previsíveis.
+     
+      - ### CQRS leve — segregação de repositórios Query/Command
+     
+      - No Catálogo, queries e commands usam interfaces separadas (`IProdutoQueryRepository` e `IProdutoCommandRepository`). Queries retornam DTOs diretamente do banco, sem passar pela camada de domínio. Commands operam sobre entidades. Isso elimina mapeamentos desnecessários em leitura sem a complexidade de event sourcing.
+     
+      - ### Auto-descoberta de endpoints via reflexão
+     
+      - Todos os endpoints implementam a interface `IEndpoint`. O `Program.cs` varre o assembly em tempo de inicialização e registra automaticamente todas as implementações. Adicionar um novo endpoint não exige nenhum registro manual — basta criar a classe.
+     
+      - ### Idempotência
+     
+      - Um middleware global intercepta requisições `POST`, `PUT` e `PATCH` com o header `Idempotency-Key`. Se a chave já foi vista, a resposta cacheada é devolvida imediatamente. Se a mesma chave chegar com um payload diferente, retorna `409 Conflict`. O módulo Pix demonstra isso de forma didática com exemplos de fluxos financeiros.
+     
+      - ### Rate Limiting com três algoritmos distintos
+     
+      - Três políticas com algoritmos diferentes são aplicadas no Catálogo, cada uma adequada ao seu contexto:
+     
+      - - **Fixed Window** (`leitura`) — 60 requisições por janela de 60s. Para leituras com tráfego alto e previsível.
+        - - **Sliding Window** (`escrita`) — 20 requisições por minuto em 6 segmentos de 10s. Distribui melhor rajadas curtas do que janela fixa.
+          - - **Token Bucket** (`criacao-produto`) — 5 tokens por minuto, repostos continuamente. Controle mais granular para operações de maior custo.
+           
+            - Todas retornam `429 Too Many Requests` com o header `Retry-After`.
+           
+            - ### Pipeline de resiliência com Polly
+           
+            - Os módulos ClientDemo demonstram retry, circuit breaker e timeout compostos via `Microsoft.Extensions.Http.Resilience` (Polly v8). O pipeline do Catálogo.ClientDemo tem quatro camadas: timeout por tentativa → retry com backoff exponencial e jitter → circuit breaker → timeout global. O Pix.ClientDemo usa `AddStandardResilienceHandler`, que configura o mesmo conjunto automaticamente.
+           
+            - ### Integração externa com mTLS e OAuth2 (módulo Pix)
+           
+            - O módulo Pix inclui um servidor mock que simula a API Pix do Banco Central com autenticação mútua TLS (mTLS) e OAuth2 (client credentials). O cliente tipado demonstra a cadeia completa: obtenção de token, injeção de `X-Correlation-Id` e `Idempotency-Key` via handlers encadeados, e consumo com resiliência. Tudo sem dependência de ambiente externo.
+           
+            - ### Tratamento de erro padronizado (RFC 7807 Problem Details)
+           
+            - Um middleware global captura exceções não tratadas e retorna respostas no formato `application/problem+json`, com `status`, `title`, `detail` e `type`. Endpoints de validação retornam `422 Unprocessable Entity` com o mesmo formato.
+           
+            - ### Soft Delete
+           
+            - `DELETE /produtos/{id}` seta `Ativo = false` em vez de remover o registro. O repositório aplica o filtro automaticamente em todas as queries — um produto inativo retorna `404` em todos os endpoints, sem nenhuma lógica adicional no endpoint.
+           
+            - ### Estratégia de testes em camadas
+           
+            - 150 testes cobrem três níveis distintos:
+           
+            - - **Unitários de domínio** — testam entidades e agregados diretamente, sem infraestrutura. `PedidoTests` testa `Pedido.AddItem()` com pedido cancelado sem instanciar banco ou HTTP.
+              - - **Unitários de serviço** — testam serviços de aplicação com repositório mockado.
+                - - **Integração HTTP** — sobem a aplicação real com `WebApplicationFactory` e banco em memória, fazem requisições HTTP e verificam status codes, headers e payload.
+                  - - **Rate limiting isolado** — `RateLimitingApiFactory` substitui as políticas por limites baixos (2–3 req/janela) para testar comportamento de throttling sem depender de timing real.
+                   
+                    - ---
+
+                    ## Módulos
+
+                    | Módulo | Padrão principal | Rota base |
+                    |---|---|---|
+                    | Catálogo | Clean Architecture híbrida | `/api/v1/catalogo/*` |
+                    | Pedidos | Vertical Slice + Domínio Rico | `/api/v1/pedidos/*` |
+                    | Pix | Mock Server + HTTP Client resiliente | `/pix/v1/*` |
+
+                    ---
+
+                    ## Início rápido
+
+                    **Pré-requisito:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+
+                    ```bash
+                    git clone https://github.com/arkhibr/net-minimal-api.git
+                    cd net-minimal-api
+                    dotnet run --project src/Catalogo/Catalogo.API
+                    # Swagger: http://localhost:5001/swagger
+
+                    dotnet test ProdutosAPI.slnx -v minimal
+                    ```
+
+                    Credenciais para JWT: `admin@example.com` / `senha123`
+
+                    ---
+
+                    ## Documentação
+
+                    | Arquivo | Conteúdo |
+                    |---|---|
+                    | `docs/01-ARQUITETURA.md` | Visão estrutural, fluxos de requisição e comparativo CA vs VSA |
+                    | `docs/02-CATALOGO.md` | Clean Architecture, domínio rico, rate limiting, resiliência |
+                    | `docs/03-PEDIDOS.md` | Vertical Slice, Result pattern, domínio rico, auto-discovery |
+                    | `docs/04-PIX.md` | mTLS, OAuth2, idempotência, pipeline de HttpClient |
+                    | `docs/05-TESTES.md` | Estratégia de testes, factories e isolamento de rate limiting |
+                    | `docs/ADRs/` | 15 decisões arquiteturais no formato MADR 3.x |
