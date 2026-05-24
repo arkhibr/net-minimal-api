@@ -47,4 +47,4 @@ Autenticação nos testes via `AuthHelper.ObterTokenAsync(client)` — credencia
 
 ## Planos de Implementação
 
-Planos ficam em `docs/superpowers/plans/`. ADRs ficam em `docs/ADRs/` (15 ADRs no formato MADR 3.x com frontmatter). Leia o ADR relevante antes de qualquer mudança arquitetural significativa.
+ADRs ficam em `docs/ADRs/` (15 ADRs no formato MADR 3.x com frontmatter). Leia o ADR relevante antes de qualquer mudança arquitetural significativa.
