@@ -4,7 +4,58 @@
 
 O projeto hospeda três bounded contexts no mesmo repositório. Cada um segue um padrão arquitetural independente — eles não se comunicam diretamente entre si. O que compartilham é restrito a `src/Shared/`: o `AppDbContext`, a interface `IEndpoint`, o padrão `Result<T>` e o pipeline de middleware.
 
-Essa coexistência é intencional: permite comparar abordagens diferentes aplicadas ao mesmo stack tecnológico, sem a complexidade de múltiplos repositórios ou serviços distribuídos.
+Essa coexistência é intencional: permite comparar abordagens diferentes aplicadas à mesma plataforma tecnológica, sem a complexidade de múltiplos repositórios ou serviços distribuídos.
+
+## Diagrama de Contêineres (C2)
+
+```mermaid
+flowchart TB
+    subgraph host["Processo único — ProdutosAPI (Program.cs)"]
+        direction TB
+
+        subgraph middleware["Pipeline de Middleware"]
+            mw1["ExceptionHandling"] --> mw2["CORS"] --> mw3["RateLimiter"] --> mw4["Authentication (JWT)"] --> mw5["Authorization"] --> mw6["IdempotencyMiddleware"]
+        end
+
+        subgraph bc1["Catálogo (Clean Architecture híbrida)"]
+            cap["Catalogo.API<br/>(5 arquivos de endpoints)"]
+            capp["Catalogo.Application<br/>(Services, DTOs, Validators)"]
+            cdom["Catalogo.Domain<br/>(Entidades + Value Objects)"]
+            cinf["Catalogo.Infrastructure<br/>(Repositórios EF Core)"]
+            cap --> capp --> cinf
+            capp --> cdom
+        end
+
+        subgraph bc2["Pedidos (Vertical Slice + Domínio Rico)"]
+            slice1["CreatePedido (Command + Endpoint + Handler)"]
+            slice2["GetPedido / ListPedidos"]
+            slice3["AddItemPedido / CancelPedido"]
+            pdom["Pedidos.Domain<br/>(Pedido aggregate + Result)"]
+            slice1 --> pdom
+            slice3 --> pdom
+        end
+
+        shared["Shared/Common<br/>IEndpoint, Result&lt;T&gt;, EndpointExtensions"]
+        ctx["AppDbContext (Shared/Data)"]
+
+        mw6 --> bc1
+        mw6 --> bc2
+        bc1 --> ctx
+        bc2 --> ctx
+        bc2 -.-> shared
+    end
+
+    subgraph external["Processos separados (não fazem parte do ProdutosAPI)"]
+        pix["Pix.MockServer<br/>(API independente)"]
+        pixclient["Pix.ClientDemo<br/>(console com mTLS)"]
+    end
+
+    db[("SQLite<br/>produtos-api.db")]
+    pixclient -- "HTTPS + mTLS + OAuth2" --> pix
+    ctx --> db
+```
+
+> O contêiner `Catálogo` é dividido em quatro sub-projetos NuGet referenciados pelo `ProdutosAPI.csproj`. `Pedidos` vive direto dentro do projeto principal. `Pix.MockServer` é um processo separado.
 
 ---
 
@@ -52,24 +103,24 @@ HTTP → Catalogo.API/Endpoints → Catalogo.Application/Services → Catalogo.I
 
 ## Pedidos — Vertical Slice + Domínio Rico
 
-O bounded context de Pedidos organiza o código por caso de uso, não por camada técnica. Cada operação é uma pasta autocontida dentro de `src/Pedidos/Features/`.
+O bounded context de Pedidos organiza o código por caso de uso, não por camada técnica. Cada operação é uma pasta autocontida dentro de `src/Pedidos/` (não há subpasta `Features/`).
 
-### Estrutura de uma feature
+### Estrutura de um slice
 
 ```
-Features/
-  CreatePedido/
-    CreatePedidoCommand.cs     ← DTO de entrada
-    CreatePedidoValidator.cs   ← FluentValidation
-    CreatePedidoHandler.cs     ← orquestração do caso de uso
-    CreatePedidoEndpoint.cs    ← implementa IEndpoint, auto-descoberto
+src/Pedidos/CreatePedido/
+  CreatePedidoCommand.cs      ← DTO de entrada + classe CreatePedidoHandler (orquestração)
+  CreatePedidoValidator.cs    ← FluentValidation (quando aplicável)
+  CreatePedidoEndpoint.cs     ← implementa IEndpoint.MapEndpoints(), auto-descoberto
 ```
 
-Cada pasta contém tudo o que aquela operação precisa — nenhuma dependência cruzada entre features.
+> **Padrão real do projeto:** o Handler é declarado no mesmo arquivo do Command (`CreatePedidoCommand.cs` contém o `record Command` + `class Handler`). Para operações de leitura, o arquivo `*Query.cs` contém o Query + Handler. Isso reduz arquivos por slice sem perder coesão.
+
+Cada pasta contém tudo o que aquela operação precisa — nenhuma dependência cruzada entre slices.
 
 ### Domínio Rico
 
-O aggregate `Pedido` encapsula as regras de negócio. Métodos como `Pedido.Create()`, `Pedido.AddItem()` e `Pedido.Cancel()` nunca lançam exceções — retornam `Result` ou `Result<T>`. O handler sempre verifica `IsSuccess` antes de acessar `.Value`.
+O aggregate `Pedido` encapsula as regras de negócio. Métodos como `Pedido.Criar()`, `Pedido.AdicionarItem()`, `Pedido.Confirmar()` e `Pedido.Cancelar(motivo)` nunca lançam exceções — retornam `Result` ou `Result<T>`. O handler sempre verifica `IsSuccess` antes de acessar `.Value`. O status nasce em `Rascunho` e transita para `Confirmado` ou `Cancelado`.
 
 ### Auto-descoberta de endpoints
 
@@ -78,7 +129,7 @@ Todos os endpoints implementam a interface `IEndpoint` (`src/Shared/Common/IEndp
 ### Fluxo de dados
 
 ```
-HTTP → CreatePedidoEndpoint (IEndpoint, auto-discovered) → CreatePedidoValidator → CreatePedidoHandler → Pedido.Create() → AppDbContext
+HTTP → CreatePedidoEndpoint (IEndpoint, auto-discovered) → CreatePedidoValidator → CreatePedidoHandler → Pedido.Criar() → IPedidoCommandRepository → AppDbContext
 ```
 
 ---
@@ -117,7 +168,7 @@ Componentes em `src/Shared/` utilizados por todos os bounded contexts:
 | JWT Bearer auth | Configurado globalmente. Pedidos exigem `RequireAuthorization()`. GET do Catálogo é anônimo; escrita exige token. |
 | Rate limiting | 3 políticas: `leitura`, `escrita`, `criacao-produto`. Registradas no `Program.cs`. Desativadas quando `Environment = "Testing"`. |
 | `AppDbContext` | Único contexto EF Core, compartilhado pelos três bounded contexts. |
-| `IEndpoint` | Interface com método `Map(IEndpointRouteBuilder)`. Implementações são descobertas por reflection. |
+| `IEndpoint` | Interface com método `MapEndpoints(IEndpointRouteBuilder)`. Implementações são descobertas por reflection. |
 | `Result<T>` | Tipo discriminado que representa sucesso ou falha sem lançar exceções. Usado exclusivamente no bounded context de Pedidos. |
 
 ---
@@ -142,12 +193,13 @@ net-minimal-api/
 │   │
 │   ├── Pedidos/                            # Bounded Context 2 — Vertical Slice + Domínio Rico
 │   │   ├── Domain/                         # Aggregate Pedido, PedidoItem, StatusPedido
-│   │   ├── Features/
-│   │   │   ├── CreatePedido/               # Command, Validator, Handler, Endpoint
-│   │   │   ├── GetPedido/
-│   │   │   ├── ListPedidos/
-│   │   │   ├── AddItemPedido/
-│   │   │   └── CancelPedido/
+│   │   ├── CreatePedido/                   # Command + Handler, Validator, Endpoint
+│   │   ├── GetPedido/                      # Query + Handler, Endpoint
+│   │   ├── ListPedidos/                    # Query + Handler, Endpoint
+│   │   ├── AddItemPedido/                  # Command + Handler, Validator, Endpoint
+│   │   ├── CancelPedido/                   # Command + Handler, Endpoint
+│   │   ├── Repositories/                   # IPedidoCommandRepository, IPedidoQueryRepository
+│   │   ├── Infrastructure/                 # Mapeamentos EF Core (PedidoConfiguration)
 │   │   └── Common/                         # DTOs e tipos compartilhados entre slices
 │   │
 │   ├── Pix/                                # Bounded Context 3 — Integração Externa
@@ -212,24 +264,28 @@ POST /api/v1/catalogo/produtos
 ```
 POST /api/v1/pedidos
     │
+    ├─ IdempotencyMiddleware  ← se header Idempotency-Key presente, devolve cacheado
+    │
     ├─ RequireAuthorization()  ← JWT obrigatório
     │
-    ├─ CreatePedidoEndpoint.Handle(command, handler)   ← IEndpoint, auto-descoberto
+    ├─ CreatePedidoEndpoint.MapEndpoints(app)   ← IEndpoint, auto-descoberto
     │   │
-    │   └─ CreatePedidoHandler.HandleAsync(command)
-    │       ├─ IValidator<CreatePedidoCommand>.ValidateAsync()
-    │       │   └─ retorna 400 se inválido
+    │   ├─ IValidator<CreatePedidoCommand>.ValidateAsync()
+    │   │   └─ retorna 400 (ValidationProblem) se inválido
+    │   │
+    │   └─ CreatePedidoHandler.HandleAsync(cmd, ct)
+    │       ├─ Pedido.Criar()  ← nasce em StatusPedido.Rascunho
     │       │
-    │       ├─ Pedido.Create(clienteNome)  ← retorna Result<Pedido>
-    │       │   └─ retorna 400 se nome inválido
+    │       ├─ foreach item: repository.ObterProdutoParaItemAsync(produtoId)
+    │       │   └─ retorna 400 se produto não encontrado
     │       │
-    │       ├─ foreach item: pedido.AddItem(produto, quantidade)
-    │       │   └─ retorna 400 se estoque insuficiente ou pedido não está Aberto
+    │       ├─ foreach item: pedido.AdicionarItem(produto, quantidade)
+    │       │   └─ retorna 400 se estoque insuficiente ou pedido não está em Rascunho
     │       │
-    │       ├─ AppDbContext.Pedidos.Add(pedido)
-    │       └─ AppDbContext.SaveChangesAsync()
+    │       ├─ IPedidoCommandRepository.AdicionarAsync(pedido)
+    │       └─ IPedidoCommandRepository.SaveChangesAsync()
     │
-    └─ 201 Created + { id }
+    └─ 201 Created + PedidoResponse
 ```
 
 ### PIX — Mock Server + Cliente HTTP

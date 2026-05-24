@@ -1,6 +1,11 @@
 # ProdutosAPI — .NET 10 Minimal API
 
-Projeto educacional em .NET 10 que implementa uma API REST completa demonstrando, lado a lado, princípios e padrões arquiteturais distintos aplicados ao mesmo stack tecnológico. Cada módulo resolve o mesmo tipo de problema de uma forma diferente, tornando a comparação direta o ponto central do aprendizado.
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)
+![Minimal API](https://img.shields.io/badge/Minimal_API-Enabled-1f883d)
+![Tests](https://img.shields.io/badge/tests-150_passando-2ea44f)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+Projeto educacional em .NET 10 Minimal API demonstrando três bounded contexts com padrões arquiteturais distintos coexistindo no mesmo repositório. Cada contexto resolve o mesmo problema técnico (uma API REST com persistência, validação e testes) com graus diferentes de estrutura — permitindo comparação direta entre abordagens.
 
 ---
 
@@ -98,28 +103,179 @@ DELETE /produtos/{id} seta Ativo = false em vez de remover o registro. O reposit
 
 ## Início rápido
 
-**Pré-requisito:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+**Pré-requisitos:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ```bash
 git clone https://github.com/arkhibr/net-minimal-api.git
 cd net-minimal-api
-dotnet run --project src/Catalogo/Catalogo.API
-# Swagger: http://localhost:5001/swagger
-
-dotnet test ProdutosAPI.slnx -v minimal
+dotnet restore
+dotnet run
 ```
 
-Credenciais para JWT: admin@example.com / senha123
+| Endpoint                | URL                                |
+| ----------------------- | ---------------------------------- |
+| Swagger UI              | http://localhost:5000              |
+| HTTP base               | http://localhost:5000/api/v1       |
+| HTTPS base              | https://localhost:5001/api/v1      |
+| Health check            | http://localhost:5000/health       |
+
+Credenciais para JWT no Swagger: `admin@example.com` / `senha123`.
+
+---
+
+## Bounded Contexts
+
+| Contexto | Padrão                        | Rotas base                                  | Descrição                                                        |
+| -------- | ----------------------------- | ------------------------------------------- | ---------------------------------------------------------------- |
+| Catálogo | Clean Architecture híbrida    | `/api/v1/catalogo/*`                        | 5 recursos com CRUD completo, rate limiting (3 políticas) e soft delete |
+| Pedidos  | Vertical Slice + Domínio Rico | `/api/v1/pedidos/*`                         | Agregado rico, Result pattern, autenticação JWT obrigatória      |
+| Pix      | Mock Server + HTTP Client     | `/pix/v1/*` (executado em processo próprio) | mTLS, OAuth2, idempotência por chave, resiliência via Polly v8   |
+
+> O bounded context **Pix** roda como aplicação separada (`src/Pix/Pix.MockServer/`). Não compartilha pipeline HTTP com Catálogo e Pedidos. Ver [docs/04-PIX.md](docs/04-PIX.md).
+
+---
+
+## Estrutura de Diretórios
+
+```
+net-minimal-api/
+├── Program.cs                            # composition root (ASP.NET Core)
+├── ProdutosAPI.csproj                    # projeto principal
+├── ProdutosAPI.slnx                      # solution
+│
+├── src/
+│   ├── Catalogo/                         # bounded context 1 — Clean Architecture híbrida
+│   │   ├── Catalogo.Domain/
+│   │   ├── Catalogo.Application/
+│   │   ├── Catalogo.Infrastructure/
+│   │   ├── Catalogo.API/
+│   │   └── Catalogo.ClientDemo/          # console app de demonstração de resiliência
+│   │
+│   ├── Pedidos/                          # bounded context 2 — Vertical Slice + Domínio Rico
+│   │   ├── CreatePedido/                 # slice: Command, Validator, Endpoint, Handler
+│   │   ├── GetPedido/
+│   │   ├── ListPedidos/
+│   │   ├── CancelPedido/
+│   │   ├── AddItemPedido/
+│   │   ├── Domain/                       # agregado Pedido + PedidoItem
+│   │   ├── Repositories/
+│   │   ├── Infrastructure/               # mapeamentos EF Core
+│   │   └── Common/                       # DTOs e tipos compartilhados entre slices
+│   │
+│   ├── Pix/                              # bounded context 3 — integração externa
+│   │   ├── Pix.MockServer/               # Minimal API independente (mTLS + OAuth2)
+│   │   └── Pix.ClientDemo/               # console app HttpClient tipado
+│   │
+│   └── Shared/                           # infra usada pelos três contextos
+│       ├── Common/                       # IEndpoint, Result<T>, EndpointExtensions
+│       ├── Data/                         # AppDbContext + Migrations
+│       └── Middleware/                   # ExceptionHandling, Idempotency
+│
+└── tests/
+    ├── ProdutosAPI.Tests/                # 143 testes — Catálogo + Pedidos
+    └── Pix.MockServer.Tests/             # 7 testes — integração HTTP PIX
+```
+
+---
+
+## Endpoints
+
+### Autenticação
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/v1/auth/login` | Retorna JWT. Body: `{"email": "admin@example.com", "senha": "senha123"}` |
+
+### Catálogo
+
+Todas as rotas têm prefixo `/api/v1/catalogo/`. Endpoints de escrita exigem JWT; leituras são anônimas. Políticas de rate limiting: `leitura` (60/min), `escrita` (20/min) e `criacao-produto` (5/min, exclusiva para `POST /produtos`).
+
+| Método   | Rota                                       | Auth | Rate limit         | Observações                                |
+| -------- | ------------------------------------------ | ---- | ------------------ | ------------------------------------------ |
+| `GET`    | `/api/v1/catalogo/produtos`                | —    | `leitura`          | Paginado; filtros: `categoria`, `search`   |
+| `GET`    | `/api/v1/catalogo/produtos/{id}`           | —    | `leitura`          | Retorna 404 se inativo                     |
+| `POST`   | `/api/v1/catalogo/produtos`                | JWT  | `criacao-produto`  | TokenBucket: pico baixo, custo alto        |
+| `PUT`    | `/api/v1/catalogo/produtos/{id}`           | JWT  | `escrita`          | Substituição completa                      |
+| `PATCH`  | `/api/v1/catalogo/produtos/{id}`           | JWT  | `escrita`          | Atualização parcial                        |
+| `DELETE` | `/api/v1/catalogo/produtos/{id}`           | JWT  | `escrita`          | Soft delete (seta `Ativo = false`)         |
+| `GET`    | `/api/v1/catalogo/categorias`              | —    | `leitura`          |                                            |
+| `GET`    | `/api/v1/catalogo/categorias/{id}`         | —    | `leitura`          |                                            |
+| `POST`   | `/api/v1/catalogo/categorias`              | JWT  | `escrita`          |                                            |
+| `PUT`    | `/api/v1/catalogo/categorias/{id}`         | JWT  | `escrita`          |                                            |
+| `DELETE` | `/api/v1/catalogo/categorias/{id}`         | JWT  | `escrita`          |                                            |
+| `GET`    | `/api/v1/catalogo/variantes`               | —    | `leitura`          | Query opcional: `?produtoId={id}`          |
+| `GET`    | `/api/v1/catalogo/variantes/{id}`          | —    | `leitura`          |                                            |
+| `POST`   | `/api/v1/catalogo/variantes`               | JWT  | `escrita`          |                                            |
+| `PUT`    | `/api/v1/catalogo/variantes/{id}`          | JWT  | `escrita`          |                                            |
+| `PATCH`  | `/api/v1/catalogo/variantes/{id}/estoque`  | JWT  | `escrita`          | Apenas o campo de estoque                  |
+| `DELETE` | `/api/v1/catalogo/variantes/{id}`          | JWT  | `escrita`          |                                            |
+| `GET`    | `/api/v1/catalogo/atributos`               | —    | `leitura`          | Query opcional: `?produtoId={id}`          |
+| `POST`   | `/api/v1/catalogo/atributos`               | JWT  | `escrita`          |                                            |
+| `PUT`    | `/api/v1/catalogo/atributos/{id}`          | JWT  | `escrita`          |                                            |
+| `DELETE` | `/api/v1/catalogo/atributos/{id}`          | JWT  | `escrita`          |                                            |
+| `GET`    | `/api/v1/catalogo/midias`                  | —    | `leitura`          | Query opcional: `?produtoId={id}`          |
+| `POST`   | `/api/v1/catalogo/midias`                  | JWT  | `escrita`          |                                            |
+| `PATCH`  | `/api/v1/catalogo/midias/{id}/ordem`       | JWT  | `escrita`          | Reordena a mídia                           |
+| `DELETE` | `/api/v1/catalogo/midias/{id}`             | JWT  | `escrita`          |                                            |
+
+### Pedidos
+
+Todas as rotas exigem JWT. Erros de negócio retornam `400 Bad Request` com `Result.Error` no corpo (não usam exceções).
+
+| Método | Rota                              | Slice          | Observações                                    |
+| ------ | --------------------------------- | -------------- | ---------------------------------------------- |
+| `POST` | `/api/v1/pedidos`                 | CreatePedido   | Cria pedido com itens iniciais                 |
+| `GET`  | `/api/v1/pedidos`                 | ListPedidos    | Lista pedidos (consulta via Dapper)            |
+| `GET`  | `/api/v1/pedidos/{id}`            | GetPedido      | Detalhe do pedido com itens                    |
+| `POST` | `/api/v1/pedidos/{id}/itens`      | AddItemPedido  | Falha se pedido não está em status `Rascunho`  |
+| `POST` | `/api/v1/pedidos/{id}/cancelar`   | CancelPedido   | Falha se pedido já está cancelado ou confirmado |
+
+---
+
+## Testes
+
+| Projeto                | Testes | Cobertura                                                   |
+| ---------------------- | -----: | ----------------------------------------------------------- |
+| `ProdutosAPI.Tests`    |    143 | Catálogo (integração + unit) e Pedidos (integração)         |
+| `Pix.MockServer.Tests` |      7 | Fluxo OAuth2 + cobrança + idempotência via HTTP             |
+| **Total**              |  **150** |                                                           |
+
+> `tests/Pedidos.Tests/` existe no repositório mas tem uma dependência pendente — não está incluído na contagem.
+
+```bash
+# Solução completa (150 testes)
+dotnet test ProdutosAPI.slnx -v minimal
+
+# Apenas o projeto principal (143 testes)
+dotnet test tests/ProdutosAPI.Tests/
+
+# Apenas o mock server PIX (7 testes)
+dotnet test tests/Pix.MockServer.Tests/
+
+# Filtros por categoria
+dotnet test tests/ProdutosAPI.Tests/ --filter "FullyQualifiedName~Unit.Domain"
+dotnet test tests/ProdutosAPI.Tests/ --filter "FullyQualifiedName~Integration.Catalogo"
+dotnet test tests/ProdutosAPI.Tests/ --filter "FullyQualifiedName~RateLimitingTests"
+```
 
 ---
 
 ## Documentação
 
-| Arquivo | Conteúdo |
-|---|---|
-| docs/01-ARQUITETURA.md | Visão estrutural, fluxos de requisição e comparativo CA vs VSA |
-| docs/02-CATALOGO.md | Clean Architecture, domínio rico, rate limiting, resiliência |
-| docs/03-PEDIDOS.md | Vertical Slice, Result pattern, domínio rico, auto-discovery |
-| docs/04-PIX.md | mTLS, OAuth2, idempotência, pipeline de HttpClient |
-| docs/05-TESTES.md | Estratégia de testes, factories e isolamento de rate limiting |
-| docs/ADRs/ | 15 decisões arquiteturais no formato MADR 3.x |
+| Arquivo                                          | Conteúdo                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------- |
+| [docs/00-VISAO-GERAL.md](docs/00-VISAO-GERAL.md) | Visão geral, trilhas de aprendizado e mapa da documentação        |
+| [docs/01-ARQUITETURA.md](docs/01-ARQUITETURA.md) | Diagramas (C1/C2), fluxos de requisição e comparativo CA × VSA    |
+| [docs/02-CATALOGO.md](docs/02-CATALOGO.md)       | Catálogo: Clean Architecture híbrida, recursos, rate limiting     |
+| [docs/03-PEDIDOS.md](docs/03-PEDIDOS.md)         | Pedidos: Vertical Slice, domínio rico, Result pattern             |
+| [docs/04-PIX.md](docs/04-PIX.md)                 | Pix: Mock Server, mTLS, OAuth2, cliente HTTP com resiliência      |
+| [docs/05-TESTES.md](docs/05-TESTES.md)           | Estratégia de testes, factories, isolamento de rate limiting      |
+| [docs/ADRs/](docs/ADRs/)                         | 15 ADRs (MADR 3.x) registrando as decisões arquiteturais aceitas  |
+| [docs/guias/](docs/guias/)                       | 4 guias: REST, Minimal API, .NET 10, JSON complexo                |
+| [CLAUDE.md](CLAUDE.md)                           | Convenções não-óbvias do projeto (soft delete, rate limiting, auth) |
+
+---
+
+## Licença
+
+MIT. Ver cabeçalho em `Program.cs` (configuração de Swagger).

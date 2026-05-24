@@ -31,11 +31,12 @@ Uma **slice** (fatia) representa **um único caso de uso** ou funcionalidade. To
 
 ```
 src/Pedidos/CreatePedido/
-  ├─ CreatePedidoCommand.cs      # Input (DTO)
+  ├─ CreatePedidoCommand.cs      # Command + Handler (no mesmo arquivo)
   ├─ CreatePedidoValidator.cs    # Validações de entrada
-  ├─ CreatePedidoHandler.cs      # Orquestração
-  └─ CreatePedidoEndpoint.cs     # Rota HTTP
+  └─ CreatePedidoEndpoint.cs     # Rota HTTP (implementa IEndpoint)
 ```
+
+> **Padrão do projeto:** Handler e Command vivem no mesmo arquivo. Isso reduz a contagem de arquivos por slice sem perder coesão.
 
 Cada slice é **independente**: alterar o comportamento de criação de pedido não afeta diretamente outras operações.
 
@@ -54,15 +55,8 @@ Cada slice é **independente**: alterar o comportamento de criação de pedido n
 #### 2.1 Command (DTO de entrada)
 
 ```csharp
-public sealed record CreatePedidoCommand(
-    string ClienteNome,
-    List<AddItemCommand> Itens
-);
-
-public sealed record AddItemCommand(
-    int ProdutoId,
-    int Quantidade
-);
+public sealed record CreatePedidoCommand(List<CreatePedidoItemDto> Itens);
+public sealed record CreatePedidoItemDto(int ProdutoId, int Quantidade);
 ```
 
 #### 2.2 Validator (FluentValidation)
@@ -72,17 +66,14 @@ public sealed class CreatePedidoValidator : AbstractValidator<CreatePedidoComman
 {
     public CreatePedidoValidator()
     {
-        RuleFor(x => x.ClienteNome)
-            .NotEmpty().WithMessage("Nome do cliente é obrigatório")
-            .Length(3, 100);
+        RuleFor(x => x.Itens)
+            .NotEmpty().WithMessage("Pedido precisa ter ao menos um item");
 
-        RuleForEach(x => x.Itens)
-            .NotNull()
-            .DependentRules(() =>
-            {
-                RuleFor(x => x.ProdutoId).GreaterThan(0);
-                RuleFor(x => x.Quantidade).GreaterThan(0);
-            });
+        RuleForEach(x => x.Itens).ChildRules(item =>
+        {
+            item.RuleFor(i => i.ProdutoId).GreaterThan(0);
+            item.RuleFor(i => i.Quantidade).GreaterThan(0);
+        });
     }
 }
 ```
@@ -90,33 +81,27 @@ public sealed class CreatePedidoValidator : AbstractValidator<CreatePedidoComman
 #### 2.3 Handler (Orquestração com domínio)
 
 ```csharp
-public sealed class CreatePedidoHandler(
-    AppDbContext context,
-    IValidator<CreatePedidoCommand> validator
-)
+public sealed class CreatePedidoHandler(IPedidoCommandRepository repository)
 {
-    public async Task<Result<int>> HandleAsync(CreatePedidoCommand command)
+    public async Task<Result<PedidoResponse>> HandleAsync(
+        CreatePedidoCommand cmd, CancellationToken ct = default)
     {
-        var validationResult = await validator.ValidateAsync(command);
-        if (!validationResult.IsValid)
-            return Result<int>.Fail("Validação falhou");
+        var pedido = Pedido.Criar();
 
-        var pedido = Pedido.Create(command.ClienteNome);
-
-        foreach (var item in command.Itens)
+        foreach (var itemDto in cmd.Itens)
         {
-            var produto = await context.Produtos.FindAsync(item.ProdutoId);
+            var produto = await repository.ObterProdutoParaItemAsync(itemDto.ProdutoId, ct);
             if (produto == null)
-                return Result<int>.Fail($"Produto {item.ProdutoId} não encontrado");
+                return Result<PedidoResponse>.Fail($"Produto {itemDto.ProdutoId} não encontrado");
 
-            var result = pedido.AddItem(produto, item.Quantidade);
+            var result = pedido.AdicionarItem(produto, itemDto.Quantidade);
             if (!result.IsSuccess)
-                return Result<int>.Fail(result.Error);
+                return Result<PedidoResponse>.Fail(result.Error!);
         }
 
-        context.Pedidos.Add(pedido);
-        await context.SaveChangesAsync();
-        return Result<int>.Ok(pedido.Id);
+        await repository.AdicionarAsync(pedido, ct);
+        await repository.SaveChangesAsync(ct);
+        return Result<PedidoResponse>.Ok(PedidoResponse.From(pedido));
     }
 }
 ```
@@ -126,25 +111,24 @@ public sealed class CreatePedidoHandler(
 ```csharp
 public sealed class CreatePedidoEndpoint : IEndpoint
 {
-    public void Map(IEndpointRouteBuilder routes) =>
-        routes
-            .MapPost("/api/v1/pedidos")
-            .Produces<PedidoResponse>(StatusCodes.Status201Created)
-            .WithName("Create Pedido")
-            .WithOpenApi()
-            .RequireAuthorization();
+    public void MapEndpoints(IEndpointRouteBuilder app) =>
+        app.MapPost("/api/v1/pedidos", async (
+            CreatePedidoCommand cmd,
+            CreatePedidoHandler handler,
+            IValidator<CreatePedidoCommand> validator,
+            CancellationToken ct) =>
+        {
+            var validation = await validator.ValidateAsync(cmd, ct);
+            if (!validation.IsValid)
+                return Results.ValidationProblem(validation.ToDictionary());
 
-    public async Task<IResult> Handle(
-        CreatePedidoCommand command,
-        CreatePedidoHandler handler
-    )
-    {
-        var result = await handler.HandleAsync(command);
-        if (!result.IsSuccess)
-            return Results.BadRequest(new { error = result.Error });
-
-        return Results.Created($"/api/v1/pedidos/{result.Value}", new { id = result.Value });
-    }
+            var result = await handler.HandleAsync(cmd, ct);
+            return result.IsSuccess
+                ? Results.Created($"/api/v1/pedidos/{result.Value!.Id}", result.Value)
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .RequireAuthorization()
+        .WithTags("Pedidos");
 }
 ```
 
@@ -160,7 +144,7 @@ public sealed class CreatePedidoEndpoint : IEndpoint
 // src/Shared/Common/IEndpoint.cs
 public interface IEndpoint
 {
-    void Map(IEndpointRouteBuilder routes);
+    void MapEndpoints(IEndpointRouteBuilder app);
 }
 ```
 
@@ -169,7 +153,7 @@ No `Program.cs`:
 builder.Services.AddEndpointsFromAssembly(typeof(Program).Assembly);
 ```
 
-Isso varre todos os tipos implementando `IEndpoint` e chama `.Map()` automaticamente. Basta criar `NovoSliceEndpoint : IEndpoint` e ela será descoberta — sem cadastro manual.
+Isso varre todos os tipos implementando `IEndpoint` e chama `.MapEndpoints()` automaticamente. Basta criar `NovoSliceEndpoint : IEndpoint` e ela será descoberta — sem cadastro manual.
 
 ---
 
@@ -209,35 +193,19 @@ public sealed class Pedido
 {
     private readonly List<PedidoItem> _itens = new();
 
-    public int Id { get; set; }
-    public string ClienteNome { get; set; }
-    public PedidoStatus Status { get; set; }
+    public int Id { get; private set; }
+    public StatusPedido Status { get; private set; } = StatusPedido.Rascunho;
+    public decimal Total { get; private set; }
+    public DateTime CriadoEm { get; private set; }
+    public IReadOnlyCollection<PedidoItem> Itens => _itens.AsReadOnly();
 
-    // Propriedade calculada!
-    public decimal Total => _itens.Sum(i => i.Total);
+    // Factory — pedido nasce em Rascunho, sem cliente atrelado nessa versão
+    public static Pedido Criar() => new() { CriadoEm = DateTime.UtcNow };
 
-    // Regras encapsuladas em métodos:
-
-    public static Result<Pedido> Create(string clienteNome)
+    public Result AdicionarItem(Produto produto, int quantidade)
     {
-        if (string.IsNullOrWhiteSpace(clienteNome))
-            return Result<Pedido>.Fail("Nome do cliente obrigatório");
-
-        if (clienteNome.Length > 100)
-            return Result<Pedido>.Fail("Nome muito longo");
-
-        return Result<Pedido>.Ok(new Pedido
-        {
-            ClienteNome = clienteNome,
-            Status = PedidoStatus.Aberto,
-            DataCriacao = DateTime.Now
-        });
-    }
-
-    public Result AddItem(Produto produto, int quantidade)
-    {
-        if (Status != PedidoStatus.Aberto)
-            return Result.Fail("Pedido não está aberto");
+        if (Status != StatusPedido.Rascunho)
+            return Result.Fail("Só é possível adicionar itens em pedido em rascunho");
 
         if (quantidade <= 0)
             return Result.Fail("Quantidade deve ser positiva");
@@ -246,34 +214,56 @@ public sealed class Pedido
             return Result.Fail("Estoque insuficiente");
 
         _itens.Add(new PedidoItem(produto, quantidade));
+        Total = _itens.Sum(i => i.Total);
         return Result.Ok();
     }
 
-    public Result Cancel()
+    public Result Confirmar()
     {
-        if (Status != PedidoStatus.Aberto)
-            return Result.Fail("Só pedidos abertos podem ser cancelados");
+        if (Status != StatusPedido.Rascunho)
+            return Result.Fail("Apenas pedidos em rascunho podem ser confirmados");
 
-        Status = PedidoStatus.Cancelado;
+        if (_itens.Count == 0)
+            return Result.Fail("Pedido precisa ter ao menos um item");
+
+        if (Total < 10m)
+            return Result.Fail("Total mínimo do pedido é R$ 10,00");
+
+        Status = StatusPedido.Confirmado;
+        return Result.Ok();
+    }
+
+    public Result Cancelar(string motivo)
+    {
+        if (string.IsNullOrWhiteSpace(motivo))
+            return Result.Fail("Motivo do cancelamento é obrigatório");
+
+        if (Status == StatusPedido.Cancelado)
+            return Result.Fail("Pedido já está cancelado");
+
+        Status = StatusPedido.Cancelado;
         return Result.Ok();
     }
 }
+
+public enum StatusPedido { Rascunho, Confirmado, Cancelado }
 ```
 
 **Características:**
-- Propriedades + métodos
+- Setters privados — estado só muda via métodos do agregado
 - Métodos retornam `Result<T>` para sucesso/falha
-- Identidade própria (invariantes)
-- Validações integradas
+- Status nasce em `Rascunho`; transições controladas por `Confirmar()` e `Cancelar(motivo)`
+- `Cancelar` exige motivo explícito — invariante de domínio
+- Validações integradas e invariantes verificadas em cada transição
 
 | Aspecto | Produto (Anêmico) | Pedido (Rico) |
 |---------|-------------------|---------------|
 | **Define-se em** | Apenas propriedades | Propriedades + métodos |
-| **Validação "Preço > 0"** | Em `ProdutoValidator` | Em `Pedido.Create()` |
-| **"Não vender sem estoque"** | Em `ProdutoService` | Em `Pedido.AddItem()` |
-| **Quem orquestra?** | `ProdutoService` | `Pedido.Create()`, `Pedido.AddItem()` |
-| **Total de Pedido** | Calculado em `Service` | Propriedade `Total` do próprio agregado |
-| **Teste** | Testa `Service.CancelarAsync()` | Testa `Pedido.Cancel()` direto |
+| **Validação "Preço > 0"** | Em `ProdutoValidator` | Em construtor / value object |
+| **"Não vender sem estoque"** | Em `ProdutoService` | Em `Pedido.AdicionarItem()` |
+| **Quem orquestra?** | `ProdutoService` | `Pedido.Criar()`, `Pedido.AdicionarItem()`, `Pedido.Confirmar()`, `Pedido.Cancelar()` |
+| **Total de Pedido** | Calculado em `Service` | Recalculado pelo agregado a cada item adicionado |
+| **Teste** | Testa `Service.CancelarAsync()` | Testa `Pedido.Cancelar(motivo)` direto |
 | **Classe tem identidade?** | Não, é apenas storage | Sim, entidade com regras |
 
 ---
@@ -358,35 +348,36 @@ public async Task DeletarProduto_DeveRetornarTrue()
 
 ```csharp
 [Fact]
-public void Pedido_AddItem_QuandoStatusNaoAberto_DeveRetornarFalha()
+public void Pedido_AdicionarItem_QuandoCancelado_DeveRetornarFalha()
 {
     // Arrange
-    var pedido = new Pedido { ClienteNome = "Cliente", Status = PedidoStatus.Cancelado };
+    var pedido = Pedido.Criar();
+    pedido.Cancelar("teste");
     var produto = new Produto { Nome = "Test", Preco = 10, Estoque = 100 };
 
     // Act
-    var result = pedido.AddItem(produto, 1);
+    var result = pedido.AdicionarItem(produto, 1);
 
     // Assert
     result.IsSuccess.Should().BeFalse();
-    result.Error.Should().Be("Pedido não está aberto");
+    result.Error.Should().Be("Só é possível adicionar itens em pedido em rascunho");
 }
 ```
 
-**Foco:** Testa invariantes do agregado direto.
+**Foco:** Testa invariantes do agregado direto, sem dependência de banco ou HTTP.
 
 ---
 
 ## 8. Checklist: Montando um Novo Slice
 
-Quando for adicionar um novo slice de Pedidos:
+Quando for adicionar um novo slice de Pedidos (3 arquivos por slice — Handler vive no mesmo arquivo do Command):
 
 - [ ] Criar pasta `src/Pedidos/NovoSlice/`
-- [ ] Criar `NovoSliceCommand.cs` (DTO)
-- [ ] Criar `NovoSliceValidator.cs` (FluentValidation)
-- [ ] Criar `NovoSliceHandler.cs` (orquestração)
-- [ ] Criar `NovoSliceEndpoint.cs` (implementa `IEndpoint`)
+- [ ] Criar `NovoSliceCommand.cs` (contém **Command + Handler** no mesmo arquivo)
+- [ ] Criar `NovoSliceValidator.cs` (FluentValidation, quando aplicável)
+- [ ] Criar `NovoSliceEndpoint.cs` (implementa `IEndpoint.MapEndpoints`)
 - [ ] Adicionar método ao agregado `Pedido` (se necessário)
+- [ ] Adicionar nova operação à `IPedidoCommandRepository` ou `IPedidoQueryRepository` (se necessário)
 - [ ] Criar testes em `tests/ProdutosAPI.Tests/Integration/Pedidos/`
 - [ ] Testar via `dotnet run` + Swagger
 

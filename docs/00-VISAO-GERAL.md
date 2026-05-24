@@ -4,6 +4,31 @@
 
 Este é um projeto educacional em **.NET 10 Minimal API** que demonstra três bounded contexts coexistindo no mesmo repositório, cada um seguindo um padrão arquitetural distinto. O objetivo é permitir comparação direta entre abordagens — o mesmo problema (uma API REST com persistência, validação e testes) resolvido com diferentes graus de estrutura e separação de responsabilidades.
 
+## Diagrama de Contexto (C1)
+
+```mermaid
+flowchart LR
+    subgraph clients["Consumidores"]
+        web["Frontend Web<br/>(SPA hipotética)"]
+        mobile["App Mobile<br/>(hipotético)"]
+        cli["Catalogo.ClientDemo<br/>(console)"]
+        pixcli["Pix.ClientDemo<br/>(console)"]
+    end
+
+    api["ProdutosAPI<br/>(.NET 10 Minimal API)<br/>Catálogo + Pedidos"]
+    pixmock["Pix.MockServer<br/>(simula API PIX do BCB)"]
+    db[("SQLite<br/>produtos-api.db")]
+
+    web -- "HTTP/JSON + JWT" --> api
+    mobile -- "HTTP/JSON + JWT" --> api
+    cli -- "HTTP/JSON<br/>retry + circuit breaker" --> api
+    pixcli -- "HTTPS + mTLS + OAuth2" --> pixmock
+
+    api -- "EF Core + Dapper" --> db
+```
+
+> `Pix.MockServer` roda em processo separado da `ProdutosAPI`. A integração só existe quando ambos estão ativos. Detalhes em [04-PIX.md](04-PIX.md).
+
 ## Os Três Bounded Contexts
 
 ### Catálogo
@@ -32,12 +57,13 @@ Caminhos relevantes:
 | **Diretório** | `src/Pedidos/` |
 | **Rotas** | `/api/v1/pedidos/*` |
 
-Demonstra organização por caso de uso (cada operação é uma pasta isolada), aggregate com regras de negócio encapsuladas, o padrão `Result<T>` em vez de exceções, e auto-descoberta de endpoints via reflection. Autenticação JWT obrigatória.
+Demonstra organização por caso de uso (cada operação é uma pasta isolada na raiz de `src/Pedidos/`), aggregate com regras de negócio encapsuladas, o padrão `Result<T>` em vez de exceções, e auto-descoberta de endpoints via reflection. Autenticação JWT obrigatória.
 
 Caminhos relevantes:
-- `src/Pedidos/Features/` — pastas por caso de uso (CreatePedido, GetPedido, etc.)
-- `src/Pedidos/Domain/` — aggregate Pedido
-- `src/Shared/Common/IEndpoint.cs` — contrato de auto-registro
+- `src/Pedidos/CreatePedido/`, `GetPedido/`, `ListPedidos/`, `AddItemPedido/`, `CancelPedido/` — uma pasta por caso de uso
+- `src/Pedidos/Domain/` — aggregate Pedido + PedidoItem
+- `src/Pedidos/Repositories/` — `IPedidoCommandRepository` (EF Core) e `IPedidoQueryRepository` (Dapper)
+- `src/Shared/Common/IEndpoint.cs` — contrato de auto-registro com `MapEndpoints(IEndpointRouteBuilder)`
 
 ---
 
@@ -136,10 +162,11 @@ Foco: entender a estrutura básica, testar a API e ver as boas práticas.
 
 ```
 1. Executar a API (5 min)
-   dotnet run --project src/Catalogo/Catalogo.API
+   dotnet run
 
 2. Abrir Swagger e explorar endpoints
-   http://localhost:5001/swagger
+   http://localhost:5000        (HTTP, perfil padrão)
+   https://localhost:5001       (HTTPS, perfil https)
 
 3. Ler o guia teórico
    docs/guias/MELHORES-PRATICAS-API.md
@@ -167,12 +194,12 @@ Foco: padrões arquiteturais, domínio rico e Vertical Slice.
 2. Estudar Vertical Slice com Pedidos
    docs/03-PEDIDOS.md (completo — tem snippets de código)
    → src/Pedidos/Domain/Pedido.cs          (aggregate rico)
-   → src/Pedidos/Features/CreatePedido/    (slice completa)
+   → src/Pedidos/CreatePedido/             (slice completa: Command, Validator, Endpoint)
    → src/Shared/Common/Result.cs           (Result pattern)
-   → src/Shared/Common/IEndpoint.cs        (auto-discovery)
+   → src/Shared/Common/IEndpoint.cs        (auto-discovery via MapEndpoints)
 
 3. Comparar os dois modelos lado a lado
-   → Produto.Criar() vs. Pedido.Create()
+   → Produto.Criar() vs. Pedido.Criar()
    → ProdutoService vs. CreatePedidoHandler
    → ProdutoEndpoints vs. CreatePedidoEndpoint
 
@@ -225,12 +252,17 @@ Foco: decisões arquiteturais registradas, integração externa, resiliência e 
 ```bash
 # Pré-requisito: .NET 10 SDK (https://dotnet.microsoft.com/download/dotnet/10.0)
 
-# Restaurar e executar
+# Restaurar e executar (na raiz do repositório)
 dotnet restore
-dotnet run --project src/Catalogo/Catalogo.API
+dotnet run
 
 # Swagger UI
-open http://localhost:5001/swagger
+open http://localhost:5000        # HTTP (perfil padrão)
+# ou
+open https://localhost:5001       # HTTPS
+
+# Health check
+curl http://localhost:5000/health
 
 # Rodar todos os testes (150 testes no total)
 dotnet test ProdutosAPI.slnx -v minimal

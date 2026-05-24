@@ -22,7 +22,7 @@ Opção escolhida: "Usar `Result<T>` como tipo de retorno explícito", porque to
 
 O tipo `Result<T>` é implementado como `record` imutável com `IsSuccess`, `Value` e `Error`, sem herança de exceção.
 
-**Nota sobre inconsistência atual:** A aplicação usa `Result<T>` nos handlers de `Pedidos`, mas `ProdutoService` retorna `null` para not found em vez de `Result`. Essa assimetria é uma consequência documentada da migração incremental e deve ser corrigida na evolução do módulo de Produtos para Clean Architecture completa.
+**Nota sobre uso heterogêneo entre bounded contexts:** O módulo de `Pedidos` adota `Result<T>` de forma consistente — todos os métodos do agregado `Pedido` (`Criar`, `AdicionarItem`, `Confirmar`, `Cancelar`) e o `CreatePedidoHandler` retornam `Result`/`Result<T>`. Já o `Catálogo` opera com modelo híbrido: alguns recursos (Produto, Categoria, Variante) usam domínio rico com value objects que lançam exceções via construtor para invariantes, enquanto Atributo e Mídia seguem CRUD anêmico com `null` para not found. Essa heterogeneidade é intencional — cada bounded context escolhe a estratégia de erro proporcional à densidade de regras de domínio que possui.
 
 **Nota sobre completude do monad:** Para o padrão ser plenamente aproveitado, métodos de encadeamento como `.Bind()`, `.Map()` e `.Match()` deveriam ser implementados no tipo `Result<T>`. Sem eles, o ganho em relação a um nullable é marginal — apenas estrutural. A implementação atual é intencional para fins educacionais (introdução ao conceito), não como implementação de produção completa.
 
@@ -31,7 +31,7 @@ O tipo `Result<T>` é implementado como `record` imutável com `IsSuccess`, `Val
 * Positivo, porque o compilador força o tratamento explícito de falhas — não é possível ignorar um `Result<T>` sem inspecioná-lo.
 * Positivo, porque elimina o uso de exceções para controle de fluxo de negócio, reservando-as para erros verdadeiramente excepcionais.
 * Negativo, porque a ausência de métodos de encadeamento (`.Bind`, `.Map`) limita a composição funcional e reduz o ganho de legibilidade em cadeias de operações.
-* Negativo, porque o projeto usa o padrão de forma inconsistente entre Produtos (null) e Pedidos (Result), aumentando a carga cognitiva do desenvolvedor.
+* Negativo, porque o uso heterogêneo entre Catálogo (modelo híbrido: exceções no construtor de value objects + `null` em CRUD anêmico) e Pedidos (`Result<T>` consistente) aumenta a carga cognitiva — o desenvolvedor precisa saber qual estratégia de erro é usada em cada contexto.
 
 ---
 

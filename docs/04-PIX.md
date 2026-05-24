@@ -1,10 +1,8 @@
 # Pix — Mock Server e Cliente HTTP
 
-Este módulo demonstra como estruturar chamadas de API externas em .NET com `HttpClientFactory`, modelar payloads JSON complexos e aplicar boas práticas de idempotência, correlação e tratamento de erro padronizado.
-
 ## Objetivo
 
-Demonstrar como estruturar chamadas de API com `HttpClientFactory` e como modelar payloads JSON complexos de forma organizada, com validação, idempotência, correlação e tratamento padronizado de erro.
+Demonstrar como estruturar chamadas de API externas em .NET com `HttpClientFactory` e como modelar payloads JSON complexos de forma organizada — com validação, idempotência, correlação e tratamento padronizado de erro.
 
 ## Arquitetura da demo
 

@@ -265,16 +265,16 @@ public class RateLimitingTests : IClassFixture<RateLimitingApiFactory>
 public class PedidoTests
 {
     [Fact]
-    public void AddItem_PedidoCancelado_RetornaFalha()
+    public void AdicionarItem_PedidoCancelado_RetornaFalha()
     {
-        var pedido = Pedido.Create("Cliente Teste").Value!;
-        pedido.Cancel();                             // pedido agora está Cancelado
+        var pedido = Pedido.Criar();
+        pedido.Cancelar("motivo de teste");          // pedido agora está Cancelado
 
         var produto = new Produto { Estoque = 10 };
-        var result = pedido.AddItem(produto, 1);
+        var result = pedido.AdicionarItem(produto, 1);
 
         result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Pedido não está aberto");
+        result.Error.Should().Contain("rascunho");
     }
 }
 ```

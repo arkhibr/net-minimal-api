@@ -21,7 +21,7 @@ O projeto é uma plataforma educacional para engenheiros .NET. Engenheiros lidam
 Opção escolhida: "Coexistência intencional dos dois padrões em contextos distintos", porque o objetivo pedagógico é expor engenheiros a ambos os padrões side-by-side, permitindo comparar trade-offs reais no mesmo codebase.
 
 - **Pedidos** usa Vertical Slice: cada funcionalidade (CreatePedido, AddItemPedido, CancelPedido) é um slice autossuficiente com Command, Validator, Handler e Endpoint no mesmo diretório.
-- **Produtos** usa Clean Architecture: separação em camadas Domain → Application → Infrastructure → API, com interfaces, repositórios e serviços de aplicação.
+- **Catálogo** usa Clean Architecture: separação em camadas Domain → Application → Infrastructure → API, com interfaces, repositórios e serviços de aplicação. O bounded context cobre cinco recursos: Produto, Categoria, Variante, Atributo e Mídia.
 
 ### Consequências
 

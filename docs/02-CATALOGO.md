@@ -22,9 +22,9 @@ Todos os endpoints seguem o prefixo `/api/v1/catalogo/`.
 |---|---|---|---|---|---|
 | Produtos | `GET /produtos` | `GET /produtos/{id}` | `POST /produtos` | `PUT /produtos/{id}` | `DELETE /produtos/{id}` |
 | Categorias | `GET /categorias` | `GET /categorias/{id}` | `POST /categorias` | `PUT /categorias/{id}` | `DELETE /categorias/{id}` |
-| Variantes | `GET /produtos/{id}/variantes` | `GET /produtos/{id}/variantes/{vid}` | `POST /produtos/{id}/variantes` | `PUT /produtos/{id}/variantes/{vid}` | `DELETE /produtos/{id}/variantes/{vid}` |
-| Atributos | `GET /produtos/{id}/atributos` | `GET /produtos/{id}/atributos/{aid}` | `POST /produtos/{id}/atributos` | `PUT /produtos/{id}/atributos/{aid}` | `DELETE /produtos/{id}/atributos/{aid}` |
-| Mídias | `GET /produtos/{id}/midias` | `GET /produtos/{id}/midias/{mid}` | `POST /produtos/{id}/midias` | `PUT /produtos/{id}/midias/{mid}` | `DELETE /produtos/{id}/midias/{mid}` |
+| Variantes | `GET /variantes?produtoId={id}` | `GET /variantes/{id}` | `POST /variantes` | `PUT /variantes/{id}`, `PATCH /variantes/{id}/estoque` | `DELETE /variantes/{id}` |
+| Atributos | `GET /atributos?produtoId={id}` | — | `POST /atributos` | `PUT /atributos/{id}` | `DELETE /atributos/{id}` |
+| Mídias | `GET /midias?produtoId={id}` | — | `POST /midias` | `PATCH /midias/{id}/ordem` | `DELETE /midias/{id}` |
 
 ### Políticas de Rate Limiting por verbo
 
