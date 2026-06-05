@@ -8,6 +8,11 @@
 Projeto educacional em .NET 10 Minimal API demonstrando três bounded contexts com padrões arquiteturais distintos coexistindo no mesmo repositório. Cada contexto resolve o mesmo problema técnico (uma API REST com persistência, validação e testes) com graus diferentes de estrutura — permitindo comparação direta entre abordagens.
 
 ---
+## Arquitetura de Referência
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/8e7e34ed-7037-40a7-8e79-775de33aebe4" />
+
+
+---
 
 ## Princípios e padrões implementados
 
