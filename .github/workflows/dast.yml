@@ -19,4 +19,3 @@ jobs:
     with:
       contexto-docker: .
       alvo: http://localhost:8080/health
-      regras-zap: .zap/regras.tsv

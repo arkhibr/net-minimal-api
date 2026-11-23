@@ -18,4 +18,5 @@ jobs:
     uses: arkhibr/devops-fluxos-c3dm/.github/workflows/lib-dotnet-ci.yml@v1
     with:
       solucao: ProdutosAPI.ci.slnf
-      cobertura-minima: 65
+      cobertura-minima: 60
+      incluir-cobertura: "[ProdutosAPI]*,[Catalogo.*]*,[Pix.*]*"

@@ -7,20 +7,22 @@ title = "net-minimal-api"
 [extend]
 useDefault = true
 
-# Os dois valores de appsettings.json abaixo não disparam as regras padrão da versão 8.30.1,
-# por terem entropia baixa. A exceção é preventiva: ela mantém a esteira verde se uma regra
+# Os dois valores abaixo são de demonstração. A senha senha123 consta em appsettings.json e no
+# README. A chave JWT consta em appsettings.json e como valor de reserva em Program.cs, e não
+# consta no README. Nenhum dos dois dispara as regras padrão da versão 8.30.1, por entropia baixa.
+# A exceção é preventiva: ela mantém a esteira verde se uma regra
 # futura passar a casar com eles, sem abrir o arquivo inteiro à varredura.
 
 [[allowlists]]
 description = "Chave JWT de demonstração de appsettings.json"
-# valor de demonstração documentado no README e restrito ao ambiente local
+# valor de demonstração presente em appsettings.json e em Program.cs, não documentado no README
 condition = "AND"
 paths = ['''^appsettings\.json$''']
 regexes = ['''^MinhaChaveSuperSecretaDePeloMenos32BytesAki123!$''']
 
 [[allowlists]]
 description = "Senha de administrador de demonstração de appsettings.json"
-# valor de demonstração documentado no README e restrito ao ambiente local
+# valor de demonstração presente em appsettings.json e documentado no README
 condition = "AND"
 paths = ['''^appsettings\.json$''']
 regexes = ['''^senha123$''']
@@ -38,7 +40,7 @@ regexes = ['''^SEU_TOKEN$''']
 description = "Chave de idempotência de exemplo no guia de melhores práticas"
 # valor de demonstração, identificador fictício de um exemplo de requisição
 condition = "AND"
-paths = ['''^docs/MELHORES-PRATICAS-API\.md$''']
+paths = ['''^docs/MELHORES-PRATICAS-API\.md$''', '''^docs/guias/MELHORES-PRATICAS-API\.md$''']
 regexes = ['''^meu-pedido-uuid-12345$''']
 
 [[allowlists]]
