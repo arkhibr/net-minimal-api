@@ -1,1 +1,4 @@
-# Regras do ZAP baseline. Formato: id<TAB>ação<TAB>justificativa na mesma linha.
+# Regras do ZAP baseline. Formato: id, ação e comentário separados por tabulação. Cada regra traz a justificativa na mesma linha.
+10021	IGNORE	(X-Content-Type-Options Header Missing) pendência de aplicação: cabeçalho a ser adicionado pela equipe em middleware, fora do escopo desta esteira
+10049	IGNORE	(Storable and Cacheable Content) pendência de aplicação: definir Cache-Control em /health, fora do escopo desta esteira
+90004	IGNORE	(Cross-Origin-Resource-Policy Header Missing or Invalid) pendência de aplicação: cabeçalho a ser definido pela equipe, fora do escopo desta esteira
