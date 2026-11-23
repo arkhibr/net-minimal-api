@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/TestResults/
+.git/
+.github/
+.worktrees/
+.claude/
+logs/
+*.db
+tests/
+docs/
+.env

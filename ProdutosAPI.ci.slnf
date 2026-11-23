@@ -1,0 +1,17 @@
+{
+  "solution": {
+    "path": "ProdutosAPI.slnx",
+    "projects": [
+      "ProdutosAPI.csproj",
+      "src/Catalogo/Catalogo.Domain/Catalogo.Domain.csproj",
+      "src/Catalogo/Catalogo.Application/Catalogo.Application.csproj",
+      "src/Catalogo/Catalogo.Infrastructure/Catalogo.Infrastructure.csproj",
+      "src/Catalogo/Catalogo.API/Catalogo.API.csproj",
+      "src/Catalogo/Catalogo.ClientDemo/Catalogo.ClientDemo.csproj",
+      "src/Pix/Pix.MockServer/Pix.MockServer.csproj",
+      "src/Pix/Pix.ClientDemo/Pix.ClientDemo.csproj",
+      "tests/ProdutosAPI.Tests/ProdutosAPI.Tests.csproj",
+      "tests/Pix.MockServer.Tests/Pix.MockServer.Tests.csproj"
+    ]
+  }
+}
