@@ -1,0 +1,23 @@
+name: Segurança estática
+
+# CodeQL para C# e Gitleaks sobre o código e o histórico, pela biblioteca devops-fluxos-c3dm.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seguranca-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seguranca:
+    permissions:
+      contents: read
+      security-events: write
+    uses: arkhibr/devops-fluxos-c3dm/.github/workflows/lib-seguranca.yml@v1
+    with:
+      linguagens: '["csharp"]'

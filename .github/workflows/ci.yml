@@ -1,0 +1,21 @@
+name: CI
+
+# Compila e testa a solução pela biblioteca devops-fluxos-c3dm.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: arkhibr/devops-fluxos-c3dm/.github/workflows/lib-dotnet-ci.yml@v1
+    with:
+      solucao: ProdutosAPI.ci.slnf
+      cobertura-minima: 60

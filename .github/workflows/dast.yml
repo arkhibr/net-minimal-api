@@ -1,0 +1,22 @@
+name: Segurança dinâmica
+
+# Constrói a imagem, sobe a API e roda o ZAP baseline, pela biblioteca devops-fluxos-c3dm.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dast:
+    uses: arkhibr/devops-fluxos-c3dm/.github/workflows/lib-dast.yml@v1
+    with:
+      contexto-docker: .
+      alvo: http://localhost:8080/health
+      regras-zap: .zap/regras.tsv
